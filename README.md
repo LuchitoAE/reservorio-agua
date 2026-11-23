@@ -65,6 +65,7 @@ python3 -m venv .venv
 .venv/bin/pip install platformio
 
 # editar credenciales WiFi
+cp firmware/include/secrets.example.h firmware/include/secrets.h
 $EDITOR firmware/include/secrets.h
 
 # compilar y subir

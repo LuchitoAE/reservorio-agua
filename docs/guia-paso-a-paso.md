@@ -196,7 +196,13 @@ python3 -m venv .venv
 
 ### 5.1 Configurar el WiFi (opcional en este paso)
 
-Edita `firmware/include/secrets.h`:
+Si acabas de clonar el repositorio, crea tu archivo local a partir del ejemplo:
+
+```bash
+cp firmware/include/secrets.example.h firmware/include/secrets.h
+```
+
+Edita `firmware/include/secrets.h` (ese archivo está ignorado por Git y no se publica):
 
 ```cpp
 #define WIFI_SSID "NombreDeTuRed"

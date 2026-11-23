@@ -10,3 +10,6 @@ lo-profile/
 # LibreOffice
 .~lock.*#
 ~$*
+
+# Credenciales locales (no subir)
+firmware/include/secrets.h

@@ -631,7 +631,7 @@ B(("tabla", {
     "rows": [
         ["src/main.cpp", "Arranque, WiFi, mDNS, bucle principal y monitor serie"],
         ["include/config.h", "Pines, tiempos y valores por defecto"],
-        ["include/secrets.h", "Credenciales WiFi"],
+        ["include/secrets.h", "Credenciales WiFi (local, ignorado por Git)"],
         ["src/ConfigStore.*", "Calibración y totalizador persistidos en NVS"],
         ["src/Telemetry.*", "Armado del JSON de telemetría"],
         ["src/sensors/*", "Una clase por sensor (nivel, caudal, temperatura, pH, turbidez)"],
@@ -643,8 +643,10 @@ B(("tabla", {
     "caption": "Organización del código del firmware",
 }))
 B(("h2", "8.2 Credenciales WiFi"))
-B(("p", "Edita `firmware/include/secrets.h` con los datos de tu red. Debe ser una red de 2.4 GHz: el "
-        "ESP32 no puede conectarse a redes de 5 GHz."))
+B(("p", "El archivo `secrets.h` no se publica: el repositorio incluye `secrets.example.h` con valores "
+        "de ejemplo. Cópialo una vez con `cp firmware/include/secrets.example.h firmware/include/secrets.h` "
+        "y edita el archivo local con los datos de tu red. Debe ser una red de 2.4 GHz: el ESP32 no "
+        "puede conectarse a redes de 5 GHz."))
 B(("codigo", "#pragma once\n\n#define WIFI_SSID \"NombreDeTuRed\"\n#define WIFI_PASS \"TuClave\""))
 B(("p", "Si dejas los valores de ejemplo o la red no responde en 15 segundos, la placa crea un punto "
         "de acceso llamado **Reservorio-Setup** con clave **reservorio** y publica el dashboard en "
