@@ -6,6 +6,8 @@ void TemperatureSensor::begin() {
   sensor_.setResolution(12);
   sensor_.setWaitForConversion(false);
 
+  Serial.printf("[temp] dispositivos en el bus 1-Wire: %u\n", deviceCount_);
+
   if (deviceCount_ > 0) sensor_.requestTemperatures();
   conversionPending_ = deviceCount_ > 0;
   conversionStartMs_ = millis();

@@ -85,6 +85,10 @@ HC-SR04 (ECHO), turbidez (AO) y pH (Po): esos **necesitan divisor**.
 
 Tu placa es la DevKit V1 de **30 pines**. Vista desde arriba, con el USB hacia abajo:
 
+> **Ojo con la serigrafía:** muchas placas imprimen `D4`, `D15`, `D18`… en lugar de
+> `GPIO4`, `GPIO15`, `GPIO18`. **Es el mismo pin**: `D4 = GPIO4`, `D19 = GPIO19`, etc.
+> Los pines de alimentación dicen `3V3`, `VIN`/`5V` y `GND`.
+
 ```
         lado izquierdo                 lado derecho
         ─────────────                  ────────────
@@ -397,6 +401,7 @@ visual), pero si no tienes claro su conexionado, sáltalo y hazlo al final.
 | Rojo (VDD) | **3V3** (no 5 V, para no meter 5 V en el bus) |
 | Negro (GND) | riel azul |
 | Amarillo (DATA) | GPIO 4 **y** resistencia de 4.7 kΩ a 3V3 |
+| — | En la placa, GPIO 4 está etiquetado como **D4** |
 
 ```
 3V3 ──[4.7k]──┬── GPIO4
