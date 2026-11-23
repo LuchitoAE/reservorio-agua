@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="910" viewBox="0 0 860 910" font-family="Inter, Segoe UI, system-ui, sans-serif">
+  <defs>
+    <linearGradient id="board" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1e293b"/>
+      <stop offset="1" stop-color="#0f172a"/>
+    </linearGradient>
+  </defs>
+  <rect width="860" height="910" fill="#f8fafc"/>
+  <text x="430" y="28" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">
+    ESP32 DevKit V1 · 30 pines
+  </text>
+  <text x="430" y="48" text-anchor="middle" font-size="12" fill="#64748b">
+    Vista superior · USB hacia abajo
+  </text>
+
+  <rect x="254" y="99" width="26" height="22" rx="3" fill="#94a3b8" opacity="0.35"/>
+  <text x="244" y="115" text-anchor="end" font-size="14" font-weight="600"
+        fill="#475569">EN</text>
+  <rect x="254" y="147" width="26" height="22" rx="3" fill="#94a3b8" opacity="0.35"/>
+  <text x="244" y="163" text-anchor="end" font-size="14" font-weight="600"
+        fill="#475569">36</text>
+  <rect x="254" y="195" width="26" height="22" rx="3" fill="#94a3b8" opacity="0.35"/>
+  <text x="244" y="211" text-anchor="end" font-size="14" font-weight="600"
+        fill="#475569">39</text>
+  <rect x="254" y="243" width="26" height="22" rx="3" fill="#7c3aed" opacity="0.95"/>
+  <text x="244" y="259" text-anchor="end" font-size="14" font-weight="600"
+        fill="#7c3aed">34</text>
+  <text x="170" y="258" text-anchor="end" font-size="10.5" fill="#64748b">pH · ADC1</text>
+  <rect x="254" y="291" width="26" height="22" rx="3" fill="#7c3aed" opacity="0.95"/>
+  <text x="244" y="307" text-anchor="end" font-size="14" font-weight="600"
+        fill="#7c3aed">35</text>
+  <text x="170" y="306" text-anchor="end" font-size="10.5" fill="#64748b">Turbidez · ADC1</text>
+  <rect x="254" y="339" width="26" height="22" rx="3" fill="#94a3b8" opacity="0.35"/>
+  <text x="244" y="355" text-anchor="end" font-size="14" font-weight="600"
+        fill="#475569">32</text>
+  <rect x="254" y="387" width="26" height="22" rx="3" fill="#94a3b8" opacity="0.35"/>
+  <text x="244" y="403" text-anchor="end" font-size="14" font-weight="600"
+        fill="#475569">33</text>
+  <rect x="254" y="435" width="26" height="22" rx="3" fill="#94a3b8" opacity="0.35"/>
+  <text x="244" y="451" text-anchor="end" font-size="14" font-weight="600"
+        fill="#475569">25</text>
+  <rect x="254" y="483" width="26" height="22" rx="3" fill="#94a3b8" opacity="0.35"/>
+  <text x="244" y="499" text-anchor="end" font-size="14" font-weight="600"
+        fill="#475569">26</text>
+  <rect x="254" y="531" width="26" height="22" rx="3" fill="#94a3b8" opacity="0.35"/>
+  <text x="244" y="547" text-anchor="end" font-size="14" font-weight="600"
+        fill="#475569">27</text>
+  <rect x="254" y="579" width="26" height="22" rx="3" fill="#94a3b8" opacity="0.35"/>
+  <text x="244" y="595" text-anchor="end" font-size="14" font-weight="600"
+        fill="#475569">14</text>
+  <rect x="254" y="627" width="26" height="22" rx="3" fill="#94a3b8" opacity="0.35"/>
+  <text x="244" y="643" text-anchor="end" font-size="14" font-weight="600"
+        fill="#475569">12</text>
+  <rect x="254" y="675" width="26" height="22" rx="3" fill="#94a3b8" opacity="0.35"/>
+  <text x="244" y="691" text-anchor="end" font-size="14" font-weight="600"
+        fill="#475569">13</text>
+  <rect x="254" y="723" width="26" height="22" rx="3" fill="#3b82f6" opacity="0.95"/>
+  <text x="244" y="739" text-anchor="end" font-size="14" font-weight="600"
+        fill="#3b82f6">GND</text>
+  <text x="170" y="738" text-anchor="end" font-size="10.5" fill="#64748b">GND</text>
+  <rect x="254" y="771" width="26" height="22" rx="3" fill="#ef4444" opacity="0.95"/>
+  <text x="244" y="787" text-anchor="end" font-size="14" font-weight="600"
+        fill="#ef4444">VIN</text>
+  <text x="170" y="786" text-anchor="end" font-size="10.5" fill="#64748b">5 V</text>
+  <rect x="520" y="99" width="26" height="22" rx="3" fill="#f59e0b" opacity="0.95"/>
+  <text x="556" y="115" font-size="14" font-weight="600"
+        fill="#f59e0b">3V3</text>
+  <text x="614" y="114" font-size="10.5" fill="#64748b">3.3 V</text>
+  <rect x="520" y="147" width="26" height="22" rx="3" fill="#3b82f6" opacity="0.95"/>
+  <text x="556" y="163" font-size="14" font-weight="600"
+        fill="#3b82f6">GND</text>
+  <text x="614" y="162" font-size="10.5" fill="#64748b">GND</text>
+  <rect x="520" y="195" width="26" height="22" rx="3" fill="#94a3b8" opacity="0.35"/>
+  <text x="556" y="211" font-size="14" font-weight="600"
+        fill="#475569">15</text>
+  <rect x="520" y="243" width="26" height="22" rx="3" fill="#94a3b8" opacity="0.35"/>
+  <text x="556" y="259" font-size="14" font-weight="600"
+        fill="#475569">2</text>
+  <rect x="520" y="291" width="26" height="22" rx="3" fill="#059669" opacity="0.95"/>
+  <text x="556" y="307" font-size="14" font-weight="600"
+        fill="#059669">4</text>
+  <text x="614" y="306" font-size="10.5" fill="#64748b">DS18B20</text>
+  <rect x="520" y="339" width="26" height="22" rx="3" fill="#94a3b8" opacity="0.35"/>
+  <text x="556" y="355" font-size="14" font-weight="600"
+        fill="#475569">16</text>
+  <rect x="520" y="387" width="26" height="22" rx="3" fill="#94a3b8" opacity="0.35"/>
+  <text x="556" y="403" font-size="14" font-weight="600"
+        fill="#475569">17</text>
+  <rect x="520" y="435" width="26" height="22" rx="3" fill="#94a3b8" opacity="0.35"/>
+  <text x="556" y="451" font-size="14" font-weight="600"
+        fill="#475569">5</text>
+  <rect x="520" y="483" width="26" height="22" rx="3" fill="#059669" opacity="0.95"/>
+  <text x="556" y="499" font-size="14" font-weight="600"
+        fill="#059669">18</text>
+  <text x="614" y="498" font-size="10.5" fill="#64748b">ECHO sonar</text>
+  <rect x="520" y="531" width="26" height="22" rx="3" fill="#059669" opacity="0.95"/>
+  <text x="556" y="547" font-size="14" font-weight="600"
+        fill="#059669">19</text>
+  <text x="614" y="546" font-size="10.5" fill="#64748b">TRIG sonar</text>
+  <rect x="520" y="579" width="26" height="22" rx="3" fill="#0891b2" opacity="0.95"/>
+  <text x="556" y="595" font-size="14" font-weight="600"
+        fill="#0891b2">21</text>
+  <text x="614" y="594" font-size="10.5" fill="#64748b">LCD SDA</text>
+  <rect x="520" y="627" width="26" height="22" rx="3" fill="#94a3b8" opacity="0.35"/>
+  <text x="556" y="643" font-size="14" font-weight="600"
+        fill="#475569">3</text>
+  <rect x="520" y="675" width="26" height="22" rx="3" fill="#94a3b8" opacity="0.35"/>
+  <text x="556" y="691" font-size="14" font-weight="600"
+        fill="#475569">1</text>
+  <rect x="520" y="723" width="26" height="22" rx="3" fill="#0891b2" opacity="0.95"/>
+  <text x="556" y="739" font-size="14" font-weight="600"
+        fill="#0891b2">22</text>
+  <text x="614" y="738" font-size="10.5" fill="#64748b">LCD SCL</text>
+  <rect x="520" y="771" width="26" height="22" rx="3" fill="#059669" opacity="0.95"/>
+  <text x="556" y="787" font-size="14" font-weight="600"
+        fill="#059669">23</text>
+  <text x="614" y="786" font-size="10.5" fill="#64748b">YF-S201</text>
+  <rect x="280" y="70" width="240" height="770" rx="18"
+        fill="url(#board)" stroke="#334155" stroke-width="2"/>
+  <rect x="304" y="112" width="192" height="96" rx="8"
+        fill="#0b1220" stroke="#334155"/>
+  <text x="400" y="156" text-anchor="middle" font-size="13"
+        fill="#cbd5e1" letter-spacing="2">ESP32</text>
+  <text x="400" y="178" text-anchor="middle" font-size="10"
+        fill="#64748b">WROOM-32</text>
+  <rect x="310" y="230" width="180" height="1" fill="#334155"/>
+
+  <rect x="354" y="804" width="92" height="34" rx="6"
+        fill="#475569" stroke="#64748b"/>
+  <text x="400" y="825" text-anchor="middle" font-size="9"
+        fill="#e2e8f0">USB-C</text>
+
+  <text x="296" y="285" font-size="10" font-weight="700" fill="#94a3b8" letter-spacing="1">REFERENCIAS</text>
+  <rect x="296" y="303" width="12" height="12" rx="3" fill="#ef4444"/>
+  <text x="316" y="313" font-size="11" fill="#cbd5e1">5 V (VIN)</text>
+  <rect x="296" y="329" width="12" height="12" rx="3" fill="#f59e0b"/>
+  <text x="316" y="339" font-size="11" fill="#cbd5e1">3.3 V</text>
+  <rect x="296" y="355" width="12" height="12" rx="3" fill="#3b82f6"/>
+  <text x="316" y="365" font-size="11" fill="#cbd5e1">GND</text>
+  <rect x="296" y="381" width="12" height="12" rx="3" fill="#059669"/>
+  <text x="316" y="391" font-size="11" fill="#cbd5e1">Digital</text>
+  <rect x="296" y="407" width="12" height="12" rx="3" fill="#7c3aed"/>
+  <text x="316" y="417" font-size="11" fill="#cbd5e1">ADC (analógico)</text>
+  <rect x="296" y="433" width="12" height="12" rx="3" fill="#0891b2"/>
+  <text x="316" y="443" font-size="11" fill="#cbd5e1">I2C</text>
+  <text x="296" y="500" font-size="10" fill="#94a3b8">No usar:</text>
+  <text x="296" y="516" font-size="10" fill="#64748b">GPIO 6–11 (flash)</text>
+  <text x="296" y="531" font-size="10" fill="#64748b">GPIO 0, 2, 12, 15</text>
+  <text x="296" y="546" font-size="10" fill="#64748b">(pines de arranque)</text>
+  <text x="296" y="575" font-size="10" fill="#94a3b8">34–39 solo entrada</text>
+  <text x="296" y="590" font-size="10" fill="#64748b">(por eso van ahí las</text>
+  <text x="296" y="605" font-size="10" fill="#64748b">señales analógicas)</text>
+
+  <text x="430" y="886" text-anchor="middle" font-size="11" fill="#64748b">
+    Verifica siempre la serigrafía de tu placa: el orden de los pines cambia entre clones.
+  </text>
+</svg>

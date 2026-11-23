@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#061320" />
+  <title>Reservorio de Agua · Monitoreo</title>
+  <meta name="description" content="Tablero de monitoreo del reservorio: nivel, caudal, temperatura, pH y turbidez." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%2338bdf8' d='M16 3C10 11 7 15 7 19a9 9 0 0 0 18 0c0-4-3-8-9-16z'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+          <path d="M12 2.7C8 8 5.8 11 5.8 14a6.2 6.2 0 0 0 12.4 0c0-3-2.2-6-6.2-11.3Z" />
+          <path d="M9.2 15.2c.3-1.5 1.2-2.5 2.1-3.4" stroke-linecap="round" />
+        </svg>
+      </span>
+      <div>
+        <h1>Reservorio de Agua</h1>
+        <p>Monitoreo en tiempo real · ESP32</p>
+      </div>
+    </div>
+
+    <div class="topbar-actions">
+      <label class="select-wrap">
+        <span>Fuente</span>
+        <select id="source-select">
+          <option value="auto">Auto</option>
+          <option value="esp32">ESP32</option>
+          <option value="demo">Demo</option>
+        </select>
+      </label>
+      <span id="source-badge" class="chip chip--muted">conectando…</span>
+      <span id="last-update" class="chip chip--ghost">—</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" aria-label="Resumen del nivel">
+      <div class="tank-wrap">
+        <div class="tank" role="img" aria-labelledby="tank-label">
+          <div class="tank-water" data-tank-water style="--level: 0%">
+            <span class="tank-wave"></span>
+            <span class="tank-wave tank-wave--slow"></span>
+          </div>
+          <div class="tank-glare" aria-hidden="true"></div>
+        </div>
+        <div class="tank-scale" aria-hidden="true">
+          <span>100</span><span>75</span><span>50</span><span>25</span><span>0</span>
+        </div>
+      </div>
+
+      <div class="hero-info">
+        <p class="eyebrow" id="tank-label">Nivel del reservorio</p>
+        <p class="hero-value">
+          <span data-field="percent">--</span><small>%</small>
+        </p>
+        <p class="hero-sub">
+          <span data-field="liters">--</span> L estimados
+          <span class="sep">·</span>
+          <span data-field="levelCm">--</span> cm
+        </p>
+        <div class="hero-pills">
+          <span class="pill"><i class="pill-dot" data-state-dot="temperature"></i>Temperatura <b data-field="temperature">--</b></span>
+          <span class="pill"><i class="pill-dot" data-state-dot="ph"></i>pH <b data-field="ph">--</b></span>
+          <span class="pill"><i class="pill-dot" data-state-dot="turbidity"></i>Turbidez <b data-field="ntu">--</b></span>
+        </div>
+        <p class="hero-hint" id="hero-hint">Esperando la primera lectura…</p>
+      </div>
+    </section>
+
+    <section class="grid" aria-label="Sensores">
+      <article class="card" data-sensor="level">
+        <header class="card-head">
+          <span class="card-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <path d="M3 8c2.5 0 2.5 2 5 2s2.5-2 5-2 2.5 2 5 2 2.5-2 3-2" stroke-linecap="round"/>
+              <path d="M3 14c2.5 0 2.5 2 5 2s2.5-2 5-2 2.5 2 5 2 2.5-2 3-2" stroke-linecap="round"/>
+              <path d="M3 20c2.5 0 2.5 2 5 2" stroke-linecap="round" opacity=".5"/>
+            </svg>
+          </span>
+          <div class="card-title">
+            <h2>Nivel de agua</h2>
+            <p>HC-SR04 · ultrasónico</p>
+          </div>
+          <span class="dot" data-state="level" title="estado"></span>
+        </header>
+        <div class="card-value"><span class="value" data-field="percent">--</span><span class="unit">%</span></div>
+        <p class="card-meta" data-meta="level">Sin lectura</p>
+        <canvas class="spark" data-spark="level" height="46" aria-hidden="true"></canvas>
+        <footer class="card-foot">
+          <span>Distancia <b data-field="distance">--</b> cm</span>
+          <span>Altura <b data-field="tankHeight">--</b> cm</span>
+        </footer>
+      </article>
+
+      <article class="card" data-sensor="flow">
+        <header class="card-head">
+          <span class="card-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <path d="M3 7h9l4 0" stroke-linecap="round"/>
+              <path d="m13 4 3 3-3 3" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M3 12h13" stroke-linecap="round"/>
+              <path d="M3 17h10" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <div class="card-title">
+            <h2>Caudal</h2>
+            <p>YF-S201 · efecto Hall</p>
+          </div>
+          <span class="dot" data-state="flow" title="estado"></span>
+        </header>
+        <div class="card-value"><span class="value" data-field="lpm">--</span><span class="unit">L/min</span></div>
+        <p class="card-meta" data-meta="flow">Sin lectura</p>
+        <canvas class="spark" data-spark="flow" height="46" aria-hidden="true"></canvas>
+        <footer class="card-foot">
+          <span>Acumulado <b data-field="totalL">--</b> L</span>
+          <span>Pulsos <b data-field="pulses">--</b></span>
+        </footer>
+      </article>
+
+      <article class="card" data-sensor="temperature">
+        <header class="card-head">
+          <span class="card-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <path d="M10 13.6V5a2 2 0 1 1 4 0v8.6a4.5 4.5 0 1 1-4 0Z" stroke-linejoin="round"/>
+              <path d="M12 9v6" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <div class="card-title">
+            <h2>Temperatura</h2>
+            <p>DS18B20 · 1-Wire</p>
+          </div>
+          <span class="dot" data-state="temperature" title="estado"></span>
+        </header>
+        <div class="card-value"><span class="value" data-field="temperature">--</span><span class="unit">°C</span></div>
+        <p class="card-meta" data-meta="temperature">Sin lectura</p>
+        <canvas class="spark" data-spark="temperature" height="46" aria-hidden="true"></canvas>
+        <footer class="card-foot">
+          <span>Resolución <b>0.06 °C</b></span>
+          <span>Conversión <b>12 bit</b></span>
+        </footer>
+      </article>
+
+      <article class="card" data-sensor="ph">
+        <header class="card-head">
+          <span class="card-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <path d="M10 3h4M11 3v5.5L6.8 17a4 4 0 0 0 3.6 5.8h3.2a4 4 0 0 0 3.6-5.8L13 8.5V3" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M8 14h8" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <div class="card-title">
+            <h2>pH del agua</h2>
+            <p>PH-7BNC · sonda BNC</p>
+          </div>
+          <span class="dot" data-state="ph" title="estado"></span>
+        </header>
+        <div class="card-value"><span class="value" data-field="ph">--</span><span class="unit">pH</span></div>
+        <p class="card-meta" data-meta="ph">Sin lectura</p>
+        <canvas class="spark" data-spark="ph" height="46" aria-hidden="true"></canvas>
+        <footer class="card-foot">
+          <span>Voltaje <b data-field="phVoltage">--</b> V</span>
+          <span>ADC <b data-field="phRaw">--</b></span>
+        </footer>
+      </article>
+
+      <article class="card" data-sensor="turbidity">
+        <header class="card-head">
+          <span class="card-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6Z" stroke-linejoin="round"/>
+              <circle cx="12" cy="12" r="2.6"/>
+            </svg>
+          </span>
+          <div class="card-title">
+            <h2>Turbidez</h2>
+            <p>SEN0189 · TS-300B</p>
+          </div>
+          <span class="dot" data-state="turbidity" title="estado"></span>
+        </header>
+        <div class="card-value"><span class="value" data-field="ntu">--</span><span class="unit">NTU</span></div>
+        <p class="card-meta" data-meta="turbidity">Sin lectura</p>
+        <canvas class="spark" data-spark="turbidity" height="46" aria-hidden="true"></canvas>
+        <footer class="card-foot">
+          <span>Claridad <b data-field="clarity">--</b> %</span>
+          <span>Voltaje <b data-field="turbVoltage">--</b> V</span>
+        </footer>
+      </article>
+
+      <article class="card card--system" data-sensor="system">
+        <header class="card-head">
+          <span class="card-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <rect x="7" y="7" width="10" height="10" rx="2"/>
+              <path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <div class="card-title">
+            <h2>Sistema</h2>
+            <p>ESP32 DevKit V1 · WiFi</p>
+          </div>
+          <span class="dot" data-state="system" title="estado"></span>
+        </header>
+        <div class="card-value"><span class="value" data-field="sensorsOk">--</span><span class="unit">/ 5 sensores</span></div>
+        <p class="card-meta" data-meta="system">Sin lectura</p>
+        <dl class="kv">
+          <div><dt>IP</dt><dd data-field="ip">--</dd></div>
+          <div><dt>WiFi</dt><dd data-field="rssi">--</dd></div>
+          <div><dt>Encendido</dt><dd data-field="uptime">--</dd></div>
+          <div><dt>RAM libre</dt><dd data-field="heap">--</dd></div>
+        </dl>
+      </article>
+    </section>
+
+    <section class="panel" aria-labelledby="diag-title">
+      <div class="panel-head">
+        <div>
+          <h2 id="diag-title">Diagnóstico y pruebas</h2>
+          <p>Valores crudos y calibración. Disponible solo con el ESP32 conectado.</p>
+        </div>
+        <span class="chip chip--ghost" id="diag-mode">modo demo</span>
+      </div>
+
+      <div class="panel-grid">
+        <div class="panel-block">
+          <h3>Lecturas crudas</h3>
+          <table class="raw-table">
+            <thead><tr><th>Señal</th><th>ADC</th><th>Voltaje</th></tr></thead>
+            <tbody>
+              <tr><td>pH</td><td data-raw="ph">--</td><td data-raw="phV">--</td></tr>
+              <tr><td>Turbidez</td><td data-raw="turb">--</td><td data-raw="turbV">--</td></tr>
+              <tr><td>Ultrasónico</td><td colspan="2" data-raw="distance">--</td></tr>
+              <tr><td>Flujo (pulsos)</td><td colspan="2" data-raw="pulses">--</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <form class="panel-block" id="config-form">
+          <h3>Ajustes del tanque</h3>
+          <label>Altura (cm)
+            <input type="number" name="tankHeightCm" min="10" max="1000" step="0.5" />
+          </label>
+          <label>Offset del sensor (cm)
+            <input type="number" name="sensorOffsetCm" min="-50" max="50" step="0.5" />
+          </label>
+          <div class="row">
+            <button type="submit" class="btn btn--primary">Guardar</button>
+            <button type="button" class="btn btn--ghost" id="reload-config">Recargar</button>
+          </div>
+        </form>
+
+        <div class="panel-block">
+          <h3>Calibración</h3>
+          <div class="btn-grid">
+            <button class="btn" data-calibrate="ph7" disabled>Buffer pH 7</button>
+            <button class="btn" data-calibrate="ph4" disabled>Buffer pH 4</button>
+            <button class="btn" data-calibrate="turbidity-clear" disabled>Agua clara</button>
+            <button class="btn btn--ghost" data-action="reset-flow" disabled>Reiniciar total</button>
+          </div>
+          <p class="hint">Sumerge el sensor en el buffer, espera 60 s y pulsa el botón.</p>
+        </div>
+
+        <div class="panel-block panel-block--log">
+          <h3>Registro</h3>
+          <ul class="log" id="log" aria-live="polite"></ul>
+        </div>
+      </div>
+    </section>
+
+    <footer class="page-foot">
+      <p>Fase 1 · firmware ESP32 + dashboard local. Calibración y pruebas en <code>docs/</code>.</p>
+      <p>API: <a href="./api/telemetry">/api/telemetry</a></p>
+    </footer>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <noscript>
+    <p class="noscript">Este tablero necesita JavaScript para leer los sensores.</p>
+  </noscript>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="800" viewBox="0 0 1400 800">
+  <rect width="1400" height="800" fill="#ffffff"/>
+  
+  <rect width="1400" height="96" fill="#f1f5f9"/>
+  <rect x="0" y="92" width="1400" height="4" fill="#0891b2"/>
+  <text x="40" y="42" font-size="26" font-weight="700" fill="#0f172a" font-family="Arial, Helvetica, sans-serif">Arquitectura del sistema</text>
+  <text x="40" y="70" font-size="14" fill="#64748b" font-family="Arial, Helvetica, sans-serif">Sensores, controlador y visualización · fase 1 y fase 2</text>
+
+
+  <rect x="50" y="140" width="320" height="480" rx="18" fill="#f8fafc" stroke="#cbd5e1" stroke-dasharray="6 6"/>
+  <text x="70" y="172" font-size="13" font-weight="700" fill="#64748b" letter-spacing="1.5" font-family="Arial, Helvetica, sans-serif">SENSORES</text>
+
+  <rect x="70" y="192" width="280" height="66" rx="10" fill="#ffffff" stroke="#e2e8f0"/>
+  <rect x="70" y="192" width="5" height="66" rx="2" fill="#059669"/>
+  <text x="90" y="219" font-size="14.5" font-weight="700" fill="#0f172a" font-family="Arial, Helvetica, sans-serif">HC-SR04</text>
+  <text x="90" y="239" font-size="11.5" fill="#64748b" font-family="Arial, Helvetica, sans-serif">Nivel · ultrasónico</text>
+  <text x="330" y="219" text-anchor="end" font-size="11" font-weight="600" fill="#059669" font-family="Arial, Helvetica, sans-serif">GPIO 19 / 18</text>
+  <rect x="70" y="274" width="280" height="66" rx="10" fill="#ffffff" stroke="#e2e8f0"/>
+  <rect x="70" y="274" width="5" height="66" rx="2" fill="#059669"/>
+  <text x="90" y="301" font-size="14.5" font-weight="700" fill="#0f172a" font-family="Arial, Helvetica, sans-serif">DS18B20</text>
+  <text x="90" y="321" font-size="11.5" fill="#64748b" font-family="Arial, Helvetica, sans-serif">Temperatura · 1-Wire</text>
+  <text x="330" y="301" text-anchor="end" font-size="11" font-weight="600" fill="#059669" font-family="Arial, Helvetica, sans-serif">GPIO 4</text>
+  <rect x="70" y="356" width="280" height="66" rx="10" fill="#ffffff" stroke="#e2e8f0"/>
+  <rect x="70" y="356" width="5" height="66" rx="2" fill="#059669"/>
+  <text x="90" y="383" font-size="14.5" font-weight="700" fill="#0f172a" font-family="Arial, Helvetica, sans-serif">YF-S201</text>
+  <text x="90" y="403" font-size="11.5" fill="#64748b" font-family="Arial, Helvetica, sans-serif">Caudal · pulsos</text>
+  <text x="330" y="383" text-anchor="end" font-size="11" font-weight="600" fill="#059669" font-family="Arial, Helvetica, sans-serif">GPIO 23</text>
+  <rect x="70" y="438" width="280" height="66" rx="10" fill="#ffffff" stroke="#e2e8f0"/>
+  <rect x="70" y="438" width="5" height="66" rx="2" fill="#7c3aed"/>
+  <text x="90" y="465" font-size="14.5" font-weight="700" fill="#0f172a" font-family="Arial, Helvetica, sans-serif">SEN0189</text>
+  <text x="90" y="485" font-size="11.5" fill="#64748b" font-family="Arial, Helvetica, sans-serif">Turbidez · analógico</text>
+  <text x="330" y="465" text-anchor="end" font-size="11" font-weight="600" fill="#7c3aed" font-family="Arial, Helvetica, sans-serif">GPIO 35 (ADC1)</text>
+  <rect x="70" y="520" width="280" height="66" rx="10" fill="#ffffff" stroke="#e2e8f0"/>
+  <rect x="70" y="520" width="5" height="66" rx="2" fill="#7c3aed"/>
+  <text x="90" y="547" font-size="14.5" font-weight="700" fill="#0f172a" font-family="Arial, Helvetica, sans-serif">PH-7BNC</text>
+  <text x="90" y="567" font-size="11.5" fill="#64748b" font-family="Arial, Helvetica, sans-serif">pH · analógico</text>
+  <text x="330" y="547" text-anchor="end" font-size="11" font-weight="600" fill="#7c3aed" font-family="Arial, Helvetica, sans-serif">GPIO 34 (ADC1)</text>
+  <rect x="550" y="170" width="320" height="420" rx="20" fill="#0f2a3d"/>
+  <rect x="550" y="170" width="320" height="420" rx="20" fill="none" stroke="#0891b2" stroke-width="2"/>
+  <text x="710" y="216" text-anchor="middle" font-size="21" font-weight="700" fill="#ffffff" font-family="Arial, Helvetica, sans-serif">ESP32 DevKit V1</text>
+  <text x="710" y="240" text-anchor="middle" font-size="12" fill="#7dd3fc" font-family="Arial, Helvetica, sans-serif">WiFi 2.4 GHz · 3.3 V · 30 pines</text>
+  <line x1="590" y1="262" x2="830" y2="262" stroke="#1e4b66"/>
+
+  <text x="590" y="296" font-size="11.5" font-weight="700" fill="#7dd3fc" font-family="Arial, Helvetica, sans-serif">ADC1</text>
+  <text x="800" y="296" text-anchor="end" font-size="12" fill="#cbd5e1" font-family="Arial, Helvetica, sans-serif">pH y turbidez</text>
+  <line x1="590" y1="312" x2="830" y2="312" stroke="#173f56"/>
+  <text x="590" y="348" font-size="11.5" font-weight="700" fill="#7dd3fc" font-family="Arial, Helvetica, sans-serif">GPIO</text>
+  <text x="800" y="348" text-anchor="end" font-size="12" fill="#cbd5e1" font-family="Arial, Helvetica, sans-serif">ultrasónico y flujo</text>
+  <line x1="590" y1="364" x2="830" y2="364" stroke="#173f56"/>
+  <text x="590" y="400" font-size="11.5" font-weight="700" fill="#7dd3fc" font-family="Arial, Helvetica, sans-serif">1-Wire</text>
+  <text x="800" y="400" text-anchor="end" font-size="12" fill="#cbd5e1" font-family="Arial, Helvetica, sans-serif">temperatura</text>
+  <line x1="590" y1="416" x2="830" y2="416" stroke="#173f56"/>
+  <text x="590" y="452" font-size="11.5" font-weight="700" fill="#7dd3fc" font-family="Arial, Helvetica, sans-serif">I2C</text>
+  <text x="800" y="452" text-anchor="end" font-size="12" fill="#cbd5e1" font-family="Arial, Helvetica, sans-serif">pantalla LCD</text>
+  <line x1="590" y1="468" x2="830" y2="468" stroke="#173f56"/>
+  <text x="590" y="504" font-size="11.5" font-weight="700" fill="#7dd3fc" font-family="Arial, Helvetica, sans-serif">HTTP / JSON</text>
+  <text x="800" y="504" text-anchor="end" font-size="12" fill="#cbd5e1" font-family="Arial, Helvetica, sans-serif">API local</text>
+  <line x1="590" y1="520" x2="830" y2="520" stroke="#173f56"/>
+  <line x1="710" y1="590" x2="710" y2="620" stroke="#0891b2" stroke-width="2.2" marker-end="url(#arrow2)"/>
+  <text x="722" y="610" font-size="10.5" fill="#0891b2" font-family="Arial, Helvetica, sans-serif">I2C</text>
+
+  <rect x="550" y="625" width="320" height="112" rx="14" fill="#ffffff" stroke="#0891b2" stroke-width="2.2"/>
+  <rect x="550" y="625" width="8" height="112" rx="4" fill="#0891b2"/>
+  <text x="574" y="659" font-size="17" font-weight="700" fill="#0f172a" font-family="Arial, Helvetica, sans-serif">LCD 1602 I2C</text>
+  <text x="574" y="681" font-size="12.5" fill="#0891b2" font-family="Arial, Helvetica, sans-serif">Visualización local</text>
+  <text x="574" y="707" font-size="12" fill="#475569" font-family="Arial, Helvetica, sans-serif">4 páginas rotativas:</text>
+  <text x="574" y="726" font-size="12" fill="#475569" font-family="Arial, Helvetica, sans-serif">nivel · temperatura · caudal · turbidez</text>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#94a3b8"/>
+    </marker>
+    <marker id="arrow2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#0891b2"/>
+    </marker>
+  </defs>
+  <line x1="390" y1="390" x2="540" y2="390" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="462" y="378" text-anchor="middle" font-size="11" fill="#64748b" font-family="Arial, Helvetica, sans-serif">señales</text>
+
+  <rect x="990" y="150" width="360" height="200" rx="14" fill="#ffffff" stroke="#0891b2" stroke-width="2.2"/>
+  <rect x="990" y="150" width="8" height="200" rx="4" fill="#0891b2"/>
+  <text x="1014" y="184" font-size="17" font-weight="700" fill="#0f172a" font-family="Arial, Helvetica, sans-serif">Dashboard web</text>
+  <text x="1014" y="206" font-size="12.5" fill="#0891b2" font-family="Arial, Helvetica, sans-serif">Navegador · fase 1</text>
+  <text x="1014" y="232" font-size="12" fill="#475569" font-family="Arial, Helvetica, sans-serif">Tarjetas por sensor, tanque virtual,</text>
+  <text x="1014" y="251" font-size="12" fill="#475569" font-family="Arial, Helvetica, sans-serif">diagnóstico y calibración.</text>
+  <text x="1014" y="270" font-size="12" fill="#475569" font-family="Arial, Helvetica, sans-serif">Servido por el ESP32 o local</text>
+  <line x1="870" y1="250" x2="980" y2="250" stroke="#0891b2" stroke-width="2.4" marker-end="url(#arrow2)"/>
+  <text x="925" y="238" text-anchor="middle" font-size="11" fill="#0891b2" font-family="Arial, Helvetica, sans-serif">HTTP</text>
+
+  <rect x="990" y="400" width="360" height="160" rx="14" fill="#ffffff" stroke="#94a3b8" stroke-width="2.2" stroke-dasharray="8 6"/>
+  <rect x="990" y="400" width="8" height="160" rx="4" fill="#94a3b8"/>
+  <text x="1014" y="434" font-size="17" font-weight="700" fill="#0f172a" font-family="Arial, Helvetica, sans-serif">Vercel + Supabase</text>
+  <text x="1014" y="456" font-size="12.5" fill="#94a3b8" font-family="Arial, Helvetica, sans-serif">Fase 2 (pendiente)</text>
+  <text x="1014" y="482" font-size="12" fill="#475569" font-family="Arial, Helvetica, sans-serif">Web pública y telemetría histórica.</text>
+  <text x="1014" y="501" font-size="12" fill="#475569" font-family="Arial, Helvetica, sans-serif">El ESP32 sube lecturas por HTTPS.</text>
+  <line x1="870" y1="330" x2="930" y2="330" stroke="#94a3b8" stroke-dasharray="7 6"/>
+  <line x1="930" y1="330" x2="930" y2="480" stroke="#94a3b8" stroke-dasharray="7 6"/>
+  <line x1="930" y1="480" x2="980" y2="480" stroke="#94a3b8" stroke-dasharray="7 6" marker-end="url(#arrow)"/>
+  <text x="944" y="410" font-size="10.5" fill="#94a3b8" font-family="Arial, Helvetica, sans-serif" transform="rotate(-90 944 410)">HTTPS</text>
+
+  <text x="700.0" y="778" text-anchor="middle" font-size="12" fill="#94a3b8" font-family="Arial, Helvetica, sans-serif">Línea continua: implementado en la fase 1 · Línea discontinua: fase 2 (documentada, no implementada)</text>
+</svg>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640">
+  <rect width="1200" height="640" fill="#ffffff"/>
+  
+  <rect width="1200" height="96" fill="#f1f5f9"/>
+  <rect x="0" y="92" width="1200" height="4" fill="#0891b2"/>
+  <text x="40" y="42" font-size="26" font-weight="700" fill="#0f172a" font-family="Arial, Helvetica, sans-serif">Montaje en la protoboard</text>
+  <text x="40" y="70" font-size="14" fill="#64748b" font-family="Arial, Helvetica, sans-serif">Vista superior · sin soldadura</text>
+
+  <rect x="40" y="140" width="1120" height="420" rx="18" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+
+  <line x1="80" y1="178" x2="1120" y2="178" stroke="#ef4444" stroke-width="4"/>
+  <line x1="80" y1="212" x2="1120" y2="212" stroke="#2563eb" stroke-width="4"/>
+  <text x="1130" y="183" font-size="11" fill="#ef4444" font-family="Arial, Helvetica, sans-serif">+ 5 V</text>
+  <text x="1130" y="217" font-size="11" fill="#2563eb" font-family="Arial, Helvetica, sans-serif">− GND</text>
+
+  <rect x="80" y="250" width="1040" height="60" fill="#eef2f7" stroke="#e2e8f0"/>
+  <text x="600" y="285" text-anchor="middle" font-size="11" fill="#94a3b8" font-family="Arial, Helvetica, sans-serif">filas 1–30 (5 huecos unidos por fila)</text>
+
+  <rect x="80" y="320" width="1040" height="26" fill="#e2e8f0"/>
+  <text x="600" y="338" text-anchor="middle" font-size="11" fill="#64748b" font-family="Arial, Helvetica, sans-serif">canal central</text>
+
+  <rect x="80" y="356" width="1040" height="60" fill="#eef2f7" stroke="#e2e8f0"/>
+  <text x="600" y="391" text-anchor="middle" font-size="11" fill="#94a3b8" font-family="Arial, Helvetica, sans-serif">filas 31–60</text>
+
+  <line x1="80" y1="452" x2="1120" y2="452" stroke="#ef4444" stroke-width="4"/>
+  <line x1="80" y1="486" x2="1120" y2="486" stroke="#2563eb" stroke-width="4"/>
+  <text x="1130" y="457" font-size="11" fill="#ef4444" font-family="Arial, Helvetica, sans-serif">+ 5 V</text>
+  <text x="1130" y="491" font-size="11" fill="#2563eb" font-family="Arial, Helvetica, sans-serif">− GND</text>
+
+  <rect x="110" y="238" width="150" height="160" rx="8" fill="#0f2a3d" stroke="#0891b2" stroke-width="2"/>
+  <text x="185" y="306" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff" font-family="Arial, Helvetica, sans-serif">ESP32</text>
+  <text x="185" y="326" text-anchor="middle" font-size="10" fill="#7dd3fc" font-family="Arial, Helvetica, sans-serif">a caballo del canal</text>
+  <text x="185" y="344" text-anchor="middle" font-size="10" fill="#64748b" font-family="Arial, Helvetica, sans-serif">USB hacia la izquierda</text>
+
+  <path d="M 286 238 L 286 182" stroke="#ef4444" stroke-width="2.5" marker-end="url(#ar)"/>
+  <path d="M 314 238 L 314 216" stroke="#2563eb" stroke-width="2.5" marker-end="url(#ab)"/>
+  <circle cx="330" cy="505" r="4" fill="#ef4444"/>
+  <text x="342" y="509" font-size="10.5" fill="#475569" font-family="Arial, Helvetica, sans-serif">VIN → riel rojo (+5 V)</text>
+  <circle cx="330" cy="527" r="4" fill="#2563eb"/>
+  <text x="342" y="531" font-size="10.5" fill="#475569" font-family="Arial, Helvetica, sans-serif">GND → riel azul (tierra común)</text>
+
+  <text x="70" y="600" font-size="12" fill="#64748b" font-family="Arial, Helvetica, sans-serif">Los rieles suelen estar partidos en el medio: únelos con un puente. Nunca lleves 3.3 V al riel rojo.</text>
+  <defs>
+    <marker id="ar" markerWidth="8" markerHeight="8" refX="6" refY="2.5" orient="auto">
+      <path d="M0,0 L0,5 L8,2.5 z" fill="#ef4444"/>
+    </marker>
+    <marker id="ab" markerWidth="8" markerHeight="8" refX="6" refY="2.5" orient="auto">
+      <path d="M0,0 L0,5 L8,2.5 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+</svg>

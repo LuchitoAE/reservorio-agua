@@ -1,0 +1,19 @@
+{
+  "name": "reservorio-agua",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Monitoreo de reservorio de agua con ESP32 y dashboard web",
+  "scripts": {
+    "dev": "node tools/dev-server.js",
+    "sync": "node tools/sync-web.js",
+    "fw:build": "bash tools/pio.sh run -d firmware",
+    "fw:upload": "bash tools/pio.sh run -d firmware -t upload",
+    "fw:fs": "bash tools/pio.sh run -d firmware -t uploadfs",
+    "fw:monitor": "bash tools/pio.sh device monitor -d firmware -b 115200",
+    "fw:clean": "bash tools/pio.sh run -d firmware -t clean"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
