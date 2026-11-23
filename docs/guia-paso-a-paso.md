@@ -154,7 +154,8 @@ dmesg | tail -20        # busca "ch341" o "cp210x"
 Si el puerto aparece pero da "permiso denegado":
 
 ```bash
-sudo usermod -aG dialout $USER
+sudo usermod -aG dialout $USER   # Debian / Ubuntu
+sudo usermod -aG uucp $USER      # Arch / Manjaro
 # cierra sesión y vuelve a entrar (o reinicia)
 ```
 

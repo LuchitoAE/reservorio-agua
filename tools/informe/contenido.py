@@ -596,7 +596,8 @@ B(("p", "En esta computadora PlatformIO ya está instalado dentro de la carpeta 
 B(("h2", "7.2 Reconocer la placa y el puerto"))
 B(("codigo", "cd ~/Proyectos/Reservorio_Agua\nls /dev/ttyUSB* /dev/ttyACM*\n.venv/bin/pio device list"))
 B(("p", "El puerto suele ser `/dev/ttyUSB0` (chip CH340) o `/dev/ttyACM0` (CP2102). Si aparece pero da "
-        "«permiso denegado», agrega tu usuario al grupo `dialout` y vuelve a iniciar sesión:"))
+        "«permiso denegado», agrega tu usuario al grupo `dialout` (Debian/Ubuntu) o `uucp` (Arch) y "
+        "vuelve a iniciar sesión:"))
 B(("codigo", "sudo usermod -aG dialout $USER"))
 B(("p", "Si no aparece ningún puerto, revisa el cable (debe ser de datos), prueba otro puerto USB y "
         "consulta `dmesg | tail -20` para ver si el sistema detectó el adaptador."))
@@ -976,7 +977,7 @@ B(("tabla", {
     "headers": ["Síntoma", "Causa probable", "Solución"],
     "rows": [
         ["No aparece el puerto USB", "Cable de carga o falta el driver", "Probar un cable de datos; instalar CH340 o CP210x"],
-        ["Permiso denegado en el puerto", "Usuario fuera del grupo dialout", "sudo usermod -aG dialout $USER y reentrar"],
+        ["Permiso denegado en el puerto", "Usuario fuera del grupo dialout/uucp", "Agregar al grupo (dialout o uucp) y reentrar"],
         ["Failed to connect al subir", "Placa no está en modo descarga", "BOOT + EN, o bajar la velocidad a 115200"],
         ["Se reinicia solo", "Alimentación insuficiente o brownout", "Fuente de 5 V 2 A y GND común"],
         ["El WiFi no conecta", "Red de 5 GHz o clave incorrecta", "Usar 2.4 GHz; revisar secrets.h"],
