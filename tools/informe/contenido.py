@@ -286,6 +286,39 @@ B(("p", "Para pruebas, el puerto USB de la computadora suele alcanzar. Para el m
 B(("callout", ("importante", "No alimentes los módulos de 5 V desde el pin 3V3: el regulador de la placa "
                              "no está dimensionado para eso y la tensión caerá. Tampoco uses el pin VIN "
                              "como salida si alimentas la placa por ese mismo pin con una fuente externa.")))
+B(("h2", "4.5 Alimentación portátil con pila de 9 V"))
+B(("p", "Para usar el equipo sin computadora se puede alimentar con una pila de 9 V a través de una "
+        "placa reguladora con entrada DC de 7–12 V (la que tiene botón, jack DC y puerto USB). La placa "
+        "no entrega los 9 V: los regula a 5 V o 3.3 V según el jumper."))
+B(("codigo", """Pila 9 V ──jack DC (7-12 V)──► [placa reguladora] ──salida 5 V──► VIN del ESP32
+                                                 └─ GND ────────► GND del ESP32"""))
+B(("tabla", {
+    "headers": ["Control o pin", "Función", "Cómo usarlo"],
+    "rows": [
+        ["Jack DC in 7–12 V", "Entrada", "Ahí va la pila (centro positivo; verificar)"],
+        ["Jumper 5V / OFF / 3.3V", "Selector de salida", "Dejarlo en 5V; OFF corta la salida"],
+        ["Rieles + y −", "Salida principal", "+ → VIN, − → GND del ESP32"],
+        ["Header 3.3V / 5V / GND", "Salidas auxiliares", "Medir antes de usar"],
+        ["Pads + y −", "Entrada o salida extra", "Medir antes de usar"],
+        ["Puerto USB", "Puede ser entrada o salida", "Si con la pila hay 5 V, es salida"],
+    ],
+    "widths": [4.6, 4.6, 7.8],
+    "caption": "Controles de la placa reguladora",
+}))
+B(("p", "**Verificación antes de conectar el ESP32:** mide la pila sola (unos 9 V) y luego la salida "
+        "de la placa entre + y − con el jumper en 5V. Debe dar **5.0 a 5.2 V**. Si da 9 V, la placa no "
+        "está regulando y no debe usarse."))
+B(("lista", [
+    "El 3.3 V de la placa no va al pin 3V3 del ESP32 mientras el USB esté conectado.",
+    "El 3.3 V tampoco sirve para VIN: el regulador del ESP32 necesita unos 5 V.",
+    "Usa una sola fuente a la vez: USB de la PC o placa con pila, nunca ambas.",
+    "No conectes la pila de 9 V directo a VIN, al USB ni a ningún GPIO.",
+]))
+B(("callout", ("importante", "Una pila de 9 V tiene poca capacidad y mucha resistencia interna. Con el "
+                             "WiFi activo, los picos de corriente hacen caer la tensión y aparecen "
+                             "reinicios y lecturas erráticas aunque el multímetro marque 9 V en reposo. "
+                             "Para pruebas cortas sirve; para uso continuo usa 5 V / 2 A o una batería "
+                             "de litio con salida USB.")))
 
 # ---------------------------------------------------------------------------
 # 5. PINES

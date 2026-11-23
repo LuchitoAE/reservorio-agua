@@ -299,6 +299,47 @@ Antes de seguir, con el multímetro (si tienes):
 - [ ] Pin `3V3` ↔ azul = **3.3 V**.
 - [ ] Ningún pin GPIO tiene 5 V.
 
+### 7.1 Alimentación portátil con pila de 9 V
+
+Para usar el equipo sin PC (por ejemplo, montado en el tanque) se puede alimentar con una
+**pila de 9 V** a través de una **placa reguladora** con entrada DC de 7–12 V, como la que
+tiene un botón, un jack DC y un puerto USB.
+
+La placa no entrega los 9 V: los regula. La tensión de salida se elige con el jumper y debe
+quedar en **5 V**:
+
+```
+Pila 9 V ──jack DC (7-12 V)──► [placa reguladora] ──salida 5 V──► VIN del ESP32
+                                                  └─ GND ────────► GND del ESP32
+```
+
+| Control / pin de la placa | Función | Cómo usarlo |
+| --- | --- | --- |
+| Jack `DC in 7–12 V` | Entrada | Ahí va la pila (centro positivo, verificar) |
+| Jumper `5V / OFF / 3.3V` | Selector de salida | Dejarlo en **5V**; `OFF` corta la salida |
+| Rieles `+` y `−` | Salida principal | `+` → `VIN`, `−` → `GND` del ESP32 |
+| Header `3.3V / 5V / GND` | Salidas auxiliares | Medir antes de usar |
+| Pads `+` y `−` para soldar | Entrada o salida extra | Medir antes de usar |
+| Puerto USB | Puede ser entrada o salida | Si con la pila puesta hay 5 V, es salida |
+
+**Verificación antes de conectar el ESP32** (multímetro en continua):
+
+1. Pila sola: aproximadamente 9 V.
+2. Salida `+` ↔ `−` con el jumper en 5V: **5.0 a 5.2 V**.
+3. Si en la salida hay 9 V, la placa no está regulando: no la uses.
+
+**Reglas para no dañar nada:**
+
+- El `3.3V` de la placa **no** va al pin `3V3` del ESP32 mientras el USB esté conectado.
+- El `3.3V` tampoco sirve para `VIN`: el regulador del ESP32 necesita ~5 V.
+- Usa **una sola fuente a la vez**: USB de la PC o placa con pila, nunca ambas.
+- No conectes la pila de 9 V directo a `VIN`, al USB ni a ningún GPIO.
+
+**Limitación importante:** una pila de 9 V tiene poca capacidad y mucha resistencia interna.
+Con el WiFi activo, el ESP32 hace picos de corriente y la tensión cae: aparecen reinicios y
+lecturas erráticas aunque el multímetro marque 9 V en reposo. Para pruebas cortas sirve;
+para uso continuo conviene una fuente de **5 V / 2 A** o una batería de litio con salida USB.
+
 Ahora sí, sensor por sensor. **Después de cada uno: sube el firmware, abre el dashboard y
 prueba.** No conectes el siguiente hasta que el anterior funcione.
 
