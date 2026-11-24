@@ -3,7 +3,7 @@
  *
  * Medidas tomadas del plano "Reservorio + caseta de válvulas (Rev. 04)":
  *   exterior 40 × 30 × 40.6 cm · vidrio 6 mm · interior 38.8 × 28.8 × 40
- *   caseta 22 × 20 × 26 cm · rebose 31.5 cm · 4 válvulas PVC Ø 1/2"
+ *   caseta 22 × 20 × 26 cm · rebose 31 cm · 4 válvulas PVC Ø 1/2"
  *
  * 1 unidad = 1 cm.
  */
@@ -19,7 +19,7 @@ const D = {
   inL: 38.8,
   inA: 28.8,
   inH: 40,
-  maxLevel: 31.5,
+  maxLevel: 30,
   caseta: { l: 22, a: 20, h: 26, z: -25 },
   pipe: 0.635,
 };
@@ -708,10 +708,10 @@ tee([8, 1.5, -23.5], AXIS.z, AXIS.y);
 leg([8, 1.5, -25.0], [8, 1.5, -35], { s0: false, s1: false });
 bore([8, 1.5, -35], AXIS.z.clone().negate());
 
-/* --- Rebose: campana a 31.5, sin válvula, baja por la línea de limpia --- */
+/* --- Rebose: campana a 31, sin válvula, baja por la línea de limpia --- */
 
-bellMouth([8, 31.5, -7]);
-leg([8, 30.2, -7], [8, 21.8, -7], { s0: false, s1: false });
+bellMouth([8, 31, -7]);
+leg([8, 29.7, -7], [8, 21.8, -7], { s0: false, s1: false });
 elbow([8, 20, -7], AXIS.y.clone().negate(), AXIS.z.clone().negate());
 leg([8, 20, -8.8], [8, 20, -14.25], { s0: false, s1: false });
 bulkhead(8, 20);
@@ -765,7 +765,7 @@ function addLabel(text, position, cls = '', flags = {}) {
 }
 
 addLabel('Entrada al tanque · 36 cm', [4.4, 38.2, -11], 'tag--valve', { tankOnly: true });
-addLabel('Rebose · 31.5 cm', [9.5, 33.2, -7], 'tag--water', { tankOnly: true });
+addLabel('Rebose · 31 cm', [9.5, 32.7, -7], 'tag--water', { tankOnly: true });
 addLabel('Salida del tanque · 5.5 cm', [-7, 8, -12.6], 'tag--water tag--secondary', { tankOnly: true });
 addLabel('Limpia · 1.5 cm', [8, 3.8, -12], 'tag--water tag--secondary', { tankOnly: true });
 addLabel('Paso directo', [-2, 9.5, -32], 'tag--valve', { casetaOnly: true });

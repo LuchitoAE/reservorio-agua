@@ -22,10 +22,11 @@ Repositorio público: <https://github.com/LuchitoAE/reservorio-agua>
 | Parte | Estado |
 | --- | --- |
 | Firmware | Compila (PlatformIO 6.2.0). Última versión compilada incluye tanque rectangular. |
-| Placa | **Desconectada del USB**. Tiene flasheada una versión anterior (tanque 100 cm) con diagnóstico 1-Wire. **Pendiente flashear la nueva.** |
+| Placa | Conectada por USB. Tiene cargado el **sketch de prueba del HC-SR04**; falta reflashear el firmware del proyecto. |
 | LCD | Verificado en 0x27, muestra las 4 páginas. |
 | DS18B20 | Verificado: 1 dispositivo en el bus, ~20.5 °C. |
-| HC-SR04 / YF-S201 / pH / turbidez | Aún no conectados. |
+| HC-SR04 | Verificado en protoboard: 3/3 ecos, 0 fallos, lectura estable. Falta montarlo en el tanque. |
+| YF-S201 / pH / turbidez | Aún no conectados. |
 | Dashboard | Verificado en escritorio y móvil. |
 | Modelo 3D | **Aprobado para la fase 1 (24/11/2026).** Trazado y acabado realista (codos, tees, uniones, pasamuros, válvulas de bola). No cambiar salvo pedido explícito. |
 | Informe DOCX | Generado y validado (34 páginas). |
@@ -33,10 +34,12 @@ Repositorio público: <https://github.com/LuchitoAE/reservorio-agua>
 
 ## Tanque (plano Rev. 04)
 
-- Exterior 40.0 × 30.0 × 40.6 cm; vidrio 6 mm; interior 38.8 × 28.8 × 40.0 cm.
+- Exterior 40.0 × 30.0 × 40.6 cm (plano); medición real 41.0 cm con la base de vidrio; interior
+  38.8 × 28.8 × 40.0 cm.
 - Caseta de válvulas 22 × 20 × 26 cm detrás del tanque.
-- Nivel máximo / rebose 31.5 cm; capacidad útil 35.2 L (total 44.7 L).
-- Firmware: `DEFAULT_TANK_HEIGHT_CM 40.6`, `DEFAULT_MAX_LEVEL_CM 31.5`, volumen rectangular.
+- Nivel de operación 30.0 cm; rebose físico 31.0 cm; capacidad útil 33.5 L (total 44.7 L).
+- Calibración del nivel: la cara del sensor queda a 36.5 cm del fondo (40 − tapa 2 − sensor 1.5).
+- Firmware: `DEFAULT_TANK_HEIGHT_CM 36.5`, `DEFAULT_MAX_LEVEL_CM 30.0`, volumen rectangular.
 
 ## Trazado de tuberías aprobado (modelo 3D)
 
@@ -86,7 +89,7 @@ node tools/sync-web.js                    # web -> firmware/data
 
 ## Próximos pasos
 
-1. Reconectar la placa y flashear firmware + web nuevos (tanque 40.6/31.5 y modelo 3D).
+1. Flashear el firmware y la web del proyecto (la placa tiene el sketch de prueba del HC-SR04).
 2. Corregir la conexión WiFi (clave / 2.4 GHz) o dejarla en AP.
 3. Conectar HC-SR04, YF-S201, turbidez y pH; calibrar y completar el plan de pruebas.
 4. Fase 2: Vercel + Supabase e histórico. Fase 3: versión realista del modelo 3D.

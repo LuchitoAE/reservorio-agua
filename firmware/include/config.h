@@ -32,8 +32,8 @@ constexpr float TURBIDITY_DIVIDER = 2.0f;
 // ---------------------------------------------------------------------------
 // Tanque (valores iniciales; se pueden cambiar desde la web y quedan en NVS)
 // ---------------------------------------------------------------------------
-constexpr float DEFAULT_TANK_HEIGHT_CM   = 40.6f;  // altura interior al borde superior
-constexpr float DEFAULT_MAX_LEVEL_CM     = 31.5f;  // rebose (nivel máximo útil)
+constexpr float DEFAULT_TANK_HEIGHT_CM   = 36.5f;  // cara del sensor al fondo (40 - tapa 2 - sensor 1.5)
+constexpr float DEFAULT_MAX_LEVEL_CM     = 30.0f;  // nivel de operación (rebose físico a 31 cm)
 constexpr float DEFAULT_SENSOR_OFFSET_CM = 0.0f;
 // Reservorio rectangular del plano Rev. 04 (medidas interiores)
 constexpr float TANK_INTERNAL_LENGTH_CM  = 38.8f;

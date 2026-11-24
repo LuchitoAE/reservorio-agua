@@ -7,11 +7,12 @@ Actualizado: **24 de noviembre de 2026**. El detalle técnico para agentes está
 
 | Área | Estado |
 | --- | --- |
-| Firmware | Compila; incluye tanque rectangular 40.6 / 31.5 cm |
-| Placa | **Desconectada**: falta flashear la versión nueva |
+| Firmware | Compila; tanque rectangular, calibración 36.5 cm y nivel 30 cm |
+| Placa | Conectada; tiene el sketch de prueba del HC-SR04 (falta reflashear el proyecto) |
 | LCD 1602 | Verificado (0x27) |
 | DS18B20 | Verificado (1 dispositivo, ~20.5 °C) |
-| HC-SR04, caudal, pH, turbidez | Pendientes de conectar |
+| HC-SR04 | Verificado en protoboard (3/3 ecos); falta montarlo |
+| Caudal, pH, turbidez | Pendientes |
 | Dashboard web | Verificado en escritorio y móvil |
 | Modelo 3D | **Aprobado para la fase 1** |
 | Informe DOCX | Generado y validado (34 páginas) |
@@ -22,7 +23,8 @@ Actualizado: **24 de noviembre de 2026**. El detalle técnico para agentes está
 El modelo se considera **cerrado en su versión MVP** con el trazado de tuberías aprobado el
 24/11/2026. Representa el plano Rev. 04:
 
-- Tanque de vidrio 40 × 30 × 40.6 cm, vidrio 6 mm, caseta 22 × 20 × 26 cm.
+- Tanque de vidrio 40 × 30 cm, interior 40 cm (exterior 41 con base); caseta 22 × 20 × 26 cm.
+- Nivel de operación 30 cm; rebose 31 cm; calibración del sensor 36.5 cm (tapa 2 + sensor 1.5).
 - Entrada y salida en paralelo a 5.5 cm; la pareja a la derecha visto desde atrás.
 - Entrada con válvula abajo, subida junto al tanque y codo corto de 1 cm hacia abajo.
 - Paso directo con válvula apenas entra la acometida.
@@ -37,7 +39,7 @@ explícitamente.
 ## Pendiente inmediato
 
 1. Reconectar el ESP32 por USB y flashear:
-   - firmware nuevo (tanque 40.6/31.5 y volumen rectangular);
+   - firmware nuevo (calibración 36.5 / nivel 30 y volumen rectangular);
    - web con el modelo 3D (`uploadfs`).
 2. Verificar el arranque y el nivel con el monitor serie.
 3. Resolver el WiFi (clave, red de 2.4 GHz o WPA2) o dejarlo en modo AP.

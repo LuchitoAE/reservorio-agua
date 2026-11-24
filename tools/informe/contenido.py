@@ -472,9 +472,9 @@ B(("p", "**Si no funciona:** distancia siempre 0 o «--» → divisor mal conect
         "invertidos; lecturas inestables → superficie inclinada o eco débil. Para el montaje final, "
         "considera un tubo guía de PVC para proteger el sensor de la condensación."))
 B(("callout", ("nota", "En la mesa el porcentaje de nivel puede parecer incorrecto: se calcula como "
-                       "«altura del tanque − distancia». Con el tanque de 40.6 cm y el sensor a 20 cm de un "
-                       "obstáculo, el nivel sería 20.6 cm: 65 % de los 31.5 cm útiles. Durante las pruebas "
-                       "mira la distancia, no el porcentaje.")))
+                       "«altura de calibración − distancia». Con la calibración de 36.5 cm y el sensor a "
+                       "20 cm de un obstáculo, el nivel sería 16.5 cm: 55 % de los 30 cm útiles. Durante "
+                       "las pruebas mira la distancia, no el porcentaje.")))
 
 B(("h2", "6.5 Sensor de caudal YF-S201"))
 B(("p", "El sensor genera pulsos al girar su rotor: 450 pulsos equivalen a un litro. La señal es de "
@@ -669,8 +669,8 @@ B(("codigo", """#define PIN_TRIG        19
 
 constexpr float PH_DIVIDER        = 2.0f;
 constexpr float TURBIDITY_DIVIDER = 2.0f;
-constexpr float DEFAULT_TANK_HEIGHT_CM   = 40.6f;
-constexpr float DEFAULT_MAX_LEVEL_CM     = 31.5f;
+constexpr float DEFAULT_TANK_HEIGHT_CM   = 36.5f;
+constexpr float DEFAULT_MAX_LEVEL_CM     = 30.0f;
 constexpr float TANK_INTERNAL_LENGTH_CM  = 38.8f;
 constexpr float TANK_INTERNAL_WIDTH_CM   = 28.8f;"""))
 B(("tabla", {
@@ -678,8 +678,8 @@ B(("tabla", {
     "rows": [
         ["PH_DIVIDER", "2.0", "Factor del divisor del pH (2.0 con 4.7k + 4.7k)"],
         ["TURBIDITY_DIVIDER", "2.0", "Factor del divisor de turbidez"],
-        ["DEFAULT_TANK_HEIGHT_CM", "40.6", "Altura interior total del tanque"],
-        ["DEFAULT_MAX_LEVEL_CM", "31.5", "Nivel de rebose: 100 % de capacidad útil"],
+        ["DEFAULT_TANK_HEIGHT_CM", "36.5", "Recorrido de calibración (cara del sensor al fondo)"],
+        ["DEFAULT_MAX_LEVEL_CM", "30.0", "Nivel de operación: 100 % (rebose a 31 cm)"],
         ["TANK_INTERNAL_LENGTH_CM", "38.8", "Largo interior para calcular litros"],
         ["TANK_INTERNAL_WIDTH_CM", "28.8", "Ancho interior para calcular litros"],
         ["DEFAULT_FLOW_PPL", "450", "Pulsos por litro del YF-S201"],
@@ -700,8 +700,8 @@ B(("p", "La calibración y el volumen acumulado se guardan en la memoria NVS con
 B(("tabla", {
     "headers": ["Parámetro", "Valor por defecto", "Cómo se ajusta"],
     "rows": [
-        ["Altura del tanque", "40.6 cm", "Formulario del dashboard o POST /api/config"],
-        ["Nivel máximo (rebose)", "31.5 cm", "Formulario del dashboard"],
+        ["Altura de calibración (sensor → fondo)", "36.5 cm", "Formulario del dashboard o POST /api/config"],
+        ["Nivel máximo de operación", "30.0 cm", "Formulario del dashboard"],
         ["Offset del sensor", "0 cm", "Formulario del dashboard"],
         ["Tensión de neutro del pH", "2.50 V", "Botón «Buffer pH 7»"],
         ["Pendiente del pH", "0.18 V/pH", "Botón «Buffer pH 4»"],
@@ -813,8 +813,8 @@ B(("p", "Ejemplo de respuesta de telemetría (abreviada):"))
 B(("codigo", """{
   "ts": 123456, "uptime": 1800,
   "wifi": { "connected": true, "ip": "192.168.1.50", "rssi": -58 },
-  "level": { "ok": true, "distanceCm": 19.8, "levelCm": 20.8, "percent": 66, "liters": 23.2,
-             "tankHeightCm": 40.6, "maxLevelCm": 31.5 },
+  "level": { "ok": true, "distanceCm": 16.5, "levelCm": 20.0, "percent": 67, "liters": 22.3,
+             "tankHeightCm": 36.5, "maxLevelCm": 30 },
   "flow": { "ok": true, "lpm": 4.14, "totalL": 135.1, "pulses": 60789 },
   "temperature": { "ok": true, "c": 22.4 },
   "ph": { "ok": true, "value": 7.24, "voltage": 2.46, "raw": 3049 },
@@ -1108,16 +1108,20 @@ B(("tabla", {
         ["Vidrio", "6 mm (paredes y base)", "Plano Rev. 04"],
         ["Volumen interior", "38.8 × 28.8 × 40.0 cm", "Plano Rev. 04"],
         ["Caseta de válvulas", "22.0 × 20.0 × 26.0 cm, detrás del tanque", "Plano Rev. 04"],
-        ["Rebose / nivel máximo", "31.5 cm (borde libre 8.5 cm)", "Plano Rev. 04"],
+        ["Rebose", "31.0 cm (borde libre 9.0 cm)", "Medición real"],
+        ["Nivel de operación", "30.0 cm", "Ajuste del proyecto"],
         ["Válvulas", "4 de bola, PVC Ø 1/2 pulg, con palanca y uniones universales", "Plano Rev. 04"],
         ["Accesorios", "Codos 90°, tees, uniones, pasamuros y canastilla", "Instalación real"],
-        ["Nivel de agua", "0 a 31.5 cm", "Telemetría del ESP32 o demo"],
-        ["Capacidad útil", "35.2 L (total 44.7 L)", "Cálculo del plano"],
+        ["Nivel de agua", "0 a 30.0 cm", "Telemetría del ESP32 o demo"],
+        ["Capacidad útil", "33.5 L (total 44.7 L)", "Cálculo del proyecto"],
     ],
     "widths": [4.6, 7.2, 5.2],
     "caption": "Elementos y medidas del modelo 3D",
 }))
-B(("p", "El trazado reproduce el isométrico: respeta las alturas (ingreso 36 cm, rebose 31.5/20 cm, "
+B(("p", "La medición real del tanque da **41.0 cm de altura exterior** (la base de vidrio suma 1 cm) y "
+        "**40.0 cm interiores**. El modelo conserva las medidas del plano para no alterar el trazado ya "
+        "aprobado; la diferencia es de 4 mm y no afecta a la lectura de nivel."))
+B(("p", "El trazado reproduce el isométrico: respeta las alturas (ingreso 36 cm, rebose 31/20 cm, "
         "salida 5.5 cm, limpia 1.5 cm), los diámetros y la posición general. Los tramos se arman como una "
         "instalación real: cada quiebre lleva un **codo de 90°**, las derivaciones llevan **tee**, cada "
         "válvula se conecta con **uniones universales** y los cruces del vidrio llevan **pasamuros** con "
@@ -1129,7 +1133,7 @@ B(("p", "La **entrada** y la **salida** ingresan a la caseta en paralelo, a la m
         "La salida del tanque (canastilla, 5.5 cm) tiene su válvula a la **misma altura** y antes de "
         "unirse con el paso directo, de modo que cerrando la salida se aísla el tanque pero el paso "
         "directo sigue alimentando a la población. La **limpia** (1.5 cm) tiene su válvula más al centro; "
-        "el **rebose** (31.5 → 20 cm) no tiene válvula, baja por la **misma línea** que la limpia y "
+        "el **rebose** (31 → 20 cm) no tiene válvula, baja por la **misma línea** que la limpia y "
         "descarga por encima de la unión, para que el desfogue siga funcionando aunque la limpia esté "
         "cerrada. Cerrando la válvula de ingreso y abriendo la de paso directo, el agua va de la fuente "
         "a la población sin entrar al tanque."))
@@ -1141,14 +1145,14 @@ B(("lista", [
     "Se abre desde el botón «Modelo 3D» del dashboard o directamente en `/modelo.html`.",
     "Arrastrar con el mouse o el dedo gira la vista; la rueda o el gesto de pinza acercan.",
     "Los botones «Isométrica», «Frontal» y «Superior» cambian la cámara; doble clic reinicia.",
-    "El deslizador «Nivel de prueba» mueve el agua entre 0 y 31.5 cm y muestra el volumen en litros.",
+    "El deslizador «Nivel de prueba» mueve el agua entre 0 y 30 cm y muestra el volumen en litros.",
     "«Fuente de datos» permite usar el ESP32 (telemetría real) o la simulación local.",
     "«Ocultar caseta» y «Ocultar medidas» simplifican la vista para inspeccionar el tanque.",
 ]))
 B(("h2", "16.3 Integración con la telemetría"))
 B(("p", "En modo ESP32 la página consulta `/api/telemetry` cada 3.5 segundos y usa `level.percent` "
-        "para mover el agua. El porcentaje se calcula sobre el nivel máximo útil (31.5 cm), de modo que "
-        "100 % coincide con el rebose. Si la placa no responde, el modelo sigue funcionando en modo "
+        "para mover el agua. El porcentaje se calcula sobre el nivel de operación (30 cm), de modo que "
+        "100 % coincide con ese nivel; el rebose físico está 1 cm más arriba. Si la placa no responde, el modelo sigue funcionando en modo "
         "demostración, igual que el dashboard."))
 B(("p", "Three.js se guarda en `web/vendor/` (unos 676 KB) y se carga desde el mismo servidor: el modelo "
         "funciona sin internet, tanto en la PC como servido por el ESP32. En este último caso la primera "
@@ -1184,10 +1188,11 @@ B(("tabla", {
 }))
 B(("h2", "A.1 Ejemplo numérico"))
 B(("p", "Reservorio rectangular de 38.8 × 28.8 cm interiores y 40.0 cm de altura. Volumen total = "
-        "38.8 × 28.8 × 40.0 / 1000 = **44.70 litros**. El rebose está a 31.5 cm, así que la capacidad "
-        "útil es 38.8 × 28.8 × 31.5 / 1000 = **35.20 litros**. Si el sensor mide 19.8 cm desde la tapa, "
-        "el nivel es 40.6 − 19.8 = 20.8 cm, es decir 66 % de 31.5 cm. El volumen es "
-        "38.8 × 28.8 × 20.8 / 1000 = **23.24 litros**."))
+        "38.8 × 28.8 × 40.0 / 1000 = **44.70 litros**. El rebose está a 31 cm y el nivel de operación "
+        "a 30 cm, así que la capacidad útil es 38.8 × 28.8 × 30.0 / 1000 = **33.52 litros**. La tapa de "
+        "tecnopor (2 cm) y el sensor (1.5 cm) dejan la cara a 36.5 cm del fondo. Si el sensor mide "
+        "16.5 cm, el nivel es 36.5 − 16.5 = 20.0 cm, es decir 67 % de 30 cm. El volumen es "
+        "38.8 × 28.8 × 20.0 / 1000 = **22.35 litros**."))
 B(("p", "Con un caudal de 4.14 L/min, el sensor entrega 4.14 × 450 / 60 = **31 pulsos por segundo**. "
         "En una ventana de un segundo, 31 pulsos producen exactamente 4.13 L/min."))
 B(("h2", "A.2 Incertidumbre y límites"))

@@ -7,8 +7,8 @@
  */
 
 export const DEFAULT_CONFIG = {
-  tankHeightCm: 40.6,
-  maxLevelCm: 31.5,
+  tankHeightCm: 36.5,
+  maxLevelCm: 30,
   sensorOffsetCm: 0,
   tankLengthCm: 38.8,
   tankWidthCm: 28.8,
