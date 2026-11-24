@@ -36,7 +36,7 @@ No saltes de la A a la D. Si algo falla, vas a saber exactamente qué cambió.
 | YF-S201 | Caudal |
 | DS18B20 (sonda) | Temperatura |
 | Módulo pH PH-7BNC + sonda BNC | pH |
-| SEN0189 (TS-300B) | Turbidez |
+| TS-300B (SEN0189 compatible) | Turbidez |
 | LCD 1602 con backpack I2C | Pantalla local |
 | 20 resistencias 4.7 kΩ | Pull-up y divisores |
 | Cable flat 40 pines | Cableado (para la versión soldada) |
@@ -505,29 +505,34 @@ Así el ESP32 nunca ve 5 V, aunque el sensor se alimente con 5 V.
 
 ---
 
-### 8.5 SEN0189 (turbidez)
+### 8.5 TS-300B (turbidez)
 
-**Conexiones** (3 pines, etiquetados `+`, `-`, `A` o VCC/GND/AOUT)
+**Conexiones** (módulo de 4 pines: `V`, `D`, `G`, `A`)
 
 | Pin | Va a |
 | --- | --- |
-| + / VCC | riel rojo (5 V) |
-| - / GND | riel azul |
-| A / AOUT | **divisor** → GPIO 35 |
+| **V** | riel rojo (5 V) |
+| **G** | riel azul (GND) |
+| **A** | **divisor** → GPIO 35 |
+| **D** | sin conectar (salida digital, no se usa) |
+
+La sonda se conecta con el cable de 3 hilos al conector numerado del módulo (`4 3 2 1`):
+se usan 3 pines y queda uno libre. El conector tiene pestaña y entra de una sola forma.
+El chip de 8 patas (LM358) está soldado en el módulo; no es una pieza aparte.
 
 La salida llega a 4.5 V en agua clara. Divisor obligatorio:
 
 ```
-AOUT ──[4.7k]──┬── GPIO35
-               │
-            [4.7k]
-               │
-              GND
+A ──[4.7k]──┬── GPIO35
+             │
+          [4.7k]
+             │
+            GND
 ```
 
 **Prueba (sin agua)**
 
-1. Vaso con agua de la canilla, sensor sumergido **hasta la marca** (la electrónica queda afuera).
+1. Vaso con agua de la canilla, sonda sumergida **hasta la marca** (la electrónica queda afuera).
 2. Tarjeta **Turbidez**: NTU bajo (agua clara) y claridad alta.
 3. Agrega una gota de leche o una pizca de tierra, revuelve: NTU sube y claridad baja.
 4. Diagnóstico → Voltaje de turbidez: en agua clara debe rondar **4.0–4.3 V** (ya compensado
@@ -538,6 +543,9 @@ AOUT ──[4.7k]──┬── GPIO35
 - NTU siempre 0 y voltaje ~0 → falta el divisor o el pin `A` no hace contacto.
 - Voltaje > 4.5 V → divisor mal conectado. **No lo dejes así:** el pin del ESP32 no debe pasar
   de 3.3 V.
+- Lectura fija en ~2.2 V que no cambia al tapar el lente → la sonda no está entregando señal:
+  revisa que **V** esté en **5 V** (no 3.3 V), el orden de los 3 hilos y que el LED infrarrojo
+  encienda (brillo rojizo tenue en uno de los cuernos, a oscuras).
 - Valores que saltan → burbujas en el lente; golpea suavemente el sensor.
 
 ---

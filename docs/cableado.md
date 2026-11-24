@@ -46,7 +46,7 @@
 | YF-S201 | 5–24 V (5 V sirve) | 15 mA |
 | DS18B20 | 3.0–5.5 V | 1.5 mA |
 | Módulo pH | 5 V (ver nota) | 10 mA |
-| SEN0189 turbidez | 5 V | 3 mA |
+| TS-300B turbidez | 5 V | 40 mA (máx) |
 | LCD 1602 + I2C | 5 V | 20 mA + backlight |
 
 - Todos los **GND en común** con el ESP32.
@@ -69,7 +69,7 @@ Salida ≈ 2.5 V. El ESP32 lo lee como HIGH (el umbral es ~0.75 × 3.3 V = 2.47 
 **al límite**. Si tienes 1 kΩ y 2 kΩ, usa esa pareja (5 V → 3.33 V, más margen). Si ves
 lecturas inestables, cambia a `1k + 2k` o `4.7k + 10k`.
 
-### Turbidez SEN0189 (hasta 4.5 V → 3.3 V)
+### Turbidez TS-300B (hasta 4.5 V → 3.3 V)
 
 ```
 AO ──[ 4.7k ]──┬── GPIO35
@@ -130,10 +130,11 @@ El módulo entrega entre 0 y ~3.8 V según el pH (≈2.5 V en pH 7). Alimentado 
 - Necesita estar siempre húmedo; enjuaga con agua destilada entre mediciones.
 - La lectura se filtra con mediana de 15 muestras para quitar ruido del ADC.
 
-### SEN0189 — turbidez
+### TS-300B — turbidez
 
 - Sensor óptico: la suciedad en el lente falsea la lectura. Límpialo cada tanto.
 - No lo sumerjas más allá de la marca; la electrónica va fuera del agua.
+- Módulo de 4 pines (`V`, `D`, `G`, `A`); la sonda va al conector numerado `4 3 2 1`.
 - Salida aproximada: agua clara 4.1–4.5 V, agua turbia baja hasta ~2.5 V (alimentado a 5 V).
 - Conversión NTU usada (aproximada, para tendencias más que para laboratorio):
   `NTU = −1120.4·V² + 5742.3·V − 4352.9`, con V ya compensado por el divisor.

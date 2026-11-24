@@ -64,7 +64,7 @@ Por defecto `V_neutro = 2.50 V`, `pendiente = 0.18 V/pH` (valores típicos del m
 
 ---
 
-## 3. Turbidez (SEN0189)
+## 3. Turbidez (TS-300B)
 
 La fórmula NTU es una aproximación del fabricante. Lo importante es la **referencia de agua
 clara**:

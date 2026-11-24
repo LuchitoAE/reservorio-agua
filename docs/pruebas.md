@@ -36,7 +36,7 @@ antes de mezclar sensores.
 - [ ] El voltaje mostrado en diagnóstico se mueve al cambiar de buffer.
 - [ ] Lectura estable (sin saltos >0.2 pH entre muestras).
 
-### SEN0189
+### TS-300B
 - [ ] En agua clara, NTU bajo (<30) y claridad >80 %.
 - [ ] Al añadir unas gotas de leche/tierra, NTU sube y claridad baja.
 - [ ] El voltaje del diagnóstico nunca supera 3.3 V en el pin (¡medir con multímetro!).

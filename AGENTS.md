@@ -11,7 +11,7 @@ Sistema de monitoreo de un reservorio de agua con ESP32 DevKit V1 (30 pines, USB
 - Caudal: YF-S201 (GPIO 23, pull-up 4.7 kΩ).
 - Temperatura: DS18B20 (GPIO 4, pull-up 4.7 kΩ).
 - pH: PH-7BNC (GPIO 34, ADC1, divisor).
-- Turbidez: SEN0189 (GPIO 35, ADC1, divisor).
+- Turbidez: TS-300B (GPIO 35, ADC1, divisor 4.7k + 4.7k).
 - Pantalla: LCD 1602 I2C (GPIO 21/22, dirección detectada 0x27).
 - Dashboard web sin dependencias + modelo 3D con Three.js.
 
@@ -26,10 +26,11 @@ Repositorio público: <https://github.com/LuchitoAE/reservorio-agua>
 | LCD | Verificado en 0x27 (4 páginas). El firmware nuevo agrega una 5.ª página de estado del nivel. |
 | DS18B20 | Verificado: 1 dispositivo en el bus, ~20.5 °C. |
 | HC-SR04 | Verificado en protoboard: 3/3 ecos, 0 fallos, lectura estable. Sketch de banco en `pruebas/hcsr04/`. Falta montarlo en el tanque. |
-| YF-S201 / pH / turbidez | Aún no conectados. |
+| Turbidez | Módulo TS-300B conectado y en prueba; revisar alimentación 5 V y cable de sonda. |
+| YF-S201 / pH | Aún no conectados. |
 | Dashboard | Verificado en escritorio y móvil. |
 | Modelo 3D | **Aprobado para la fase 1 (24/11/2026).** Trazado y acabado realista (codos, tees, uniones, pasamuros, válvulas de bola). No cambiar salvo pedido explícito. |
-| Informe DOCX | Generado y validado (34 páginas). |
+| Informe DOCX | Generado y validado (35 páginas). |
 | WiFi | `secrets.h` tiene SSID "RESERVORIO" pero no conecta; la placa queda en AP `Reservorio-Setup` (clave `reservorio`, 192.168.4.1). Revisar clave / 2.4 GHz / WPA3. |
 
 ## Tanque (plano Rev. 04)

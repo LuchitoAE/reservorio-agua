@@ -12,10 +12,11 @@ Actualizado: **24 de noviembre de 2026**. El detalle técnico para agentes está
 | LCD 1602 | Verificado (0x27) |
 | DS18B20 | Verificado (1 dispositivo, ~20.5 °C) |
 | HC-SR04 | Verificado en protoboard (3/3 ecos); falta montarlo |
-| Caudal, pH, turbidez | Pendientes |
+| Turbidez | En prueba (TS-300B) |
+| Caudal, pH | Pendientes |
 | Dashboard web | Verificado en escritorio y móvil |
 | Modelo 3D | **Aprobado para la fase 1** |
-| Informe DOCX | Generado y validado (34 páginas) |
+| Informe DOCX | Generado y validado (35 páginas) |
 | WiFi | No conecta; queda en AP `Reservorio-Setup` (192.168.4.1) |
 
 ## Modelo digital 3D

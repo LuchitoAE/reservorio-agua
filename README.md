@@ -124,7 +124,7 @@ ESP32_URL=http://192.168.1.50 node tools/dev-server.js
 ### Reglas de conexión que **no** se pueden saltar
 
 - El ESP32 es de **3.3 V**: un pin analógico o GPIO nunca debe recibir 5 V.
-- `HC-SR04` ECHO y `SEN0189` (turbidez) entregan hasta 5 V → **divisor de tensión** obligatorio.
+- `HC-SR04` ECHO y `TS-300B` (turbidez) entregan hasta 5 V → **divisor de tensión** obligatorio.
 - Los ADC que funcionan con WiFi activo son **ADC1: GPIO 32–39**. Por eso pH y turbidez
   están en 34 y 35 (pines solo-entrada, sin pull-up interno).
 - El `DS18B20` necesita **resistencia de 4.7 kΩ entre DATA y 3.3 V**.

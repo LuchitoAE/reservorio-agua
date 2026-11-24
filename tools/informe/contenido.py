@@ -129,7 +129,7 @@ B(("tabla", {
         ["YF-S201", "Caudal y volumen", "Pulso por interrupción", "23", "450 pulsos por litro"],
         ["DS18B20", "Temperatura", "1-Wire", "4", "Pull-up de 4.7 kΩ a 3.3 V"],
         ["PH-7BNC", "pH", "Analógico", "34 (ADC1)", "Salida dividida a la mitad"],
-        ["SEN0189", "Turbidez", "Analógico", "35 (ADC1)", "Salida dividida a la mitad"],
+        ["TS-300B", "Turbidez", "Analógico", "35 (ADC1)", "Salida dividida a la mitad"],
         ["LCD 1602 I2C", "Visualización local", "I2C", "21 / 22", "Dirección 0x27 o 0x3F"],
         ["ESP32 DevKit V1", "Control y WiFi", "—", "—", "30 pines, USB-C"],
     ],
@@ -174,7 +174,7 @@ B(("tabla", {
         ["Sensor de flujo YF-S201", "F104-YF-S201", "Caudal y volumen"],
         ["Sensor de temperatura DS18B20", "N007-FM1164", "Temperatura del agua"],
         ["Módulo de pH PH-7BNC con sonda BNC", "Q004-SNS-PC-000", "pH"],
-        ["Sensor de turbidez SEN0189 / TS-300B", "P001-SEN0189", "Turbidez"],
+        ["Sensor de turbidez TS-300B (SEN0189 compatible)", "P001-SEN0189", "Turbidez"],
         ["ESP32 DevKit V1, 30 pines, USB-C", "K016-Devkit", "Controlador y WiFi"],
         ["Pantalla LCD 1602 con backpack I2C", "K013-EP-268", "Visualización local"],
         ["Resistencias de carbón 1/4 W 5 %, 4.7 kΩ", "B313-EP-368-4K7", "Pull-ups y divisores (20 unidades)"],
@@ -239,7 +239,7 @@ B(("tabla", {
         ["HC-SR04 Echo", "5 V", "GPIO 18", "Divisor de tensión"],
         ["DS18B20 DATA", "3.3 V (drenador abierto)", "GPIO 4", "Pull-up a 3.3 V"],
         ["YF-S201 señal", "Drenador abierto", "GPIO 23", "Pull-up a 3.3 V"],
-        ["SEN0189 AO", "Hasta 4.5 V", "GPIO 35", "Divisor de tensión"],
+        ["TS-300B A", "Hasta 4.5 V", "GPIO 35", "Divisor de tensión"],
         ["PH-7BNC Po", "Hasta 3.8 V", "GPIO 34", "Divisor de tensión"],
     ],
     "widths": [3.8, 4.6, 3.2, 5.4],
@@ -256,7 +256,7 @@ B(("tabla", {
     "headers": ["Señal", "Tensión máxima", "Divisor", "Tensión en el pin", "Factor en el firmware"],
     "rows": [
         ["HC-SR04 Echo", "5.0 V", "4.7 kΩ + 4.7 kΩ", "2.5 V", "No aplica (digital)"],
-        ["SEN0189 AO", "4.5 V", "4.7 kΩ + 4.7 kΩ", "2.25 V", "TURBIDITY_DIVIDER = 2.0"],
+        ["TS-300B A", "4.5 V", "4.7 kΩ + 4.7 kΩ", "2.25 V", "TURBIDITY_DIVIDER = 2.0"],
         ["PH-7BNC Po", "3.8 V", "4.7 kΩ + 4.7 kΩ", "1.9 V", "PH_DIVIDER = 2.0"],
     ],
     "widths": [4.0, 3.4, 4.0, 3.4, 4.2],
@@ -275,7 +275,7 @@ B(("tabla", {
         ["YF-S201", "5 V", "15 mA"],
         ["DS18B20", "3.3 V", "1.5 mA"],
         ["Módulo de pH", "5 V", "10 mA"],
-        ["SEN0189", "5 V", "3 mA"],
+        ["TS-300B", "5 V", "40 mA (máx)"],
         ["LCD 1602 con retroiluminación", "5 V", "20 a 40 mA"],
     ],
     "widths": [6.0, 4.0, 7.0],
@@ -357,7 +357,7 @@ B(("tabla", {
         ["HC-SR04", "5 V (VIN)", "GND", "TRIG → 19 · ECHO → 18", "Divisor 4.7 kΩ + 4.7 kΩ en ECHO"],
         ["YF-S201", "5 V (VIN)", "GND", "Señal → 23", "Pull-up 4.7 kΩ a 3.3 V"],
         ["DS18B20", "3.3 V", "GND", "DATA → 4", "Pull-up 4.7 kΩ a 3.3 V"],
-        ["SEN0189", "5 V (VIN)", "GND", "AO → 35", "Divisor 4.7 kΩ + 4.7 kΩ"],
+        ["TS-300B", "5 V (VIN)", "GND", "A → 35", "Divisor 4.7 kΩ + 4.7 kΩ"],
         ["PH-7BNC", "5 V (VIN)", "GND", "Po → 34", "Divisor 4.7 kΩ + 4.7 kΩ"],
         ["LCD 1602 I2C", "5 V (VIN)", "GND", "SDA → 21 · SCL → 22", "Ninguno"],
     ],
@@ -503,30 +503,42 @@ B(("p", "**Si no funciona:** caudal siempre 0 → falta el pull-up o el cable no
         "que se detienen solas → conector flojo; cuentas de más → ruido en un cable largo. Respeta la "
         "flecha de flujo grabada en el cuerpo del sensor."))
 
-B(("h2", "6.6 Sensor de turbidez SEN0189"))
-B(("p", "Es un sensor óptico: mide cuánta luz atraviesa el agua. Su salida llega a 4.5 V en agua clara, "
-        "por lo que **siempre** requiere divisor antes del GPIO 35. El valor se informa en NTU y como "
-        "porcentaje de claridad referido al agua clara calibrada."))
+B(("h2", "6.6 Sensor de turbidez TS-300B"))
+B(("p", "El módulo TS-300B es óptico: mide cuánta luz atraviesa el agua. La sonda tiene un LED "
+        "infrarrojo y un fototransistor; el módulo acondiciona la señal y entrega una salida analógica "
+        "de 0 a 4.5 V, por lo que **siempre** requiere divisor antes del GPIO 35. El valor se informa en "
+        "NTU y como porcentaje de claridad referido al agua clara calibrada."))
+B(("p", "El módulo tiene **cuatro pines**: V, D, G y A. La sonda se conecta con el cable de tres hilos "
+        "al conector numerado del módulo (4 3 2 1); se usan tres pines y queda uno libre. El conector "
+        "tiene pestaña y entra de una sola forma. El chip de ocho patas (LM358) está soldado en el "
+        "módulo y no se conecta a nada."))
 B(("tabla", {
-    "headers": ["Pin del sensor", "Va a", "Notas"],
+    "headers": ["Pin del módulo", "Va a", "Notas"],
     "rows": [
-        ["+ / VCC", "Riel rojo (5 V)", "—"],
-        ["− / GND", "Riel azul", "—"],
-        ["A / AOUT", "GPIO 35", "A través del divisor"],
+        ["V", "Riel rojo (5 V)", "Alimenta el módulo y el LED de la sonda"],
+        ["G", "Riel azul (GND)", "—"],
+        ["A", "GPIO 35", "Salida analógica, a través del divisor"],
+        ["D", "Sin conectar", "Salida digital del comparador; el firmware no la usa"],
     ],
     "widths": [4.2, 4.6, 8.2],
-    "caption": "Conexión del SEN0189",
+    "caption": "Conexión del módulo TS-300B",
 }))
+B(("codigo", "A ──[ 4.7k ]──┬── GPIO 35\n               │\n            [ 4.7k ]\n               │\n              GND"))
 B(("p", "**Prueba de banco**"))
 B(("numeros", [
-    "Llena un vaso con agua de la canilla y sumerge el sensor hasta la marca; la electrónica queda afuera.",
+    "Llena un vaso con agua de la canilla y sumerge la sonda hasta la marca; la electrónica queda afuera.",
     "La tarjeta debe mostrar NTU bajo y claridad alta.",
     "Agrega una gota de leche o una pizca de tierra y revuelve: el NTU sube y la claridad baja.",
     "En diagnóstico, el voltaje debe rondar 4.0 a 4.3 V en agua clara (ya compensado el divisor).",
 ]))
 B(("p", "**Si no funciona:** voltaje cercano a 0 → divisor o pin A desconectado; voltaje mayor a 4.5 V → "
-        "divisor mal armado, no lo dejes así; lecturas que saltan → burbujas adheridas al lente. "
-        "Limpia el lente con agua destilada y un paño suave."))
+        "divisor mal armado, no lo dejes así; lectura fija en ~2.2 V que no cambia al tapar el lente → "
+        "la sonda no está entregando señal (revisar que V sea 5 V, el orden de los tres hilos y que el "
+        "LED infrarrojo encienda); lecturas que saltan → burbujas adheridas al lente. Limpia el lente "
+        "con agua destilada y un paño suave."))
+B(("callout", ("nota", "El módulo debe alimentarse con **5 V**. Con 3.3 V el LED y el amplificador "
+                       "trabajan fuera de especificación y la salida queda en un valor intermedio que no "
+                       "responde al agua.")))
 
 B(("h2", "6.7 Sensor de pH PH-7BNC"))
 B(("p", "Es el sensor más delicado. El módulo entrega una tensión proporcional al pH (alrededor de "
@@ -888,7 +900,7 @@ B(("numeros", [
 B(("p", "La fórmula implementada es pH = 7 + (V_neutro − V_medido) / pendiente. La temperatura afecta "
         "levemente la pendiente del electrodo; para uso doméstico se ignora. Recalibra cada 4 a 8 "
         "semanas en uso continuo."))
-B(("h2", "11.3 Turbidez (SEN0189)"))
+B(("h2", "11.3 Turbidez (TS-300B)"))
 B(("numeros", [
     "Llena un vaso con agua destilada o potable limpia, a la temperatura del tanque.",
     "Sumerge el sensor hasta la marca, sin tocar las paredes, y espera 30 segundos.",
@@ -938,9 +950,9 @@ B(("tabla", {
         ["□", "YF-S201", "Soplar por la entrada", "L/min mayor que 0 mientras hay flujo"],
         ["□", "YF-S201", "Dejar de soplar", "L/min vuelve a 0 en 2 segundos"],
         ["□", "YF-S201", "Reiniciar total", "El acumulado vuelve a 0"],
-        ["□", "SEN0189", "Agua clara", "NTU bajo y claridad alta"],
-        ["□", "SEN0189", "Agregar leche o tierra", "NTU sube y claridad baja"],
-        ["□", "SEN0189", "Medir voltaje en el pin", "Nunca supera 3.3 V"],
+        ["□", "TS-300B", "Agua clara", "NTU bajo y claridad alta"],
+        ["□", "TS-300B", "Agregar leche o tierra", "NTU sube y claridad baja"],
+        ["□", "TS-300B", "Medir voltaje en el pin", "Nunca supera 3.3 V"],
         ["□", "PH-7BNC", "Agua potable", "pH entre 6.5 y 8.5 (provisional)"],
         ["□", "PH-7BNC", "Buffer 7", "pH 7.0 ± 0.1 tras calibrar"],
         ["□", "PH-7BNC", "Buffer 4", "pH 4.0 ± 0.15 tras calibrar"],
@@ -1220,7 +1232,7 @@ B(("tabla", {
         ["HC-SR04", "5 V", "GND", "TRIG 19 · ECHO 18", "Divisor ÷2 en ECHO"],
         ["YF-S201", "5 V", "GND", "23", "Pull-up 4.7 kΩ a 3V3"],
         ["DS18B20", "3V3", "GND", "4", "Pull-up 4.7 kΩ a 3V3"],
-        ["SEN0189", "5 V", "GND", "35", "Divisor ÷2"],
+        ["TS-300B", "5 V", "GND", "35", "Divisor ÷2"],
         ["PH-7BNC", "5 V", "GND", "Po 34", "Divisor ÷2"],
         ["LCD 1602", "5 V", "GND", "SDA 21 · SCL 22", "—"],
     ],
