@@ -406,15 +406,20 @@ function addValve(pos) {
   return group;
 }
 
-// Ingreso: sube desde la caseta, cruza la pared a 36 cm y baja dentro del tanque
-pipe([8, 12, cZ], [8, 36, cZ]);
-pipe([8, 36, cZ], [8, 36, 8]);
-pipe([8, 36, 8], [8, 27, 8]);
-addJoint([8, 22, cZ]);
-addValve([8, 24, cZ]);
+// Entrada de agua: acometida exterior -> T en la caseta -> tanque
+pipe([8, 36, -36], [8, 36, cZ]);          // acometida desde la fuente
+pipe([8, 36, cZ], [8, 36, 8]);            // rama hacia el tanque
+pipe([8, 36, 8], [8, 27, 8]);             // codo hacia abajo dentro del tanque
+addJoint([8, 36, cZ]);
+addValve([8, 36, -20]);                   // válvula de ingreso al tanque
 addFlange(8, 36);
 
-// Rebose: boca abierta a 31.5, baja a 20 y pasa a la caseta
+// Paso directo: baja del T de entrada a la línea de salida (población), sin pasar por el tanque
+pipe([8, 36, cZ], [8, 5.5, cZ]);
+addValve([8, 22, cZ]);                    // válvula de by-pass
+pipe([8, 5.5, cZ], [-8, 5.5, cZ]);
+
+// Rebose: boca abierta a 31.5, baja a 20 y descarga en la línea de limpia
 pipe([-2, 20, -7], [-2, 31.5, -7], { joints: false });
 addJoint([-2, 20, -7]);
 pipe([-2, 20, -7], [-2, 20, -27]);
@@ -427,9 +432,10 @@ rim.rotation.x = Math.PI / 2;
 rim.position.set(-2, 31.5, -7);
 pipes.add(rim);
 
-// Salida: canastilla dentro, tubo a 5.5 hacia la caseta
+// Salida: canastilla dentro del tanque -> caseta -> población
 pipe([-8, 5.5, -10], [-8, 5.5, cZ]);
-addValve([-8, 6.1, cZ - 1]);
+pipe([-8, 5.5, cZ], [-8, 5.5, -36]);
+addValve([-8, 5.5, -30]);                 // válvula de salida a la población
 addFlange(-8, 5.5);
 
 const strainer = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 5, 18, 1, true), steelMat);
@@ -445,15 +451,11 @@ const strainerCap = new THREE.Mesh(new THREE.SphereGeometry(1.5, 16, 12), steelM
 strainerCap.position.set(-8, 5.5, -13.9);
 pipes.add(strainerCap);
 
-// Limpia: fondo a 1.5 hacia la caseta
+// Limpia / desfogue: fondo del tanque -> caseta -> exterior
 pipe([4, 1.5, -12], [4, 1.5, cZ]);
-addValve([4, 2.1, cZ - 1]);
+pipe([4, 1.5, cZ], [4, 1.5, -36]);
+addValve([4, 1.5, -30]);                  // válvula de limpia
 addFlange(4, 1.5);
-
-// Paso directo (by-pass): entrada -> salida dentro de la caseta, sin pasar por el tanque
-pipe([8, 12, cZ], [-8, 12, cZ]);
-pipe([-8, 12, cZ], [-8, 5.5, cZ]);
-addValve([0, 12, cZ]);
 
 /* ------------------------------------------------------------- dimensiones */
 
@@ -487,7 +489,7 @@ dimLine([[22.6, D.H, 18.2], [24.2, D.H, 18.2]]);
 const labelLayer = document.getElementById('labels');
 const labels = [];
 
-function addLabel(text, position, cls = '') {
+function addLabel(text, position, cls = '', flags = {}) {
   const el = document.createElement('div');
   el.className = `tag ${cls}`.trim();
   el.textContent = text;
@@ -496,14 +498,18 @@ function addLabel(text, position, cls = '') {
     el,
     pos: new THREE.Vector3(...position),
     dim: cls.includes('tag--dim'),
+    ...flags,
   });
 }
 
-addLabel('Ingreso · 36 cm', [15.5, 39.4, 7], 'tag--valve');
-addLabel('Rebose · 31.5 cm', [-9.5, 33.4, -7], 'tag--water');
-addLabel('Salida · 5.5 cm', [-8, 8, -12.6], 'tag--water tag--secondary');
-addLabel('Limpia · 1.5 cm', [4, 3.8, -12], 'tag--water tag--secondary');
-addLabel('Paso directo', [6.2, 16.6, cZ], 'tag--valve');
+addLabel('Entrada al tanque · 36 cm', [15.5, 39.4, 7], 'tag--valve', { tankOnly: true });
+addLabel('Rebose · 31.5 cm', [-9.5, 33.4, -7], 'tag--water', { tankOnly: true });
+addLabel('Salida · 5.5 cm', [-8, 8, -12.6], 'tag--water tag--secondary', { tankOnly: true });
+addLabel('Limpia · 1.5 cm', [4, 3.8, -12], 'tag--water tag--secondary', { tankOnly: true });
+addLabel('Entrada de agua', [8, 38.4, -33], 'tag--secondary', { casetaOnly: true });
+addLabel('Salida a la población', [-8, 3.2, -33], 'tag--secondary', { casetaOnly: true });
+addLabel('Limpia / desfogue', [4, -0.4, -33], 'tag--secondary', { casetaOnly: true });
+addLabel('Paso directo', [8, 25.2, cZ + 1.2], 'tag--valve');
 addLabel('40.0 cm', [0, -0.6, 20.4], 'tag--dim');
 addLabel('30.0 cm', [25.6, -0.6, 0], 'tag--dim');
 
@@ -515,7 +521,11 @@ function updateLabels() {
   const showDims = medidas.visible;
 
   for (const label of labels) {
-    if (label.dim && !showDims) {
+    const hidden =
+      (label.dim && !showDims) ||
+      (label.tankOnly && soloCaseta) ||
+      (label.casetaOnly && !soloCaseta);
+    if (hidden) {
       label.el.style.opacity = '0';
       continue;
     }

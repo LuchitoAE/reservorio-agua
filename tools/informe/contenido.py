@@ -1119,6 +1119,12 @@ B(("p", "El trazado de las tuberías es una simplificación del isométrico: res
         "general, pero no reproduce cada codo y unión del plano. El **paso directo** (by-pass) une la "
         "entrada con la salida dentro de la caseta, sin pasar por el tanque, y el rebose descarga en la "
         "línea de limpia, como indica el plano."))
+B(("p", "Las conexiones exteriores también están representadas: la **entrada de agua** llega desde la "
+        "fuente y se divide en el T de la caseta; una rama sube a 36 cm y llena el tanque, y la otra baja "
+        "por la válvula de **paso directo** hasta la **salida a la población**. La salida del tanque "
+        "(canastilla, 5.5 cm) comparte esa línea. La **limpia / desfogue** (1.5 cm) sale al exterior y el "
+        "rebose descarga en ella. Cerrando la válvula de ingreso y abriendo la de paso directo, el agua "
+        "va de la fuente a la población sin entrar al tanque."))
 B(("h2", "16.2 Cómo se usa"))
 B(("lista", [
     "Se abre desde el botón «Modelo 3D» del dashboard o directamente en `/modelo.html`.",
