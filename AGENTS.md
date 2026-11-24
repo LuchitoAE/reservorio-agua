@@ -28,7 +28,7 @@ Repositorio público: <https://github.com/LuchitoAE/reservorio-agua>
 | HC-SR04 / YF-S201 / pH / turbidez | Aún no conectados. |
 | Dashboard | Verificado en escritorio y móvil. |
 | Modelo 3D | **Aprobado para la fase 1 (24/11/2026).** No cambiar el trazado salvo pedido explícito. |
-| Informe DOCX | Generado y validado (33 páginas). |
+| Informe DOCX | Generado y validado (34 páginas). |
 | WiFi | `secrets.h` tiene SSID "RESERVORIO" pero no conecta; la placa queda en AP `Reservorio-Setup` (clave `reservorio`, 192.168.4.1). Revisar clave / 2.4 GHz / WPA3. |
 
 ## Tanque (plano Rev. 04)

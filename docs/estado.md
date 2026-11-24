@@ -14,7 +14,7 @@ Actualizado: **24 de noviembre de 2026**. El detalle técnico para agentes está
 | HC-SR04, caudal, pH, turbidez | Pendientes de conectar |
 | Dashboard web | Verificado en escritorio y móvil |
 | Modelo 3D | **Aprobado para la fase 1** |
-| Informe DOCX | Generado y validado (33 páginas) |
+| Informe DOCX | Generado y validado (34 páginas) |
 | WiFi | No conecta; queda en AP `Reservorio-Setup` (192.168.4.1) |
 
 ## Modelo digital 3D
