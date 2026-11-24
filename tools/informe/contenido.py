@@ -1097,6 +1097,7 @@ B(("p", "El modelo digital del reservorio está implementado como una página we
         "nivel de agua. No es una foto ni una maqueta estática: la geometría se genera por código y el "
         "nivel puede seguir la telemetría real."))
 B(("imagen", ("modelo-3d.png", 16.4, "Modelo digital del reservorio y la caseta, con el nivel de agua al 72 %.")))
+B(("imagen", ("modelo-caseta.png", 14.2, "Vista aislada de la caseta: el paso directo une entrada y salida sin pasar por el tanque.")))
 B(("h2", "16.1 Qué representa"))
 B(("tabla", {
     "headers": ["Elemento", "Medida en el modelo", "Origen"],
@@ -1115,7 +1116,9 @@ B(("tabla", {
 }))
 B(("p", "El trazado de las tuberías es una simplificación del isométrico: respeta las alturas "
         "(ingreso 36 cm, rebose 31.5/20 cm, salida 5.5 cm, limpia 1.5 cm), los diámetros y la posición "
-        "general, pero no reproduce cada codo y unión del plano."))
+        "general, pero no reproduce cada codo y unión del plano. El **paso directo** (by-pass) une la "
+        "entrada con la salida dentro de la caseta, sin pasar por el tanque, y el rebose descarga en la "
+        "línea de limpia, como indica el plano."))
 B(("h2", "16.2 Cómo se usa"))
 B(("lista", [
     "Se abre desde el botón «Modelo 3D» del dashboard o directamente en `/modelo.html`.",

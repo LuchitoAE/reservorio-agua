@@ -65,6 +65,7 @@ controls.zoomSpeed = 0.8;
 controls.rotateSpeed = 0.65;
 
 const clock = new THREE.Clock();
+let soloCaseta = false;
 
 /* ----------------------------------------------------------------- lights */
 
@@ -293,7 +294,7 @@ function applyLevel(level) {
   waterVolume.position.y = wall + h / 2;
   waterSurface.position.y = level + 0.03;
   waterLine.position.y = level + 0.04;
-  waterGroup.visible = level > 0.7;
+  waterGroup.visible = !soloCaseta && level > 0.7;
 }
 
 function animateWaves(time) {
@@ -406,7 +407,7 @@ function addValve(pos) {
 }
 
 // Ingreso: sube desde la caseta, cruza la pared a 36 cm y baja dentro del tanque
-pipe([8, 22, cZ], [8, 36, cZ]);
+pipe([8, 12, cZ], [8, 36, cZ]);
 pipe([8, 36, cZ], [8, 36, 8]);
 pipe([8, 36, 8], [8, 27, 8]);
 addJoint([8, 22, cZ]);
@@ -416,8 +417,10 @@ addFlange(8, 36);
 // Rebose: boca abierta a 31.5, baja a 20 y pasa a la caseta
 pipe([-2, 20, -7], [-2, 31.5, -7], { joints: false });
 addJoint([-2, 20, -7]);
-pipe([-2, 20, -7], [-2, 20, cZ]);
-addValve([-2, 20, cZ - 1]);
+pipe([-2, 20, -7], [-2, 20, -27]);
+pipe([-2, 20, -27], [-2, 1.5, -27]);
+pipe([-2, 1.5, -27], [4, 1.5, -27]);
+pipe([4, 1.5, -27], [4, 1.5, cZ]);
 addFlange(-2, 20);
 const rim = new THREE.Mesh(new THREE.TorusGeometry(1.05, 0.12, 10, 26), pvcDarkMat);
 rim.rotation.x = Math.PI / 2;
@@ -447,12 +450,10 @@ pipe([4, 1.5, -12], [4, 1.5, cZ]);
 addValve([4, 2.1, cZ - 1]);
 addFlange(4, 1.5);
 
-// By-Pass: une la línea de ingreso con la de salida dentro de la caseta
-pipe([8, 10, cZ], [8, 10, -31]);
-pipe([8, 10, -31], [-8, 10, -31]);
-pipe([-8, 10, -31], [-8, 5.5, -31]);
-pipe([-8, 5.5, cZ], [-8, 5.5, -31]);
-addValve([0, 10, -31]);
+// Paso directo (by-pass): entrada -> salida dentro de la caseta, sin pasar por el tanque
+pipe([8, 12, cZ], [-8, 12, cZ]);
+pipe([-8, 12, cZ], [-8, 5.5, cZ]);
+addValve([0, 12, cZ]);
 
 /* ------------------------------------------------------------- dimensiones */
 
@@ -502,6 +503,7 @@ addLabel('Ingreso · 36 cm', [15.5, 39.4, 7], 'tag--valve');
 addLabel('Rebose · 31.5 cm', [-9.5, 33.4, -7], 'tag--water');
 addLabel('Salida · 5.5 cm', [-8, 8, -12.6], 'tag--water tag--secondary');
 addLabel('Limpia · 1.5 cm', [4, 3.8, -12], 'tag--water tag--secondary');
+addLabel('Paso directo', [6.2, 16.6, cZ], 'tag--valve');
 addLabel('40.0 cm', [0, -0.6, 20.4], 'tag--dim');
 addLabel('30.0 cm', [25.6, -0.6, 0], 'tag--dim');
 
@@ -539,6 +541,7 @@ const ui = {
   badge: document.getElementById('mode-badge'),
   casetaBtn: document.getElementById('toggle-caseta'),
   medidasBtn: document.getElementById('toggle-medidas'),
+  aislarBtn: document.getElementById('toggle-aislar'),
   loading: document.getElementById('loading'),
 };
 
@@ -605,10 +608,24 @@ ui.medidasBtn.addEventListener('click', () => {
   ui.medidasBtn.textContent = medidas.visible ? 'Ocultar medidas' : 'Mostrar medidas';
 });
 
+ui.aislarBtn.addEventListener('click', () => {
+  soloCaseta = !soloCaseta;
+  reservoir.visible = !soloCaseta;
+  waterGroup.visible = !soloCaseta;
+  spillLine.visible = !soloCaseta;
+  caseta.visible = true;
+  medidas.visible = !soloCaseta;
+  ui.medidasBtn.textContent = soloCaseta ? 'Mostrar medidas' : 'Ocultar medidas';
+  ui.aislarBtn.textContent = soloCaseta ? 'Ver conjunto' : 'Aislar caseta';
+  applyLevel(currentLevel);
+  goToView(soloCaseta ? 'caseta' : 'iso');
+});
+
 const views = {
   iso: { pos: [74, 54, 94], target: [0, 19, 2] },
   front: { pos: [0, 22, 112], target: [0, 20, 2] },
   top: { pos: [0.1, 140, 2.1], target: [0, 0, 2] },
+  caseta: { pos: [48, 40, -92], target: [0, 12, cZ] },
 };
 
 let camAnim = null;
