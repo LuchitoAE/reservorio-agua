@@ -406,56 +406,58 @@ function addValve(pos) {
   return group;
 }
 
-// Entrada de agua: acometida exterior -> T en la caseta -> tanque
-pipe([8, 36, -36], [8, 36, cZ]);          // acometida desde la fuente
-pipe([8, 36, cZ], [8, 36, 8]);            // rama hacia el tanque
-pipe([8, 36, 8], [8, 27, 8]);             // codo hacia abajo dentro del tanque
-addJoint([8, 36, cZ]);
-addValve([8, 36, -20]);                   // válvula de ingreso al tanque
-addFlange(8, 36);
+// Entrada y salida entran en paralelo a 5.5 cm (misma altura)
+// Entrada: acometida exterior -> caseta -> sube a 36 -> tanque
+pipe([5, 5.5, -35], [5, 5.5, -30]);       // acometida paralela a la salida
+pipe([5, 5.5, -30], [5, 36, -30]);         // sube dentro de la caseta
+pipe([5, 36, -30], [5, 36, 8]);            // cruza al tanque a 36 cm
+pipe([5, 36, 8], [5, 27, 8]);              // codo hacia abajo dentro del tanque
+addJoint([5, 5.5, -30]);
+addJoint([5, 36, -30]);
+addValve([5, 36, -20]);                    // válvula de entrada, antes del tanque
+addFlange(5, 36);
 
-// Paso directo: baja del T de entrada a la línea de salida (población), sin pasar por el tanque
-pipe([8, 36, cZ], [8, 5.5, cZ]);
-addValve([8, 22, cZ]);                    // válvula de by-pass
-pipe([8, 5.5, cZ], [-8, 5.5, cZ]);
+// Paso directo: llave apenas entra a la caseta, une la entrada con la salida
+pipe([5, 5.5, -30], [-5, 5.5, -30]);
+addValve([0, 5.5, -30]);                   // válvula de paso directo
+addJoint([-5, 5.5, -30]);
 
-// Rebose: boca abierta a 31.5, baja a 20 y descarga en la línea de limpia
+// Salida: canastilla -> válvula -> unión con el paso directo -> población
+pipe([-5, 5.5, -10], [-5, 5.5, -35]);
+addValve([-5, 5.5, -24]);                  // válvula de salida, antes de la unión
+addFlange(-5, 5.5);
+// (la unión del paso directo queda aguas abajo de la válvula de salida)
+
+const strainer = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 5, 18, 1, true), steelMat);
+strainer.rotation.x = Math.PI / 2;
+strainer.position.set(-5, 5.5, -11.4);
+pipes.add(strainer);
+for (let i = 0; i < 4; i++) {
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(1.52, 0.07, 8, 24), pvcDarkMat);
+  ring.position.set(-5, 5.5, -13 + i * 1.1);
+  pipes.add(ring);
+}
+const strainerCap = new THREE.Mesh(new THREE.SphereGeometry(1.5, 16, 12), steelMat);
+strainerCap.position.set(-5, 5.5, -13.9);
+pipes.add(strainerCap);
+
+// Limpia: fondo -> válvula -> salida exterior
+pipe([4, 1.5, -12], [4, 1.5, -35]);
+addValve([4, 1.5, -30]);                   // válvula de limpia
+addFlange(4, 1.5);
+
+// Rebose (desfogue pasivo, SIN válvula): 31.5 -> 20 -> caseta -> aguas abajo de limpia
 pipe([-2, 20, -7], [-2, 31.5, -7], { joints: false });
 addJoint([-2, 20, -7]);
-pipe([-2, 20, -7], [-2, 20, -27]);
-pipe([-2, 20, -27], [-2, 1.5, -27]);
-pipe([-2, 1.5, -27], [4, 1.5, -27]);
-pipe([4, 1.5, -27], [4, 1.5, cZ]);
+pipe([-2, 20, -7], [-2, 20, -33]);
+pipe([-2, 20, -33], [-2, 1.5, -33]);
+pipe([-2, 1.5, -33], [4, 1.5, -33]);       // descarga después de la válvula de limpia
 addFlange(-2, 20);
+
 const rim = new THREE.Mesh(new THREE.TorusGeometry(1.05, 0.12, 10, 26), pvcDarkMat);
 rim.rotation.x = Math.PI / 2;
 rim.position.set(-2, 31.5, -7);
 pipes.add(rim);
-
-// Salida: canastilla dentro del tanque -> caseta -> población
-pipe([-8, 5.5, -10], [-8, 5.5, cZ]);
-pipe([-8, 5.5, cZ], [-8, 5.5, -36]);
-addValve([-8, 5.5, -30]);                 // válvula de salida a la población
-addFlange(-8, 5.5);
-
-const strainer = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 5, 18, 1, true), steelMat);
-strainer.rotation.x = Math.PI / 2;
-strainer.position.set(-8, 5.5, -11.4);
-pipes.add(strainer);
-for (let i = 0; i < 4; i++) {
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(1.52, 0.07, 8, 24), pvcDarkMat);
-  ring.position.set(-8, 5.5, -13 + i * 1.1);
-  pipes.add(ring);
-}
-const strainerCap = new THREE.Mesh(new THREE.SphereGeometry(1.5, 16, 12), steelMat);
-strainerCap.position.set(-8, 5.5, -13.9);
-pipes.add(strainerCap);
-
-// Limpia / desfogue: fondo del tanque -> caseta -> exterior
-pipe([4, 1.5, -12], [4, 1.5, cZ]);
-pipe([4, 1.5, cZ], [4, 1.5, -36]);
-addValve([4, 1.5, -30]);                  // válvula de limpia
-addFlange(4, 1.5);
 
 /* ------------------------------------------------------------- dimensiones */
 
@@ -502,14 +504,15 @@ function addLabel(text, position, cls = '', flags = {}) {
   });
 }
 
-addLabel('Entrada al tanque · 36 cm', [15.5, 39.4, 7], 'tag--valve', { tankOnly: true });
+addLabel('Entrada al tanque · 36 cm', [6.2, 38.6, 8], 'tag--valve', { tankOnly: true });
 addLabel('Rebose · 31.5 cm', [-9.5, 33.4, -7], 'tag--water', { tankOnly: true });
-addLabel('Salida · 5.5 cm', [-8, 8, -12.6], 'tag--water tag--secondary', { tankOnly: true });
+addLabel('Salida del tanque · 5.5 cm', [-5, 8, -12.6], 'tag--water tag--secondary', { tankOnly: true });
 addLabel('Limpia · 1.5 cm', [4, 3.8, -12], 'tag--water tag--secondary', { tankOnly: true });
-addLabel('Entrada de agua', [8, 38.4, -33], 'tag--secondary', { casetaOnly: true });
-addLabel('Salida a la población', [-8, 3.2, -33], 'tag--secondary', { casetaOnly: true });
-addLabel('Limpia / desfogue', [4, -0.4, -33], 'tag--secondary', { casetaOnly: true });
-addLabel('Paso directo', [8, 25.2, cZ + 1.2], 'tag--valve');
+addLabel('Paso directo', [4, 10, -30], 'tag--valve', { casetaOnly: true });
+addLabel('Entrada de agua', [8, 2.2, -34], 'tag--secondary', { casetaOnly: true });
+addLabel('Salida a la población', [-8, 2.2, -34], 'tag--secondary', { casetaOnly: true });
+addLabel('Limpia', [4, -0.6, -34], 'tag--secondary', { casetaOnly: true });
+addLabel('Desfogue automático (sin válvula)', [-8, 18, -34], 'tag--water tag--secondary', { casetaOnly: true });
 addLabel('40.0 cm', [0, -0.6, 20.4], 'tag--dim');
 addLabel('30.0 cm', [25.6, -0.6, 0], 'tag--dim');
 
