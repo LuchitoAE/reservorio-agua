@@ -42,7 +42,7 @@ antes de mezclar sensores.
 - [ ] El voltaje del diagnóstico nunca supera 3.3 V en el pin (¡medir con multímetro!).
 
 ### LCD 1602
-- [ ] Muestra las 4 páginas rotando cada 2.5 s.
+- [ ] Muestra las 5 páginas rotando cada 2.5 s.
 - [ ] Se lee sin caracteres basura; contraste ajustado con el potenciómetro del backpack.
 
 ## Fase 2 — Integración

@@ -7,6 +7,8 @@ constexpr uint8_t PIN_ECHO = 18;
 constexpr uint32_t TIMEOUT_US = 25000;
 constexpr float SOUND_CM_PER_US = 0.0343f;
 constexpr float TANK_HEIGHT_CM = 36.5f;
+constexpr float MAX_LEVEL_CM = 30.0f;
+constexpr float OVERFLOW_CM = 31.0f;
 constexpr uint32_t PRINT_MS = 1000;
 constexpr uint32_t SAMPLE_GAP_MS = 60;
 
@@ -36,6 +38,16 @@ void pushHistory(float v) {
   if (histCount < 5) histCount++;
 }
 
+const char* estado(float level, float dist) {
+  if (dist > TANK_HEIGHT_CM + 1.0f) return "FUERA DEL TANQUE (apunta al ambiente)";
+  if (level >= OVERFLOW_CM) return "REBALSANDO";
+  if (level >= MAX_LEVEL_CM) return "TANQUE LLENO";
+  if (level >= MAX_LEVEL_CM - 5.0f) return "CASI LLENO";
+  if (level <= 2.0f) return "TANQUE VACIO";
+  if (level <= 5.0f) return "NIVEL BAJO";
+  return "NIVEL NORMAL";
+}
+
 float median() {
   float tmp[5];
   for (uint8_t i = 0; i < histCount; i++) tmp[i] = history[i];
@@ -63,7 +75,8 @@ void setup() {
   Serial.println();
   Serial.println("=== Test HC-SR04 ===");
   Serial.println("TRIG = GPIO19   ECHO = GPIO18 (con divisor)");
-  Serial.println("Calibracion 36.5 cm / nivel de operacion 30 cm");
+  Serial.println("Calibracion 36.5 cm / nivel 30 cm / rebose 31 cm");
+  Serial.println("Estados: VACIO <=2, BAJO <=5, CASI LLENO >=25, LLENO >=30, REBALSANDO >=31");
   Serial.println();
 }
 
@@ -99,7 +112,9 @@ void loop() {
 
   Serial.print("eco ");
   Serial.print(valid);
-  Serial.print("/3   pulsos ");
+  Serial.print("/3");
+  if (valid < 3) Serial.print(" (parcial)");
+  Serial.print("   pulsos ");
   Serial.print(durs[0]);
   Serial.print("/");
   Serial.print(durs[1]);
@@ -109,7 +124,9 @@ void loop() {
   Serial.print(dist, 2);
   Serial.print(" cm   nivel ");
   Serial.print(level, 2);
-  Serial.print(" cm   (");
+  Serial.print(" cm   -> ");
+  Serial.print(estado(level, dist));
+  Serial.print("   (");
   Serial.print(okTotal);
   Serial.print(" ok / ");
   Serial.print(failTotal);

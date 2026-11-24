@@ -23,6 +23,16 @@ String fmt(float value, uint8_t decimals, const char* unit) {
   dtostrf(value, 0, decimals, buf);
   return String(buf) + unit;
 }
+
+const char* levelStatus(float cm, float maxLevel) {
+  if (isnan(cm)) return "SIN LECTURA";
+  if (cm >= maxLevel + 1.0f) return "REBALSANDO";
+  if (cm >= maxLevel) return "TANQUE LLENO";
+  if (cm >= maxLevel - 5.0f) return "CASI LLENO";
+  if (cm <= 2.0f) return "TANQUE VACIO";
+  if (cm <= 5.0f) return "NIVEL BAJO";
+  return "NIVEL NORMAL";
+}
 }  // namespace
 
 uint8_t Display::scanAddress() const {
@@ -75,7 +85,7 @@ void Display::update(const Sensors& sensors, const ConfigStore& config) {
   lastChangeMs_ = now;
 
   renderPage(page_, sensors, config);
-  page_ = (page_ + 1) % 4;
+  page_ = (page_ + 1) % 5;
 }
 
 void Display::renderPage(uint8_t page, const Sensors& sensors, const ConfigStore& config) {
@@ -94,9 +104,13 @@ void Display::renderPage(uint8_t page, const Sensors& sensors, const ConfigStore
       printLine(0, "Flujo: " + fmt(sensors.flow().litersPerMinute(), 1, " L/m"));
       printLine(1, "Total: " + fmt(sensors.flow().totalLiters(), 1, " L"));
       break;
-    default:
+    case 3:
       printLine(0, "Turb: " + fmt(sensors.turbidity().ntu(), 0, " NTU"));
       printLine(1, "WiFi: " + telemetry::ipAddress());
+      break;
+    default:
+      printLine(0, levelStatus(sensors.levelCm(), config.maxLevelCm()));
+      printLine(1, fmt(sensors.levelCm(), 1, " cm") + " / " + fmt(config.maxLevelCm(), 0, " cm"));
       break;
   }
 }

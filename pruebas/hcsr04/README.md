@@ -54,7 +54,9 @@ eco 3/3   pulsos 10743/10718/10719 us   distancia 183.81 cm   nivel -147.31 cm  
 - `pulsos`: duración del eco de las tres muestras, en microsegundos.
 - `distancia`: mediana de las últimas 5 muestras válidas.
 - `nivel`: `36.5 − distancia` (calibración prevista para el tanque).
-- Contadores acumulados de aciertos y fallos.
+- `-> estado`: `FUERA DEL TANQUE`, `TANQUE VACIO`, `NIVEL BAJO`, `NIVEL NORMAL`, `CASI LLENO`,
+  `TANQUE LLENO` o `REBALSANDO`.
+- Contadores acumulados de aciertos y fallos: cada fallo es una muestra sin eco.
 
 ## Valores de referencia
 

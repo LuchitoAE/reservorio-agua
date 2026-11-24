@@ -63,6 +63,16 @@ function withUnit(value, decimals, unit) {
   return isNum(value) ? `${fmt(value, decimals)} ${unit}` : '--';
 }
 
+function levelState(levelCm, maxLevel) {
+  if (!isNum(levelCm) || !isNum(maxLevel)) return { text: 'SIN LECTURA', cls: '' };
+  if (levelCm >= maxLevel + 1) return { text: '¡REBALSANDO!', cls: 'is-over' };
+  if (levelCm >= maxLevel) return { text: 'TANQUE LLENO', cls: 'is-full' };
+  if (levelCm >= maxLevel - 5) return { text: 'CASI LLENO', cls: 'is-high' };
+  if (levelCm <= 2) return { text: 'TANQUE VACÍO', cls: 'is-low' };
+  if (levelCm <= 5) return { text: 'NIVEL BAJO', cls: 'is-low' };
+  return { text: 'NIVEL NORMAL', cls: '' };
+}
+
 function timeAgo(ms) {
   const seconds = Math.max(0, Math.round((Date.now() - ms) / 1000));
   if (seconds < 2) return 'ahora';
@@ -188,8 +198,11 @@ function render(t) {
   setStateDot('system', state.source === 'esp32' ? true : null);
 
   // Textos secundarios
-  $('[data-meta="level"]').textContent = t.level?.ok
-    ? `${fmt(values.levelCm, 1)} cm de ${fmt(values.maxLevel, 1)} cm útiles`
+  const levelMeta = $('[data-meta="level"]');
+  const levelInfo = levelState(values.levelCm, values.maxLevel);
+  levelMeta.className = `card-meta ${levelInfo.cls}`.trim();
+  levelMeta.textContent = t.level?.ok
+    ? `${levelInfo.text} · ${fmt(values.levelCm, 1)} cm de ${fmt(values.maxLevel, 1)} cm`
     : 'Sin eco: revisa el montaje del HC-SR04';
   $('[data-meta="flow"]').textContent =
     values.lpm > 0.05 ? 'Caudal activo' : 'Sin caudal (en reposo)';

@@ -23,7 +23,7 @@ Repositorio público: <https://github.com/LuchitoAE/reservorio-agua>
 | --- | --- |
 | Firmware | Compila (PlatformIO 6.2.0). Última versión compilada incluye tanque rectangular. |
 | Placa | Conectada por USB. Tiene cargado el **sketch de prueba del HC-SR04**; falta reflashear el firmware del proyecto. |
-| LCD | Verificado en 0x27, muestra las 4 páginas. |
+| LCD | Verificado en 0x27 (4 páginas). El firmware nuevo agrega una 5.ª página de estado del nivel. |
 | DS18B20 | Verificado: 1 dispositivo en el bus, ~20.5 °C. |
 | HC-SR04 | Verificado en protoboard: 3/3 ecos, 0 fallos, lectura estable. Sketch de banco en `pruebas/hcsr04/`. Falta montarlo en el tanque. |
 | YF-S201 / pH / turbidez | Aún no conectados. |

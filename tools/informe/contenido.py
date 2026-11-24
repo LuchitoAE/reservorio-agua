@@ -396,7 +396,8 @@ B(("checklist", [
 ]))
 
 B(("h2", "6.2 Pantalla LCD 1602 I2C"))
-B(("p", "La pantalla muestra cuatro páginas rotativas con nivel, temperatura, caudal y turbidez. "
+B(("p", "La pantalla muestra cinco páginas rotativas: nivel, temperatura y pH, caudal, turbidez y red, "
+        "y una última con el estado del nivel (vacío, bajo, normal, casi lleno, lleno o rebalsando). "
         "El backpack I2C reduce la conexión a cuatro cables y permite detectar la dirección por software."))
 B(("tabla", {
     "headers": ["Pin del backpack", "Va a", "Notas"],
@@ -417,7 +418,7 @@ B(("p", "**Prueba de banco**"))
 B(("numeros", [
     "Conecta el USB y abre el monitor serie.",
     "Confirma el mensaje de detección de la pantalla.",
-    "Debe aparecer «Reservorio / iniciando…» y luego rotar las cuatro páginas cada 2.5 segundos.",
+    "Debe aparecer «Reservorio / iniciando…» y luego rotar las cinco páginas cada 2.5 segundos.",
     "Ajusta el contraste con el potenciómetro del backpack hasta que el texto se lea sin fantasmas.",
 ]))
 B(("p", "**Si no funciona:** pantalla encendida sin texto → contraste; sin mensaje en el monitor → "
@@ -794,6 +795,10 @@ B(("tabla", {
 B(("p", "En modo demostración los datos se generan con una simulación que sube y baja el nivel, "
         "acumula litros y varía pH y turbidez. Sirve para revisar el diseño y para publicar una demo, "
         "pero **no representa mediciones reales**. El botón de calibración se desactiva en ese modo."))
+B(("p", "La tarjeta de nivel no se limita al porcentaje: cambia el mensaje y el color según la altura. "
+        "Muestra **NIVEL NORMAL**, **CASI LLENO**, **TANQUE LLENO** o **¡REBALSANDO!** cuando el agua "
+        "supera el nivel de operación, y **TANQUE VACÍO** o **NIVEL BAJO** cuando está por debajo de "
+        "5 cm. El mismo estado aparece en la quinta página de la LCD."))
 B(("imagen", ("dashboard-movil.png", 7.6, "Vista móvil: el tanque, el nivel y las tarjetas se apilan en una columna.")))
 B(("h2", "10.2 API HTTP"))
 B(("tabla", {
@@ -923,7 +928,7 @@ B(("h2", "12.2 Pruebas por sensor"))
 B(("tabla", {
     "headers": ["", "Sensor", "Prueba", "Resultado esperado"],
     "rows": [
-        ["□", "LCD", "Encender y observar", "Cuatro páginas rotando, texto legible"],
+        ["□", "LCD", "Encender y observar", "Cinco páginas rotando, texto legible"],
         ["□", "LCD", "Girar el contraste", "El texto se aclara u oscurece"],
         ["□", "DS18B20", "Sostener con la mano", "La temperatura sube lentamente"],
         ["□", "DS18B20", "Agua con hielo", "La temperatura baja hacia 0 °C"],

@@ -382,7 +382,7 @@ visual), pero si no tienes claro su conexionado, sáltalo y hazlo al final.
 **Prueba**
 
 1. Alimenta y abre el monitor: debe aparecer `[lcd] pantalla en 0x27`.
-2. La pantalla muestra `Reservorio / iniciando...` y luego rota 4 páginas.
+2. La pantalla muestra `Reservorio / iniciando...` y luego rota 5 páginas (la última con el estado del nivel).
 
 **Si no funciona**
 
@@ -655,7 +655,7 @@ No sueldes hasta que todo esto esté marcado:
 - [ ] Los 5 sensores dan lecturas coherentes durante 30 min seguidos.
 - [ ] Verifiqué con multímetro que ningún GPIO recibe 5 V (ECHO, AO y Po pasan por divisor).
 - [ ] Medí los puntos medios de los divisores: ECHO ≈ 2.5 V, turbidez ≈ 2.1 V, pH ≈ 1.25 V.
-- [ ] El LCD muestra las 4 páginas sin basura.
+- [ ] El LCD muestra las 5 páginas sin basura.
 - [ ] El dashboard funciona servido por el ESP32 (no solo por la PC).
 - [ ] Reiniciar la placa conserva calibración y total.
 - [ ] Anoté en un papel qué GPIO va a cada cable y de qué color es.
