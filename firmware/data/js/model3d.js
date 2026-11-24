@@ -411,7 +411,7 @@ function addValve(pos, handleRotY = 0) {
 pipe([3, 5.5, -35], [3, 5.5, -19]);        // acometida y tramo paralelo
 pipe([3, 5.5, -19], [3, 36, -19]);          // sube junto al tanque
 pipe([3, 36, -19], [3, 36, -12]);           // entra al tanque
-pipe([3, 36, -12], [3, 33, -12]);           // codo corto hacia abajo
+pipe([3, 36, -12], [3, 35, -12]);           // codo corto hacia abajo
 addJoint([3, 5.5, -32]);
 addJoint([3, 5.5, -19]);
 addJoint([3, 36, -19]);
@@ -442,21 +442,21 @@ strainerCap.position.set(-7, 5.5, -13.9);
 pipes.add(strainerCap);
 
 // Limpia: fondo -> válvula más al centro -> exterior
-pipe([6, 1.5, -12], [6, 1.5, -35]);
-addValve([6, 1.5, -26]);                    // válvula de limpia, más al centro
-addFlange(6, 1.5);
+pipe([8, 1.5, -12], [8, 1.5, -35]);
+addValve([8, 1.5, -18]);                    // válvula de limpia, más al centro
+addFlange(8, 1.5);
 
 // Rebose (desfogue pasivo, SIN válvula): alineado con la limpieza.
 // Sube a 31.5, baja a 20, entra a la caseta y baja por la misma línea de limpia.
-pipe([6, 20, -7], [6, 31.5, -7], { joints: false });
-addJoint([6, 20, -7]);
-pipe([6, 20, -7], [6, 20, -34]);
-pipe([6, 20, -34], [6, 1.5, -34]);          // baja por la misma línea
-addFlange(6, 20);
+pipe([8, 20, -7], [8, 31.5, -7], { joints: false });
+addJoint([8, 20, -7]);
+pipe([8, 20, -7], [8, 20, -23.5]);
+pipe([8, 20, -23.5], [8, 1.5, -23.5]);          // baja por la misma línea
+addFlange(8, 20);
 
 const rim = new THREE.Mesh(new THREE.TorusGeometry(1.05, 0.12, 10, 26), pvcDarkMat);
 rim.rotation.x = Math.PI / 2;
-rim.position.set(6, 31.5, -7);
+rim.position.set(8, 31.5, -7);
 pipes.add(rim);
 
 /* ------------------------------------------------------------- dimensiones */
@@ -505,14 +505,14 @@ function addLabel(text, position, cls = '', flags = {}) {
 }
 
 addLabel('Entrada al tanque · 36 cm', [4.4, 38.2, -11], 'tag--valve', { tankOnly: true });
-addLabel('Rebose · 31.5 cm', [7.5, 33.2, -7], 'tag--water', { tankOnly: true });
+addLabel('Rebose · 31.5 cm', [9.5, 33.2, -7], 'tag--water', { tankOnly: true });
 addLabel('Salida del tanque · 5.5 cm', [-7, 8, -12.6], 'tag--water tag--secondary', { tankOnly: true });
-addLabel('Limpia · 1.5 cm', [6, 3.8, -12], 'tag--water tag--secondary', { tankOnly: true });
+addLabel('Limpia · 1.5 cm', [8, 3.8, -12], 'tag--water tag--secondary', { tankOnly: true });
 addLabel('Paso directo', [-2, 9.5, -32], 'tag--valve', { casetaOnly: true });
 addLabel('Entrada de agua', [4.5, 2.2, -34], 'tag--secondary', { casetaOnly: true });
 addLabel('Salida a la población', [-8.5, 2.2, -34], 'tag--secondary', { casetaOnly: true });
-addLabel('Limpia', [7.5, 3.2, -28], 'tag--secondary', { casetaOnly: true });
-addLabel('Desfogue automático (sin válvula)', [8, 15, -34], 'tag--water tag--secondary', { casetaOnly: true });
+addLabel('Limpia', [9.2, 3.2, -18], 'tag--secondary', { casetaOnly: true });
+addLabel('Desfogue automático (sin válvula)', [9, 15, -23.5], 'tag--water tag--secondary', { casetaOnly: true });
 addLabel('40.0 cm', [0, -0.6, 20.4], 'tag--dim');
 addLabel('30.0 cm', [25.6, -0.6, 0], 'tag--dim');
 
