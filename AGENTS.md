@@ -25,7 +25,7 @@ Repositorio público: <https://github.com/LuchitoAE/reservorio-agua>
 | Placa | Conectada por USB. Tiene cargado el **sketch de prueba del HC-SR04**; falta reflashear el firmware del proyecto. |
 | LCD | Verificado en 0x27, muestra las 4 páginas. |
 | DS18B20 | Verificado: 1 dispositivo en el bus, ~20.5 °C. |
-| HC-SR04 | Verificado en protoboard: 3/3 ecos, 0 fallos, lectura estable. Falta montarlo en el tanque. |
+| HC-SR04 | Verificado en protoboard: 3/3 ecos, 0 fallos, lectura estable. Sketch de banco en `pruebas/hcsr04/`. Falta montarlo en el tanque. |
 | YF-S201 / pH / turbidez | Aún no conectados. |
 | Dashboard | Verificado en escritorio y móvil. |
 | Modelo 3D | **Aprobado para la fase 1 (24/11/2026).** Trazado y acabado realista (codos, tees, uniones, pasamuros, válvulas de bola). No cambiar salvo pedido explícito. |
@@ -84,6 +84,7 @@ node tools/dev-server.js                  # dashboard + modelo en :5173
 node tools/sync-web.js                    # web -> firmware/data
 ./tools/pio.sh run -d firmware -t uploadfs
 ./tools/pio.sh device monitor -d firmware -b 115200
+./tools/pio.sh run -d pruebas/hcsr04 -t upload   # prueba de banco del HC-SR04
 ./.venv/bin/python tools/informe/generar.py
 ```
 

@@ -4,6 +4,7 @@
 
 namespace {
 constexpr uint32_t kPulseTimeoutUs = 25000;  // ~4 m de alcance
+constexpr uint32_t kSampleGapMs = 60;        // ciclo minimo recomendado por el datasheet
 constexpr float kSoundCmPerUs = 0.0343f;     // 343 m/s a 20 °C
 }  // namespace
 
@@ -40,7 +41,7 @@ void Ultrasonic::update() {
       filter_.push(cm);
       valid++;
     }
-    delay(15);
+    delay(kSampleGapMs);
   }
 
   if (valid == 0) {
