@@ -10,7 +10,7 @@
   --muted-2: #5f7a94;
   --accent: #38bdf8;
   --water: #22d3ee;
-  --valve: #e05252;
+  --valve: #3f86e0;
   --font: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", sans-serif;
   --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
 }
@@ -297,7 +297,7 @@ button:hover { background: rgba(56, 189, 248, 0.14); border-color: var(--line-st
 .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 .dot--glass { background: rgba(191, 234, 255, 0.7); box-shadow: 0 0 0 2px rgba(191, 234, 255, 0.15); }
 .dot--water { background: #22d3ee; }
-.dot--pvc { background: #b8c3ce; }
+.dot--pvc { background: #dde5ec; }
 .dot--valve { background: var(--valve); }
 
 /* ---------------------------------------------------------------- labels */
@@ -329,7 +329,7 @@ button:hover { background: rgba(56, 189, 248, 0.14); border-color: var(--line-st
   background: rgba(4, 16, 27, 0.6);
 }
 
-.tag--valve { border-color: rgba(224, 82, 82, 0.45); color: #ffc9c9; }
+.tag--valve { border-color: rgba(63, 134, 224, 0.5); color: #cfe4ff; }
 .tag--water { border-color: rgba(34, 211, 238, 0.4); color: #a9f4ff; }
 
 /* --------------------------------------------------------------- loading */

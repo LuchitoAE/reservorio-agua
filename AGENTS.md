@@ -27,7 +27,7 @@ Repositorio público: <https://github.com/LuchitoAE/reservorio-agua>
 | DS18B20 | Verificado: 1 dispositivo en el bus, ~20.5 °C. |
 | HC-SR04 / YF-S201 / pH / turbidez | Aún no conectados. |
 | Dashboard | Verificado en escritorio y móvil. |
-| Modelo 3D | **Aprobado para la fase 1 (24/11/2026).** No cambiar el trazado salvo pedido explícito. |
+| Modelo 3D | **Aprobado para la fase 1 (24/11/2026).** Trazado y acabado realista (codos, tees, uniones, pasamuros, válvulas de bola). No cambiar salvo pedido explícito. |
 | Informe DOCX | Generado y validado (34 páginas). |
 | WiFi | `secrets.h` tiene SSID "RESERVORIO" pero no conecta; la placa queda en AP `Reservorio-Setup` (clave `reservorio`, 192.168.4.1). Revisar clave / 2.4 GHz / WPA3. |
 
@@ -52,6 +52,15 @@ Coordenadas en cm; X positivo a la derecha, Z negativo hacia la caseta/atrás.
 - **Rebose** sin válvula, alineado en X=8; baja por la misma línea y conecta a la **mitad**
   de la línea de limpia (Z=-23.5), aguas abajo de su válvula.
 - Vista "Aislar caseta" en `modelo.html` para inspeccionar el conjunto.
+
+### Acabado del modelo (24/11/2026)
+
+- Tuberías de PVC blanco con codos de 90°, tees, uniones universales, pasamuros con bridas y
+  empaques, campana en el rebose y canastilla ranurada en la salida.
+- Válvulas de bola de PVC blancas con palanca azul (estilo ferretería peruana), con tuerca de
+  unión a cada lado. La leyenda y las etiquetas de válvulas usan azul (`--valve: #3f86e0`).
+- Los extremos exteriores muestran la boca del tubo (interior oscuro), no tapones.
+- No mover posiciones al retocar el acabado.
 
 ## Entorno de trabajo
 

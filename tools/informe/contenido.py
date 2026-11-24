@@ -1095,9 +1095,9 @@ B(("p", "**Estado: aprobado para la fase 1 (24/11/2026).** El trazado de tuberí
         "validó con el plano y con la instalación; no se requieren cambios por ahora."))
 B(("p", "El modelo digital del reservorio está implementado como una página web interactiva "
         "(`web/modelo.html`) construida con Three.js. Toma las medidas del plano **Reservorio + caseta "
-        "de válvulas (Rev. 04)** y representa el tanque de vidrio, la caseta, las cuatro válvulas y el "
-        "nivel de agua. No es una foto ni una maqueta estática: la geometría se genera por código y el "
-        "nivel puede seguir la telemetría real."))
+        "de válvulas (Rev. 04)** y representa el tanque de vidrio, la caseta, las tuberías con sus "
+        "accesorios, las cuatro válvulas y el nivel de agua. No es una foto ni una maqueta estática: la "
+        "geometría se genera por código y el nivel puede seguir la telemetría real."))
 B(("imagen", ("modelo-3d.png", 16.4, "Modelo digital del reservorio y la caseta, con el nivel de agua al 72 %.")))
 B(("imagen", ("modelo-caseta.png", 14.2, "Vista aislada de la caseta: el paso directo une entrada y salida sin pasar por el tanque.")))
 B(("h2", "16.1 Qué representa"))
@@ -1109,18 +1109,20 @@ B(("tabla", {
         ["Volumen interior", "38.8 × 28.8 × 40.0 cm", "Plano Rev. 04"],
         ["Caseta de válvulas", "22.0 × 20.0 × 26.0 cm, detrás del tanque", "Plano Rev. 04"],
         ["Rebose / nivel máximo", "31.5 cm (borde libre 8.5 cm)", "Plano Rev. 04"],
-        ["Válvulas", "4 PVC Ø 1/2 pulg: ingreso, salida, by-pass, limpia", "Plano Rev. 04"],
+        ["Válvulas", "4 de bola, PVC Ø 1/2 pulg, con palanca y uniones universales", "Plano Rev. 04"],
+        ["Accesorios", "Codos 90°, tees, uniones, pasamuros y canastilla", "Instalación real"],
         ["Nivel de agua", "0 a 31.5 cm", "Telemetría del ESP32 o demo"],
         ["Capacidad útil", "35.2 L (total 44.7 L)", "Cálculo del plano"],
     ],
     "widths": [4.6, 7.2, 5.2],
     "caption": "Elementos y medidas del modelo 3D",
 }))
-B(("p", "El trazado de las tuberías es una simplificación del isométrico: respeta las alturas "
-        "(ingreso 36 cm, rebose 31.5/20 cm, salida 5.5 cm, limpia 1.5 cm), los diámetros y la posición "
-        "general, pero no reproduce cada codo y unión del plano. El **paso directo** (by-pass) une la "
-        "entrada con la salida dentro de la caseta, sin pasar por el tanque, y el rebose descarga en la "
-        "línea de limpia, como indica el plano."))
+B(("p", "El trazado reproduce el isométrico: respeta las alturas (ingreso 36 cm, rebose 31.5/20 cm, "
+        "salida 5.5 cm, limpia 1.5 cm), los diámetros y la posición general. Los tramos se arman como una "
+        "instalación real: cada quiebre lleva un **codo de 90°**, las derivaciones llevan **tee**, cada "
+        "válvula se conecta con **uniones universales** y los cruces del vidrio llevan **pasamuros** con "
+        "bridas y empaques. El **paso directo** (by-pass) une la entrada con la salida dentro de la caseta, "
+        "sin pasar por el tanque, y el rebose descarga en la línea de limpia, como indica el plano."))
 B(("p", "La **entrada** y la **salida** ingresan a la caseta en paralelo, a la misma altura (5.5 cm). "
         "La entrada tiene la válvula de **paso directo** apenas entra y, a continuación, la válvula de "
         "**ingreso**; desde ahí la rama sube a 36 cm y entra al tanque con un **codo corto** hacia abajo. "
@@ -1131,6 +1133,9 @@ B(("p", "La **entrada** y la **salida** ingresan a la caseta en paralelo, a la m
         "descarga por encima de la unión, para que el desfogue siga funcionando aunque la limpia esté "
         "cerrada. Cerrando la válvula de ingreso y abriendo la de paso directo, el agua va de la fuente "
         "a la población sin entrar al tanque."))
+B(("p", "Las cuatro válvulas son de **bola de PVC, blancas y con palanca azul**, con tuérca de unión a "
+        "cada lado, como las que se consiguen en ferretería. La toma de salida termina en una **canastilla "
+        "ranurada** y el rebose en una **campana abierta**, sin válvula, para que el desfogue sea pasivo."))
 B(("h2", "16.2 Cómo se usa"))
 B(("lista", [
     "Se abre desde el botón «Modelo 3D» del dashboard o directamente en `/modelo.html`.",

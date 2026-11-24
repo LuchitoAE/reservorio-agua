@@ -29,9 +29,9 @@ const COLORS = {
   edge: 0x8fe3ff,
   water: 0x0e9bbd,
   waterTop: 0x6fe4ff,
-  pvc: 0xb8c3ce,
+  pvc: 0xdde5ec,
   pvcDark: 0x8d99a5,
-  valve: 0xd63b3b,
+  valve: 0x3f86e0,
   steel: 0x9aa7b4,
   base: 0x0a1d2b,
   dim: 0x4cc9f0,
@@ -81,7 +81,8 @@ keyLight.shadow.camera.top = 90;
 keyLight.shadow.camera.bottom = -30;
 keyLight.shadow.camera.near = 10;
 keyLight.shadow.camera.far = 300;
-keyLight.shadow.bias = -0.0006;
+keyLight.shadow.bias = -0.0004;
+keyLight.shadow.normalBias = 0.4;
 scene.add(keyLight);
 
 const fillLight = new THREE.DirectionalLight(0x7fd8ff, 0.7);
@@ -135,8 +136,8 @@ const waterTopMat = new THREE.MeshPhysicalMaterial({
 
 const pvcMat = new THREE.MeshStandardMaterial({
   color: COLORS.pvc,
-  roughness: 0.42,
-  metalness: 0.12,
+  roughness: 0.34,
+  metalness: 0.04,
 });
 
 const pvcDarkMat = new THREE.MeshStandardMaterial({
@@ -145,10 +146,10 @@ const pvcDarkMat = new THREE.MeshStandardMaterial({
   metalness: 0.1,
 });
 
-const valveMat = new THREE.MeshStandardMaterial({
+const handleMat = new THREE.MeshStandardMaterial({
   color: COLORS.valve,
-  roughness: 0.34,
-  metalness: 0.15,
+  roughness: 0.42,
+  metalness: 0.08,
 });
 
 const steelMat = new THREE.MeshStandardMaterial({
@@ -348,57 +349,277 @@ const pipes = new THREE.Group();
 world.add(pipes);
 
 const up = new THREE.Vector3(0, 1, 0);
+const PR = D.pipe;              // radio del tubo (PVC 1/2")
+const FIT_R = PR * 1.26;        // radio de campanas y cuerpos
+const SOCKET_L = 1.15;
 
-function pipe(a, b, { r = D.pipe, mat = pvcMat, joints = true } = {}) {
-  const p1 = new THREE.Vector3(...a);
-  const p2 = new THREE.Vector3(...b);
-  const dir = new THREE.Vector3().subVectors(p2, p1);
-  const len = dir.length();
-  if (len < 0.001) return;
+const gasketMat = new THREE.MeshStandardMaterial({
+  color: 0x2a3946,
+  roughness: 0.95,
+  metalness: 0.05,
+});
+const nutMat = new THREE.MeshStandardMaterial({
+  color: 0xcfd8e0,
+  roughness: 0.55,
+  metalness: 0.08,
+});
 
-  const mesh = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 18), mat);
-  mesh.position.copy(p1).add(p2).multiplyScalar(0.5);
-  mesh.quaternion.setFromUnitVectors(up, dir.normalize());
+const V = (a) => new THREE.Vector3(...a);
+const AXIS = {
+  x: new THREE.Vector3(1, 0, 0),
+  y: new THREE.Vector3(0, 1, 0),
+  z: new THREE.Vector3(0, 0, 1),
+};
+
+function fit(mesh) {
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   pipes.add(mesh);
-
-  if (joints) {
-    addJoint(p2, r, mat);
-  }
   return mesh;
 }
 
-function addJoint(pos, r = D.pipe, mat = pvcMat, scale = 1.15) {
-  const joint = new THREE.Mesh(new THREE.SphereGeometry(r * scale, 14, 12), mat);
-  joint.position.set(...pos);
-  joint.castShadow = true;
-  pipes.add(joint);
-  return joint;
+function orient(mesh, dir) {
+  mesh.quaternion.setFromUnitVectors(up, dir.clone().normalize());
+  return mesh;
 }
 
-function addFlange(x, y) {
-  const flange = new THREE.Mesh(
-    new THREE.CylinderGeometry(1.05, 1.05, 0.5, 18),
-    pvcDarkMat,
+function tube(a, b, { r = PR, mat = pvcMat } = {}) {
+  const p1 = V(a);
+  const p2 = V(b);
+  const d = new THREE.Vector3().subVectors(p2, p1);
+  const len = d.length();
+  if (len < 0.01) return null;
+  const mesh = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 20), mat);
+  mesh.position.copy(p1).add(p2).multiplyScalar(0.5);
+  orient(mesh, d);
+  return fit(mesh);
+}
+
+// Campana (boca del accesorio) donde entra el tubo.
+function socket(a, dir, { len = SOCKET_L, r = FIT_R, mat = pvcMat } = {}) {
+  if (len < 0.1) return;
+  const d = dir.clone().normalize();
+  const mesh = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 20, 1, true), mat);
+  mesh.position.copy(V(a)).addScaledVector(d, len / 2);
+  orient(mesh, d);
+  fit(mesh);
+
+  const mouth = new THREE.Mesh(new THREE.RingGeometry(r * 0.79, r, 24), mat);
+  mouth.position.copy(V(a));
+  mouth.quaternion.setFromUnitVectors(AXIS.z, d.clone().negate());
+  fit(mouth);
+
+}
+
+// Tramo recto entre dos accesorios.
+function leg(a, b, { r = PR, s0 = true, s1 = true } = {}) {
+  const p1 = V(a);
+  const p2 = V(b);
+  const d = new THREE.Vector3().subVectors(p2, p1);
+  const len = d.length();
+  if (len < 0.01) return;
+  const dir = d.clone().normalize();
+  tube(p1, p2, { r });
+  const sl = Math.min(SOCKET_L, len * 0.45);
+  if (s0) socket(p1, dir, { len: sl });
+  if (s1) socket(p2, dir.clone().negate(), { len: sl });
+}
+
+// Codo 90° con curva real y campanas en las dos puntas.
+function elbow(P, din, dout, bend = 1.8, { s0 = SOCKET_L, s1 = SOCKET_L, r = PR } = {}) {
+  const p = V(P);
+  const a = p.clone().addScaledVector(din, -bend);
+  const b = p.clone().addScaledVector(dout, bend);
+  const curva = new THREE.QuadraticBezierCurve3(a, p.clone(), b);
+  fit(new THREE.Mesh(new THREE.TubeGeometry(curva, 14, r, 18, false), pvcMat));
+  socket(a, din.clone().negate(), { len: s0 });
+  socket(b, dout, { len: s1 });
+}
+
+// Tee: cuerpo del tramo, ramal y refuerzo central.
+function tee(P, runDir, branchDir) {
+  const p = V(P);
+  const run = runDir.clone().normalize();
+  const br = branchDir.clone().normalize();
+  const bodyLen = 3.0;
+  const bodyR = PR * 1.22;
+  const branchLen = 1.5;
+
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(bodyR, bodyR, bodyLen, 22, 1, true), pvcMat);
+  body.position.copy(p);
+  orient(body, run);
+  fit(body);
+
+  const branch = new THREE.Mesh(
+    new THREE.CylinderGeometry(bodyR * 0.98, bodyR * 0.98, branchLen, 22, 1, true),
+    pvcMat,
   );
-  flange.rotation.x = Math.PI / 2;
-  flange.position.set(x, y, -D.A / 2 + wall / 2);
-  pipes.add(flange);
+  branch.position.copy(p).addScaledVector(br, branchLen / 2);
+  orient(branch, br);
+  fit(branch);
+
+  socket(p.clone().addScaledVector(run, bodyLen / 2), run.clone().negate(), { len: 0.55 });
+  socket(p.clone().addScaledVector(run, -bodyLen / 2), run, { len: 0.55 });
+  socket(p.clone().addScaledVector(br, branchLen), br.clone().negate(), { len: 0.55 });
 }
 
-function addValve(pos, handleRotY = 0) {
+// Pasamuros: cuerpo, bridas, empaques de goma y tuerca exterior.
+function bulkhead(x, y) {
+  const z = -D.A / 2;
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.72, 1.95, 20, 1, true), pvcMat);
+  body.position.set(x, y, z - 0.225);
+  body.rotation.x = Math.PI / 2;
+  fit(body);
+
+  for (const s of [-1, 1]) {
+    const gasket = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 0.08, 24), gasketMat);
+    gasket.position.set(x, y, z + s * 0.34);
+    gasket.rotation.x = Math.PI / 2;
+    fit(gasket);
+
+    const flange = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.0, 0.3, 24), pvcMat);
+    flange.position.set(x, y, z + s * 0.56);
+    flange.rotation.x = Math.PI / 2;
+    fit(flange);
+  }
+
+  const nut = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 0.95, 0.5, 6), nutMat);
+  nut.position.set(x, y, z - 0.96);
+  nut.rotation.x = Math.PI / 2;
+  fit(nut);
+}
+
+// Boca del tubo: interior oscuro para que el extremo no parezca un tapón.
+const boreMat = new THREE.MeshStandardMaterial({
+  color: 0x0a1119,
+  roughness: 1,
+  side: THREE.DoubleSide,
+});
+
+function bore(endPos, outward) {
+  const d = outward.clone().normalize();
+  const disc = new THREE.Mesh(new THREE.CircleGeometry(PR * 0.82, 22), boreMat);
+  disc.position.copy(V(endPos)).addScaledVector(d, 0.015);
+  disc.quaternion.setFromUnitVectors(AXIS.z, d);
+  fit(disc);
+}
+
+// Campana abierta del rebose.
+function bellMouth(pos) {
+  const p = V(pos);
+  const h = 1.3;
+  const coneMat = new THREE.MeshStandardMaterial({
+    color: COLORS.pvc,
+    roughness: 0.42,
+    metalness: 0.1,
+    side: THREE.DoubleSide,
+  });
+  const cone = new THREE.Mesh(new THREE.CylinderGeometry(1.55, PR, h, 26, 1, true), coneMat);
+  cone.position.copy(p).add(new THREE.Vector3(0, -h / 2, 0));
+  fit(cone);
+
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(1.55, 0.1, 10, 28), pvcDarkMat);
+  rim.rotation.x = Math.PI / 2;
+  rim.position.copy(p);
+  fit(rim);
+}
+
+// Válvula de bola de PVC: manguitos, tuercas de unión, cuerpo esférico,
+// bonete, vástago y palanca azul.
+function addValve(pos, axis, { len = 5.0, handleRotY = 0 } = {}) {
+  const half = len / 2;
+  const compact = len < 4.5;
+  const bodyR = compact ? 0.8 : 1.02;
+  const nutR = bodyR * (compact ? 1.24 : 1.2);
+  const nutLen = compact ? 0.42 : 0.75;
+  const socketLen = compact ? 0.42 : 0.9;
+
   const group = new THREE.Group();
+  group.position.copy(V(pos));
+  group.quaternion.setFromUnitVectors(AXIS.z, axis.clone().normalize());
 
-  const body = new THREE.Mesh(new THREE.SphereGeometry(1.45, 20, 16), valveMat);
-  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, 2.4, 10), valveMat);
-  stem.position.y = 2.5;
-  const handle = new THREE.Mesh(new THREE.BoxGeometry(4.4, 0.42, 1.05), valveMat);
-  handle.position.y = 3.8;
-  handle.rotation.y = handleRotY;
+  for (const s of [-1, 1]) {
+    const socketMesh = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.8, 0.8, socketLen, 22, 1, true),
+      pvcMat,
+    );
+    socketMesh.position.z = s * (half - socketLen / 2);
+    socketMesh.rotation.x = Math.PI / 2;
+    group.add(socketMesh);
 
-  group.add(body, stem, handle);
-  group.position.set(...pos);
+    const mouth = new THREE.Mesh(new THREE.RingGeometry(0.63, 0.8, 26), pvcMat);
+    mouth.position.z = s * half;
+    mouth.rotation.y = s > 0 ? 0 : Math.PI;
+    group.add(mouth);
+
+
+    const nutZ = s * (half - socketLen - nutLen / 2);
+    const nut = new THREE.Mesh(new THREE.CylinderGeometry(nutR, nutR, nutLen, 28), pvcMat);
+    nut.position.z = nutZ;
+    nut.rotation.x = Math.PI / 2;
+    group.add(nut);
+
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      const rib = new THREE.Mesh(
+        new THREE.BoxGeometry(0.09, 0.14, nutLen * 0.82),
+        pvcMat,
+      );
+      rib.position.set(Math.cos(a) * nutR * 0.995, Math.sin(a) * nutR * 0.995, nutZ);
+      rib.rotation.z = a;
+      group.add(rib);
+    }
+  }
+
+  const body = new THREE.Mesh(new THREE.SphereGeometry(bodyR, 28, 20), pvcMat);
+  body.scale.set(1, 1, 0.95);
+  group.add(body);
+
+  const bonnet = new THREE.Mesh(new THREE.CylinderGeometry(0.44, 0.52, 0.34, 6), pvcMat);
+  bonnet.position.y = bodyR * 0.94;
+  group.add(bonnet);
+
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 1.3, 16), pvcMat);
+  stem.position.y = bodyR * 0.94 + 0.76;
+  group.add(stem);
+
+  const oring = new THREE.Mesh(new THREE.TorusGeometry(0.27, 0.05, 8, 20), gasketMat);
+  oring.rotation.x = Math.PI / 2;
+  oring.position.y = bodyR * 0.94 + 0.42;
+  group.add(oring);
+
+  const thread = new THREE.Mesh(new THREE.TorusGeometry(0.23, 0.035, 8, 20), nutMat);
+  thread.rotation.x = Math.PI / 2;
+  thread.position.y = bodyR * 0.94 + 1.16;
+  group.add(thread);
+
+  const lever = new THREE.Group();
+  lever.rotation.y = handleRotY;
+  lever.position.y = bodyR * 0.94 + 1.5;
+
+  const bar = new THREE.Mesh(new THREE.BoxGeometry(4.3, 0.24, 0.82), handleMat);
+  bar.position.x = 1.15;
+  lever.add(bar);
+
+  const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.41, 0.41, 0.82, 20), handleMat);
+  tip.rotation.x = Math.PI / 2;
+  tip.position.x = 3.3;
+  lever.add(tip);
+
+  const boss = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.36, 6), handleMat);
+  boss.position.y = 0.04;
+  lever.add(boss);
+
+  const hole = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.3, 12), gasketMat);
+  hole.position.x = 2.85;
+  lever.add(hole);
+
+  const screw = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.28, 10), nutMat);
+  screw.position.y = 0.22;
+  lever.add(screw);
+
+  group.add(lever);
+
   group.traverse((o) => {
     if (o.isMesh) o.castShadow = true;
   });
@@ -406,58 +627,97 @@ function addValve(pos, handleRotY = 0) {
   return group;
 }
 
-// Entrada y salida paralelas a 5.5 cm. Válvulas de entrada, paso directo y
-// salida agrupadas abajo, en la caseta.
-pipe([3, 5.5, -35], [3, 5.5, -19]);        // acometida y tramo paralelo
-pipe([3, 5.5, -19], [3, 36, -19]);          // sube junto al tanque
-pipe([3, 36, -19], [3, 36, -12]);           // entra al tanque
-pipe([3, 36, -12], [3, 35, -12]);           // codo corto hacia abajo
-addJoint([3, 5.5, -32]);
-addJoint([3, 5.5, -19]);
-addJoint([3, 36, -19]);
-addValve([3, 5.5, -26]);                    // válvula de entrada, abajo
-addFlange(3, 36);
+/* --- Entrada: acometida, paso directo, válvula, subida y codo al tanque --- */
 
-// Paso directo: apenas entra, une la entrada con la salida
-pipe([3, 5.5, -32], [-7, 5.5, -32]);
-addValve([-2, 5.5, -32], Math.PI / 2);      // válvula de paso directo
-addJoint([-7, 5.5, -32]);
+leg([3, 5.5, -35], [3, 5.5, -33.5], { s0: false, s1: false });
+bore([3, 5.5, -35], AXIS.z.clone().negate());
+tee([3, 5.5, -32], AXIS.z, AXIS.x.clone().negate());
+leg([3, 5.5, -30.5], [3, 5.5, -28.5], { s0: false, s1: false });
+addValve([3, 5.5, -26], AXIS.z);
+leg([3, 5.5, -23.5], [3, 5.5, -20.8], { s0: false, s1: false });
+elbow([3, 5.5, -19], AXIS.z, AXIS.y);
+leg([3, 7.3, -19], [3, 34.2, -19], { s0: false, s1: false });
+elbow([3, 36, -19], AXIS.y, AXIS.z, 1.8, { s1: 0.6 });
+leg([3, 36, -17.2], [3, 36, -16.2], { s0: false, s1: false });
+bulkhead(3, 36);
+leg([3, 36, -14.25], [3, 36, -12.45], { s0: false, s1: false });
+elbow([3, 36, -12], AXIS.z, AXIS.y.clone().negate(), 0.45, { s0: 0.6, s1: 0.4 });
+tube([3, 35.55, -12], [3, 35, -12]);
+bore([3, 35, -12], AXIS.y.clone().negate());
 
-// Salida del tanque -> válvula a la misma altura -> unión -> población
-pipe([-7, 5.5, -10], [-7, 5.5, -35]);
-addValve([-7, 5.5, -26]);                   // válvula de salida, misma cota
-addFlange(-7, 5.5);
+/* --- Paso directo: tee de entrada -> válvula -> tee de salida --- */
 
-const strainer = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 5, 18, 1, true), steelMat);
-strainer.rotation.x = Math.PI / 2;
-strainer.position.set(-7, 5.5, -11.4);
-pipes.add(strainer);
-for (let i = 0; i < 4; i++) {
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(1.52, 0.07, 8, 24), pvcDarkMat);
-  ring.position.set(-7, 5.5, -13 + i * 1.1);
-  pipes.add(ring);
+leg([1.5, 5.5, -32], [-5.5, 5.5, -32], { s0: false, s1: false });
+addValve([-2, 5.5, -32], AXIS.x, { handleRotY: Math.PI / 2 });
+tee([-7, 5.5, -32], AXIS.z, AXIS.x);
+
+/* --- Salida del tanque: canastilla, pasamuros, válvula y tee --- */
+
+leg([-7, 5.5, -10], [-7, 5.5, -14.25], { s0: false, s1: false });
+
+// Canastilla de succión: filtro de PVC ranurado en la boca de salida.
+const strainerLen = 4.2;
+const strainerR = 1.15;
+const strainerZ = -11.9;
+
+const strainerBody = new THREE.Mesh(
+  new THREE.CylinderGeometry(strainerR, strainerR, strainerLen, 26, 1, true),
+  pvcMat,
+);
+strainerBody.rotation.x = Math.PI / 2;
+strainerBody.position.set(-7, 5.5, strainerZ);
+fit(strainerBody);
+
+const strainerCap = new THREE.Mesh(
+  new THREE.SphereGeometry(strainerR, 24, 14, 0, Math.PI * 2, 0, Math.PI / 2),
+  pvcMat,
+);
+strainerCap.rotation.x = Math.PI / 2;
+strainerCap.position.set(-7, 5.5, strainerZ + strainerLen / 2);
+fit(strainerCap);
+
+for (let i = 0; i < 10; i++) {
+  const a = (i / 10) * Math.PI * 2;
+  const slot = new THREE.Mesh(
+    new THREE.BoxGeometry(0.1, 0.17, strainerLen * 0.7),
+    gasketMat,
+  );
+  slot.position.set(
+    -7 + Math.cos(a) * (strainerR + 0.01),
+    5.5 + Math.sin(a) * (strainerR + 0.01),
+    strainerZ,
+  );
+  slot.rotation.z = a;
+  fit(slot);
 }
-const strainerCap = new THREE.Mesh(new THREE.SphereGeometry(1.5, 16, 12), steelMat);
-strainerCap.position.set(-7, 5.5, -13.9);
-pipes.add(strainerCap);
 
-// Limpia: fondo -> válvula más al centro -> exterior
-pipe([8, 1.5, -12], [8, 1.5, -35]);
-addValve([8, 1.5, -18]);                    // válvula de limpia, más al centro
-addFlange(8, 1.5);
+bulkhead(-7, 5.5);
+leg([-7, 5.5, -16.2], [-7, 5.5, -23.5], { s0: false, s1: false });
+addValve([-7, 5.5, -26], AXIS.z);
+leg([-7, 5.5, -28.5], [-7, 5.5, -30.5], { s0: false, s1: false });
+leg([-7, 5.5, -33.5], [-7, 5.5, -35], { s0: false, s1: false });
+bore([-7, 5.5, -35], AXIS.z.clone().negate());
 
-// Rebose (desfogue pasivo, SIN válvula): alineado con la limpieza.
-// Sube a 31.5, baja a 20, entra a la caseta y baja por la misma línea de limpia.
-pipe([8, 20, -7], [8, 31.5, -7], { joints: false });
-addJoint([8, 20, -7]);
-pipe([8, 20, -7], [8, 20, -23.5]);
-pipe([8, 20, -23.5], [8, 1.5, -23.5]);          // baja por la misma línea
-addFlange(8, 20);
+/* --- Limpia: fondo, pasamuros, válvula cerca del tanque y tee --- */
 
-const rim = new THREE.Mesh(new THREE.TorusGeometry(1.05, 0.12, 10, 26), pvcDarkMat);
-rim.rotation.x = Math.PI / 2;
-rim.position.set(8, 31.5, -7);
-pipes.add(rim);
+leg([8, 1.5, -12], [8, 1.5, -14.25], { s0: true, s1: false });
+bulkhead(8, 1.5);
+addValve([8, 1.5, -18.2], AXIS.z, { len: 3.6 });
+leg([8, 1.5, -20.0], [8, 1.5, -22.0], { s0: false, s1: false });
+tee([8, 1.5, -23.5], AXIS.z, AXIS.y);
+leg([8, 1.5, -25.0], [8, 1.5, -35], { s0: false, s1: false });
+bore([8, 1.5, -35], AXIS.z.clone().negate());
+
+/* --- Rebose: campana a 31.5, sin válvula, baja por la línea de limpia --- */
+
+bellMouth([8, 31.5, -7]);
+leg([8, 30.2, -7], [8, 21.8, -7], { s0: false, s1: false });
+elbow([8, 20, -7], AXIS.y.clone().negate(), AXIS.z.clone().negate());
+leg([8, 20, -8.8], [8, 20, -14.25], { s0: false, s1: false });
+bulkhead(8, 20);
+leg([8, 20, -16.2], [8, 20, -21.7], { s0: false, s1: false });
+elbow([8, 20, -23.5], AXIS.z.clone().negate(), AXIS.y.clone().negate());
+leg([8, 18.2, -23.5], [8, 3.0, -23.5], { s0: false, s1: false });
 
 /* ------------------------------------------------------------- dimensiones */
 
