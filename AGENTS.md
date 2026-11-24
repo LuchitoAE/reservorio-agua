@@ -57,8 +57,8 @@ Coordenadas en cm; X positivo a la derecha, Z negativo hacia la caseta/atrás.
 
 - Tuberías de PVC blanco con codos de 90°, tees, uniones universales, pasamuros con bridas y
   empaques, campana en el rebose y canastilla ranurada en la salida.
-- Válvulas de bola de PVC blancas con palanca azul (estilo ferretería peruana), con tuerca de
-  unión a cada lado. La leyenda y las etiquetas de válvulas usan azul (`--valve: #3f86e0`).
+- Válvulas de bola con cuerpo y palanca **rojos** (color de identificación del modelo) y tuercas
+  de unión blancas. La leyenda y las etiquetas de válvulas usan rojo (`--valve: #e05252`).
 - Los extremos exteriores muestran la boca del tubo (interior oscuro), no tapones.
 - No mover posiciones al retocar el acabado.
 

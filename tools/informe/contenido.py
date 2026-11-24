@@ -1133,7 +1133,7 @@ B(("p", "La **entrada** y la **salida** ingresan a la caseta en paralelo, a la m
         "descarga por encima de la unión, para que el desfogue siga funcionando aunque la limpia esté "
         "cerrada. Cerrando la válvula de ingreso y abriendo la de paso directo, el agua va de la fuente "
         "a la población sin entrar al tanque."))
-B(("p", "Las cuatro válvulas son de **bola de PVC, blancas y con palanca azul**, con tuérca de unión a "
+B(("p", "Las cuatro válvulas son de **bola, con cuerpo y palanca rojos** y tuerca de unión blanca a "
         "cada lado, como las que se consiguen en ferretería. La toma de salida termina en una **canastilla "
         "ranurada** y el rebose en una **campana abierta**, sin válvula, para que el desfogue sea pasivo."))
 B(("h2", "16.2 Cómo se usa"))

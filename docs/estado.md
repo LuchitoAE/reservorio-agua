@@ -28,7 +28,7 @@ El modelo se considera **cerrado en su versión MVP** con el trazado de tubería
 - Paso directo con válvula apenas entra la acometida.
 - Salida del tanque con válvula a la misma altura.
 - Limpia con válvula cerca del tanque.
-- Acabado realista: codos, tees, uniones universales, pasamuros, canastilla y válvulas de bola de PVC con palanca azul.
+- Acabado realista: codos, tees, uniones universales, pasamuros, canastilla y válvulas de bola con cuerpo y palanca rojos.
 - Rebose sin válvula, alineado con limpia y conectado a la mitad de esa línea.
 
 No se requieren más cambios de trazado por ahora. Cualquier ajuste futuro debe pedirse

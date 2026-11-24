@@ -31,7 +31,7 @@ const COLORS = {
   waterTop: 0x6fe4ff,
   pvc: 0xdde5ec,
   pvcDark: 0x8d99a5,
-  valve: 0x3f86e0,
+  valve: 0xd63b3b,
   steel: 0x9aa7b4,
   base: 0x0a1d2b,
   dim: 0x4cc9f0,
@@ -146,7 +146,7 @@ const pvcDarkMat = new THREE.MeshStandardMaterial({
   metalness: 0.1,
 });
 
-const handleMat = new THREE.MeshStandardMaterial({
+const valveMat = new THREE.MeshStandardMaterial({
   color: COLORS.valve,
   roughness: 0.42,
   metalness: 0.08,
@@ -571,15 +571,15 @@ function addValve(pos, axis, { len = 5.0, handleRotY = 0 } = {}) {
     }
   }
 
-  const body = new THREE.Mesh(new THREE.SphereGeometry(bodyR, 28, 20), pvcMat);
+  const body = new THREE.Mesh(new THREE.SphereGeometry(bodyR, 28, 20), valveMat);
   body.scale.set(1, 1, 0.95);
   group.add(body);
 
-  const bonnet = new THREE.Mesh(new THREE.CylinderGeometry(0.44, 0.52, 0.34, 6), pvcMat);
+  const bonnet = new THREE.Mesh(new THREE.CylinderGeometry(0.44, 0.52, 0.34, 6), valveMat);
   bonnet.position.y = bodyR * 0.94;
   group.add(bonnet);
 
-  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 1.3, 16), pvcMat);
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 1.3, 16), valveMat);
   stem.position.y = bodyR * 0.94 + 0.76;
   group.add(stem);
 
@@ -597,16 +597,16 @@ function addValve(pos, axis, { len = 5.0, handleRotY = 0 } = {}) {
   lever.rotation.y = handleRotY;
   lever.position.y = bodyR * 0.94 + 1.5;
 
-  const bar = new THREE.Mesh(new THREE.BoxGeometry(4.3, 0.24, 0.82), handleMat);
+  const bar = new THREE.Mesh(new THREE.BoxGeometry(4.3, 0.24, 0.82), valveMat);
   bar.position.x = 1.15;
   lever.add(bar);
 
-  const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.41, 0.41, 0.82, 20), handleMat);
+  const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.41, 0.41, 0.82, 20), valveMat);
   tip.rotation.x = Math.PI / 2;
   tip.position.x = 3.3;
   lever.add(tip);
 
-  const boss = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.36, 6), handleMat);
+  const boss = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.36, 6), valveMat);
   boss.position.y = 0.04;
   lever.add(boss);
 
