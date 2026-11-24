@@ -1120,14 +1120,15 @@ B(("p", "El trazado de las tuberías es una simplificación del isométrico: res
         "entrada con la salida dentro de la caseta, sin pasar por el tanque, y el rebose descarga en la "
         "línea de limpia, como indica el plano."))
 B(("p", "La **entrada** y la **salida** ingresan a la caseta en paralelo, a la misma altura (5.5 cm). "
-        "Apenas entra, la entrada tiene la válvula de **paso directo**; desde ese punto la rama del tanque "
-        "sube a 36 cm y tiene su propia válvula antes de entrar al tanque. La salida del tanque "
-        "(canastilla, 5.5 cm) tiene su válvula antes de unirse con el paso directo, de modo que cerrando "
-        "la salida se aísla el tanque pero el paso directo sigue alimentando a la población. La **limpia** "
-        "(1.5 cm) tiene válvula; el **rebose** (31.5 → 20 cm) no tiene válvula y descarga aguas abajo de "
-        "la válvula de limpia, para que el desfogue siga funcionando aunque la limpia esté cerrada. "
-        "Cerrando la válvula de ingreso y abriendo la de paso directo, el agua va de la fuente a la "
-        "población sin entrar al tanque."))
+        "La entrada tiene la válvula de **paso directo** apenas entra y, a continuación, la válvula de "
+        "**ingreso**; desde ahí la rama sube a 36 cm y entra al tanque con un **codo corto** hacia abajo. "
+        "La salida del tanque (canastilla, 5.5 cm) tiene su válvula a la **misma altura** y antes de "
+        "unirse con el paso directo, de modo que cerrando la salida se aísla el tanque pero el paso "
+        "directo sigue alimentando a la población. La **limpia** (1.5 cm) tiene su válvula más al centro; "
+        "el **rebose** (31.5 → 20 cm) no tiene válvula, baja por la **misma línea** que la limpia y "
+        "descarga por encima de la unión, para que el desfogue siga funcionando aunque la limpia esté "
+        "cerrada. Cerrando la válvula de ingreso y abriendo la de paso directo, el agua va de la fuente "
+        "a la población sin entrar al tanque."))
 B(("h2", "16.2 Cómo se usa"))
 B(("lista", [
     "Se abre desde el botón «Modelo 3D» del dashboard o directamente en `/modelo.html`.",
