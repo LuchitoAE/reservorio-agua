@@ -40,7 +40,7 @@ B(("tabla", {
         ["Modo demostración", "Funcional", "Genera telemetría simulada y se activa solo cuando no hay ESP32"],
         ["Montaje físico", "Pendiente", "Procedimiento completo en la parte I de este informe"],
         ["Calibración", "Pendiente", "Requiere los sensores conectados y los buffers de pH"],
-        ["Modelo digital 3D", "MVP implementado", "modelo.html · Three.js · medidas del plano Rev. 04"],
+        ["Modelo digital 3D", "MVP aprobado (24/11/2026)", "modelo.html · Three.js · trazado validado"],
     ],
     "widths": [4.4, 4.2, 8.4],
     "caption": "Estado del proyecto al momento de este informe",
@@ -1074,7 +1074,7 @@ B(("p", "La ruta propuesta usa Supabase para las lecturas y Vercel para el table
         "un POST cada 10 a 30 segundos con su token; el dashboard leería la última lectura por REST o "
         "Realtime. Es necesario resolver el contenido mixto: una página HTTPS no puede consultar el "
         "ESP32 HTTP local, por eso los datos deben salir del ESP32 hacia un servicio público."))
-B(("h2", "15.2 Fase 3: modelo digital 3D (MVP implementado)"))
+B(("h2", "15.2 Fase 3: modelo digital 3D (MVP aprobado)"))
 B(("p", "El modelo digital ya está disponible en `modelo.html` con las medidas del plano Rev. 04 y el "
         "nivel conectado a la telemetría (capítulo 16). Queda pendiente la versión realista a partir de "
         "fotos, el corte dinámico y la animación del histórico de la fase 2."))
@@ -1091,6 +1091,8 @@ B(("lista", [
 # 16. MODELO DIGITAL 3D
 # ---------------------------------------------------------------------------
 B(("h1", "16. Modelo digital 3D"))
+B(("p", "**Estado: aprobado para la fase 1 (24/11/2026).** El trazado de tuberías y válvulas se "
+        "validó con el plano y con la instalación; no se requieren cambios por ahora."))
 B(("p", "El modelo digital del reservorio está implementado como una página web interactiva "
         "(`web/modelo.html`) construida con Three.js. Toma las medidas del plano **Reservorio + caseta "
         "de válvulas (Rev. 04)** y representa el tanque de vidrio, la caseta, las cuatro válvulas y el "

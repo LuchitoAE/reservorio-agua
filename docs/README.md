@@ -4,6 +4,7 @@
 
 | Documento | Para qué sirve | Cuándo usarlo |
 | --- | --- | --- |
+| [`estado.md`](estado.md) | Estado actual, decisiones y pendientes del proyecto | Para retomar el trabajo |
 | [`guia-paso-a-paso.md`](guia-paso-a-paso.md) | Montaje completo en protoboard, sin soldar, con una prueba después de cada sensor | Al empezar, de cero |
 | [`cableado.md`](cableado.md) | Detalle eléctrico: pines, divisores, alimentación y notas de montaje | Mientras conectas cables |
 | [`calibracion.md`](calibracion.md) | Procedimientos de calibración de nivel, pH, turbidez y caudal | Cuando los sensores ya funcionan |

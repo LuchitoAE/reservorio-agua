@@ -37,6 +37,8 @@ Pendientes concretos:
 
 ## Fase 3 — Modelo digital 3D del reservorio
 
+**Estado: MVP aprobado para la fase 1 (24/11/2026).**
+
 - [x] MVP en `web/modelo.html` con Three.js: tanque, caseta, válvulas y nivel real.
 - [x] Medidas del plano Rev. 04 (40 × 30 × 40.6 cm, vidrio 6 mm, caseta 22 × 20 × 26 cm).
 - [x] Nivel conectado a `/api/telemetry` y modo demo con deslizador.

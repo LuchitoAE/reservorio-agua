@@ -20,8 +20,9 @@ La misma web funciona en tres escenarios:
 3. **Demo / Vercel** — si no hay ESP32 responde, el dashboard entra en **modo Demostración**
    con datos simulados. Sirve para revisar el diseño y enseñarlo sin hardware.
 
-> **Estado:** fase 1 (sensores + web local) y modelo digital 3D en versión MVP. La versión
-> realista del modelo y la nube quedan para fases posteriores (`docs/roadmap.md`).
+> **Estado:** fase 1 (sensores + web local) y modelo digital 3D **aprobado** en su versión
+> MVP (24/11/2026). La versión realista y la nube quedan para fases posteriores.
+> Resumen actualizado en [`docs/estado.md`](docs/estado.md).
 
 > **¿Todavía no conectaste nada?** Empieza por
 > [`docs/guia-paso-a-paso.md`](docs/guia-paso-a-paso.md): montaje en protoboard sin soldar,
@@ -30,7 +31,8 @@ La misma web funciona en tres escenarios:
 ## Modelo digital 3D
 
 El tanque y la caseta de válvulas están modelados con las medidas del **plano Rev. 04**
-(40 × 30 × 40.6 cm, vidrio 6 mm, caseta 22 × 20 × 26 cm). La página
+(40 × 30 × 40.6 cm, vidrio 6 mm, caseta 22 × 20 × 26 cm). El trazado de tuberías quedó
+**aprobado el 24/11/2026**. La página
 [`web/modelo.html`](web/modelo.html) muestra el conjunto en Three.js, con el nivel de agua
 conectado a la telemetría o a un deslizador de prueba.
 
