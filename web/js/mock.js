@@ -9,7 +9,7 @@ const noise = (amount) => (Math.random() - 0.5) * amount;
 
 export class MockSource {
   constructor(config = {}) {
-    this.config = { tankDiameterCm: 80, ...config };
+    this.config = { tankHeightCm: 40.6, maxLevelCm: 31.5, tankLengthCm: 38.8, tankWidthCm: 28.8, ...config };
     this.startedAt = Date.now();
     this.t = 0;
     this.percent = 64;
@@ -48,8 +48,9 @@ export class MockSource {
     this.ph = clamp(7.24 + 0.18 * Math.sin(this.t / 120) + noise(0.03), 5, 9);
     this.ntu = clamp(9.5 + 6 * Math.sin(this.t / 55) + noise(1.2), 0.5, 60);
 
-    const height = this.config.tankHeightCm || 100;
-    const levelCm = (this.percent / 100) * height;
+    const height = this.config.tankHeightCm || 40.6;
+    const maxLevel = this.config.maxLevelCm || 31.5;
+    const levelCm = (this.percent / 100) * maxLevel;
     const distanceCm = Math.max(2, height - levelCm - (this.config.sensorOffsetCm || 0));
 
     return {
@@ -70,6 +71,7 @@ export class MockSource {
         percent: this.percent,
         liters: (this.percent / 100) * this.tankLiters(),
         tankHeightCm: height,
+        maxLevelCm: maxLevel,
       },
       flow: {
         ok: true,
@@ -101,8 +103,9 @@ export class MockSource {
   }
 
   tankLiters() {
-    const radius = (this.config.tankDiameterCm || 80) / 2;
-    const height = this.config.tankHeightCm || 100;
-    return (Math.PI * radius * radius * height) / 1000;
+    const length = this.config.tankLengthCm || 38.8;
+    const width = this.config.tankWidthCm || 28.8;
+    const maxLevel = this.config.maxLevelCm || 31.5;
+    return (length * width * maxLevel) / 1000;
   }
 }

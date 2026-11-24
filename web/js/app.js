@@ -114,6 +114,7 @@ function flatten(t) {
     liters: t.level?.liters ?? null,
     distance: t.level?.distanceCm ?? null,
     tankHeight: t.level?.tankHeightCm ?? state.config.tankHeightCm,
+    maxLevel: t.level?.maxLevelCm ?? state.config.maxLevelCm,
     lpm: t.flow?.lpm ?? null,
     totalL: t.flow?.totalL ?? null,
     pulses: t.flow?.pulses ?? null,
@@ -152,7 +153,7 @@ function render(t) {
   setField('levelCm', fmt(values.levelCm, 1));
   setField('liters', fmt(values.liters, 0));
   setField('distance', fmt(values.distance, 1));
-  setField('tankHeight', fmt(values.tankHeight, 0));
+  setField('tankHeight', fmt(values.tankHeight, 1));
 
   setField('lpm', fmt(values.lpm, 2));
   setField('totalL', fmt(values.totalL, 1));
@@ -188,7 +189,7 @@ function render(t) {
 
   // Textos secundarios
   $('[data-meta="level"]').textContent = t.level?.ok
-    ? `${fmt(values.levelCm, 1)} cm de ${fmt(values.tankHeight, 0)} cm`
+    ? `${fmt(values.levelCm, 1)} cm de ${fmt(values.maxLevel, 1)} cm útiles`
     : 'Sin eco: revisa el montaje del HC-SR04';
   $('[data-meta="flow"]').textContent =
     values.lpm > 0.05 ? 'Caudal activo' : 'Sin caudal (en reposo)';
@@ -309,6 +310,7 @@ async function refreshConfig() {
 function fillConfigForm(config) {
   const form = $('#config-form');
   form.elements.tankHeightCm.value = Number(config.tankHeightCm).toFixed(1);
+  form.elements.maxLevelCm.value = Number(config.maxLevelCm).toFixed(1);
   form.elements.sensorOffsetCm.value = Number(config.sensorOffsetCm).toFixed(1);
 }
 
@@ -435,6 +437,7 @@ async function handleConfigSubmit(event) {
   const form = event.currentTarget;
   const payload = {
     tankHeightCm: Number(form.elements.tankHeightCm.value),
+    maxLevelCm: Number(form.elements.maxLevelCm.value),
     sensorOffsetCm: Number(form.elements.sensorOffsetCm.value),
   };
 

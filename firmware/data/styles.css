@@ -167,6 +167,9 @@ select:hover { border-color: var(--line-strong); }
 .chip--ghost { color: var(--muted); background: transparent; }
 .chip--ghost::before { display: none; }
 
+.chip--link { text-decoration: none; transition: border-color 0.2s, background 0.2s; }
+.chip--link:hover { border-color: var(--line-strong); background: rgba(56, 189, 248, 0.1); }
+
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.35; }

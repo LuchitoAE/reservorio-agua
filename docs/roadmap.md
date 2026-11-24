@@ -35,14 +35,14 @@ Pendientes concretos:
 - [ ] Añadir `web/lib/source-supabase.js` al selector de fuente.
 - [ ] Deploy en Vercel + dominio.
 
-## Fase 3 — Modelo digital 3D del reservorio (pendiente, solo anotado)
+## Fase 3 — Modelo digital 3D del reservorio
 
-- Representación 3D del tanque (Three.js / react-three-fiber) con el nivel real animado.
-- Vista de cortes, etiquetas de sensores y zonas (óptimo / bajo / crítico).
-- Posible gemelo digital: simulación de llenado/vaciado y predicción con el histórico.
-- Requiere: geometría del tanque (medidas reales), curva de volumen vs. altura (si no es
-  cilíndrico) y datos históricos de la fase 2.
-- Se integraría como una pestaña más del dashboard, no reemplazándolo.
+- [x] MVP en `web/modelo.html` con Three.js: tanque, caseta, válvulas y nivel real.
+- [x] Medidas del plano Rev. 04 (40 × 30 × 40.6 cm, vidrio 6 mm, caseta 22 × 20 × 26 cm).
+- [x] Nivel conectado a `/api/telemetry` y modo demo con deslizador.
+- [ ] Corte dinámico y animación del histórico.
+- [ ] Versión realista con fotogrametría o un `.glb` texturizado.
+- [ ] Zonas de estado (óptimo / bajo / crítico) y alertas sobre el modelo.
 
 ## Fase 4 — Operación
 

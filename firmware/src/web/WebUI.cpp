@@ -32,8 +32,10 @@ pio run -d firmware -t uploadfs</code></pre>
 String fullConfigJson(const ConfigStore& config) {
   JsonDocument doc;
   doc["tankHeightCm"] = config.tankHeightCm();
+  doc["maxLevelCm"] = config.maxLevelCm();
   doc["sensorOffsetCm"] = config.sensorOffsetCm();
-  doc["tankDiameterCm"] = cfg::TANK_DIAMETER_CM;
+  doc["tankLengthCm"] = cfg::TANK_INTERNAL_LENGTH_CM;
+  doc["tankWidthCm"] = cfg::TANK_INTERNAL_WIDTH_CM;
   doc["phNeutralV"] = config.phNeutralV();
   doc["phSlopeV"] = config.phSlopeV();
   doc["turbClearV"] = config.turbClearV();
@@ -135,6 +137,10 @@ void WebUI::handleSetConfig() {
   const float height = doc["tankHeightCm"] | config_->tankHeightCm();
   const float offset = doc["sensorOffsetCm"] | config_->sensorOffsetCm();
   config_->setTank(height, offset);
+
+  if (!doc["maxLevelCm"].isNull()) {
+    config_->setMaxLevel(doc["maxLevelCm"].as<float>());
+  }
 
   if (!doc["flowPulsesPerLiter"].isNull()) {
     config_->setFlowPulsesPerLiter(doc["flowPulsesPerLiter"].as<float>());

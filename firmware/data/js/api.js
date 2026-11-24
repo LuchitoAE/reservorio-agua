@@ -7,9 +7,11 @@
  */
 
 export const DEFAULT_CONFIG = {
-  tankHeightCm: 100,
+  tankHeightCm: 40.6,
+  maxLevelCm: 31.5,
   sensorOffsetCm: 0,
-  tankDiameterCm: 80,
+  tankLengthCm: 38.8,
+  tankWidthCm: 28.8,
   flowPulsesPerLiter: 450,
   phNeutralV: 2.5,
   phSlopeV: 0.18,

@@ -32,9 +32,13 @@ constexpr float TURBIDITY_DIVIDER = 2.0f;
 // ---------------------------------------------------------------------------
 // Tanque (valores iniciales; se pueden cambiar desde la web y quedan en NVS)
 // ---------------------------------------------------------------------------
-constexpr float DEFAULT_TANK_HEIGHT_CM   = 100.0f;
+constexpr float DEFAULT_TANK_HEIGHT_CM   = 40.6f;  // altura interior al borde superior
+constexpr float DEFAULT_MAX_LEVEL_CM     = 31.5f;  // rebose (nivel máximo útil)
 constexpr float DEFAULT_SENSOR_OFFSET_CM = 0.0f;
-constexpr float TANK_DIAMETER_CM         = 80.0f;  // para estimar litros
+// Reservorio rectangular del plano Rev. 04 (medidas interiores)
+constexpr float TANK_INTERNAL_LENGTH_CM  = 38.8f;
+constexpr float TANK_INTERNAL_WIDTH_CM   = 28.8f;
+constexpr float TANK_INTERNAL_HEIGHT_CM  = 40.0f;
 constexpr float MIN_VALID_DISTANCE_CM    = 2.0f;   // zona muerta del HC-SR04
 constexpr float MAX_VALID_DISTANCE_CM    = 450.0f;
 

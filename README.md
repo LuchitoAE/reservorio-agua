@@ -20,12 +20,25 @@ La misma web funciona en tres escenarios:
 3. **Demo / Vercel** — si no hay ESP32 responde, el dashboard entra en **modo Demostración**
    con datos simulados. Sirve para revisar el diseño y enseñarlo sin hardware.
 
-> **Estado:** fase 1 (sensores + web local). El modelo digital 3D del reservorio queda
-> anotado en [`docs/roadmap.md`](docs/roadmap.md) para una fase posterior.
+> **Estado:** fase 1 (sensores + web local) y modelo digital 3D en versión MVP. La versión
+> realista del modelo y la nube quedan para fases posteriores (`docs/roadmap.md`).
 
 > **¿Todavía no conectaste nada?** Empieza por
 > [`docs/guia-paso-a-paso.md`](docs/guia-paso-a-paso.md): montaje en protoboard sin soldar,
 > sensor por sensor, con pruebas y qué deberías ver en cada paso.
+
+## Modelo digital 3D
+
+El tanque y la caseta de válvulas están modelados con las medidas del **plano Rev. 04**
+(40 × 30 × 40.6 cm, vidrio 6 mm, caseta 22 × 20 × 26 cm). La página
+[`web/modelo.html`](web/modelo.html) muestra el conjunto en Three.js, con el nivel de agua
+conectado a la telemetría o a un deslizador de prueba.
+
+```bash
+node tools/dev-server.js      # luego abrir http://localhost:5173/modelo.html
+```
+
+También se llega desde el botón **Modelo 3D** del dashboard.
 
 ## Informe técnico (DOCX)
 
@@ -193,7 +206,7 @@ curl -X POST http://192.168.1.50/api/calibrate -H 'Content-Type: application/jso
 
 - Publicar la web en Vercel (`vercel.json` ya apunta a `web/`) y enviar telemetría a
   Supabase (`docs/roadmap.md`).
-- Modelo digital 3D del reservorio que refleje el nivel real.
+- Versión realista del modelo 3D a partir de fotos (fotogrametría o `.glb`).
 - Registro histórico, alertas y OTA.
 
 Pruebas recomendadas antes de instalar en campo: [`docs/pruebas.md`](docs/pruebas.md).

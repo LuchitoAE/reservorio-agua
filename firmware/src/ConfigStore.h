@@ -11,8 +11,10 @@ class ConfigStore {
 
   // --- Tanque ---
   float tankHeightCm() const { return tankHeightCm_; }
+  float maxLevelCm() const { return maxLevelCm_; }
   float sensorOffsetCm() const { return sensorOffsetCm_; }
   void setTank(float heightCm, float offsetCm);
+  void setMaxLevel(float maxLevelCm);
 
   // --- pH ---
   float phNeutralV() const { return phNeutralV_; }
@@ -33,6 +35,7 @@ class ConfigStore {
 
  private:
   float tankHeightCm_ = 0;
+  float maxLevelCm_ = 0;
   float sensorOffsetCm_ = 0;
   float phNeutralV_ = 0;
   float phSlopeV_ = 0;

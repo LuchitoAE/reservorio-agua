@@ -10,7 +10,8 @@ Valores por defecto en `firmware/include/config.h`.
 ## 1. Nivel (HC-SR04)
 
 1. Mide la **altura interior** del tanque desde el fondo hasta el sensor (cm) y ponla en
-   *Ajustes → Altura del tanque*.
+   *Ajustes → Altura del tanque*. Para el reservorio del plano Rev. 04 son **40.6 cm** de
+   altura total y **31.5 cm** de nivel máximo (rebose).
 2. Con el tanque **lleno hasta el rebosadero**, anota el nivel que muestra el dashboard.
 3. Ajusta `sensorOffsetCm` para que marque el 100 %. Fórmula:
 

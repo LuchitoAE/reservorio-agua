@@ -9,6 +9,8 @@
 | [`calibracion.md`](calibracion.md) | Procedimientos de calibración de nivel, pH, turbidez y caudal | Cuando los sensores ya funcionan |
 | [`pruebas.md`](pruebas.md) | Plan de pruebas con casillas y criterios de aceptación | Antes de instalar en el tanque |
 | [`roadmap.md`](roadmap.md) | Fases futuras: Vercel + Supabase, modelo 3D, alertas y OTA | Para planificar lo siguiente |
+| [`../web/modelo.html`](../web/modelo.html) | Modelo 3D interactivo del tanque y la caseta | Para ver el nivel en 3D |
+| [`planos/reservorio-rev04.pdf`](planos/reservorio-rev04.pdf) | Plano técnico del reservorio y la caseta (Rev. 04) | Fuente de las medidas del modelo |
 | [`../Informe-Reservorio-Agua.docx`](../Informe-Reservorio-Agua.docx) | Informe técnico completo, listo para imprimir o compartir | Para entregar o consultar todo en uno |
 
 ## Qué hay en cada parte del repositorio

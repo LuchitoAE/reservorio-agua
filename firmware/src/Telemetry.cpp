@@ -54,6 +54,7 @@ void build(JsonDocument& doc, const Sensors& sensors, const ConfigStore& config)
   putFloatOrNull(level, "percent", percent);
   putFloatOrNull(level, "liters", sensors.liters());
   level["tankHeightCm"] = config.tankHeightCm();
+  level["maxLevelCm"] = config.maxLevelCm();
 
   JsonObject flow = doc["flow"].to<JsonObject>();
   flow["ok"] = sensors.flow().ok();
@@ -83,6 +84,8 @@ void build(JsonDocument& doc, const Sensors& sensors, const ConfigStore& config)
   system["sensorsOk"] = sensors.okCount();
   system["sensorsTotal"] = 5;
   system["flowPpl"] = config.flowPulsesPerLiter();
+  system["tankLengthCm"] = cfg::TANK_INTERNAL_LENGTH_CM;
+  system["tankWidthCm"] = cfg::TANK_INTERNAL_WIDTH_CM;
 }
 
 }  // namespace telemetry

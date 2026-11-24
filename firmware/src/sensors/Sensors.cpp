@@ -32,19 +32,19 @@ float Sensors::levelCm() const {
 
 float Sensors::levelPercent() const {
   if (config_ == nullptr) return NAN;
-  const float height = config_->tankHeightCm();
-  if (height <= 0) return NAN;
+  const float maxLevel = min(config_->maxLevelCm(), config_->tankHeightCm());
+  if (maxLevel <= 0) return NAN;
   const float cm = levelCm();
   if (isnan(cm)) return NAN;
-  return constrain((cm / height) * 100.0f, 0.0f, 100.0f);
+  return constrain((cm / maxLevel) * 100.0f, 0.0f, 100.0f);
 }
 
 float Sensors::liters() const {
   const float cm = levelCm();
   if (isnan(cm)) return NAN;
-  const float radius = cfg::TANK_DIAMETER_CM / 2.0f;
-  // cm³ -> litros
-  return (PI * radius * radius * cm) / 1000.0f;
+  const float level = min(cm, cfg::TANK_INTERNAL_HEIGHT_CM);
+  // Reservorio rectangular: cm³ -> litros
+  return (cfg::TANK_INTERNAL_LENGTH_CM * cfg::TANK_INTERNAL_WIDTH_CM * level) / 1000.0f;
 }
 
 uint8_t Sensors::okCount() const {

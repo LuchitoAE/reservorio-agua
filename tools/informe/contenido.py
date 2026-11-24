@@ -40,7 +40,7 @@ B(("tabla", {
         ["Modo demostración", "Funcional", "Genera telemetría simulada y se activa solo cuando no hay ESP32"],
         ["Montaje físico", "Pendiente", "Procedimiento completo en la parte I de este informe"],
         ["Calibración", "Pendiente", "Requiere los sensores conectados y los buffers de pH"],
-        ["Modelo digital 3D", "Anotado para fase posterior", "Ver capítulo 15 y docs/roadmap.md"],
+        ["Modelo digital 3D", "MVP implementado", "modelo.html · Three.js · medidas del plano Rev. 04"],
     ],
     "widths": [4.4, 4.2, 8.4],
     "caption": "Estado del proyecto al momento de este informe",
@@ -83,9 +83,10 @@ B(("lista", [
     "Dashboard web local con tarjetas por sensor, tanque virtual y panel de diagnóstico.",
     "Procedimientos de calibración y un plan de pruebas con criterios de aceptación.",
 ]))
-B(("p", "Queda **fuera de alcance** de esta fase: la publicación permanente en internet con base de "
-        "datos histórica, el modelo digital 3D del reservorio, las notificaciones automáticas y la "
-        "actualización remota de firmware. Todo eso está planificado en el capítulo 15."))
+B(("p", "El **modelo digital 3D** del reservorio se incorporó como un MVP interactivo (capítulo 16), "
+        "construido con las medidas del plano Rev. 04. Queda **fuera de alcance** de esta fase: la "
+        "publicación permanente en internet con base de datos histórica, las notificaciones automáticas, "
+        "la actualización remota de firmware y la versión realista del modelo a partir de fotos."))
 B(("h2", "1.3 Estado verificado y criterios de aceptación"))
 B(("p", "Es importante distinguir dos cosas. **Verificado** significa que se ejecutó y se observó el "
         "resultado: el firmware se compiló y el dashboard se abrió en un navegador real. **Pendiente** "
@@ -154,6 +155,7 @@ B(("tabla", {
         ["Desarrollo local", "Servidor Node en la PC", "Editar el dashboard sin reflashear", "Requiere PC encendida"],
         ["Demostración", "El navegador (datos simulados)", "Presentar el diseño o trabajar sin hardware", "No son datos reales"],
         ["Nube (fase 2)", "Vercel + Supabase", "Acceso remoto e histórico", "Aún no implementado"],
+        ["Modelo 3D", "El navegador (Three.js)", "Inspeccionar el tanque y la caseta", "Requiere WebGL"],
     ],
     "widths": [3.6, 4.8, 4.8, 3.8],
     "caption": "Modos de operación del sistema",
@@ -470,8 +472,9 @@ B(("p", "**Si no funciona:** distancia siempre 0 o «--» → divisor mal conect
         "invertidos; lecturas inestables → superficie inclinada o eco débil. Para el montaje final, "
         "considera un tubo guía de PVC para proteger el sensor de la condensación."))
 B(("callout", ("nota", "En la mesa el porcentaje de nivel puede parecer incorrecto: se calcula como "
-                       "«altura del tanque − distancia». Con el tanque configurado en 100 cm y el sensor "
-                       "a 30 cm del obstáculo, mostrará 70 %. Durante las pruebas mira la distancia, no el porcentaje.")))
+                       "«altura del tanque − distancia». Con el tanque de 40.6 cm y el sensor a 20 cm de un "
+                       "obstáculo, el nivel sería 20.6 cm: 65 % de los 31.5 cm útiles. Durante las pruebas "
+                       "mira la distancia, no el porcentaje.")))
 
 B(("h2", "6.5 Sensor de caudal YF-S201"))
 B(("p", "El sensor genera pulsos al girar su rotor: 450 pulsos equivalen a un litro. La señal es de "
@@ -666,15 +669,19 @@ B(("codigo", """#define PIN_TRIG        19
 
 constexpr float PH_DIVIDER        = 2.0f;
 constexpr float TURBIDITY_DIVIDER = 2.0f;
-constexpr float DEFAULT_TANK_HEIGHT_CM   = 100.0f;
-constexpr float TANK_DIAMETER_CM         = 80.0f;"""))
+constexpr float DEFAULT_TANK_HEIGHT_CM   = 40.6f;
+constexpr float DEFAULT_MAX_LEVEL_CM     = 31.5f;
+constexpr float TANK_INTERNAL_LENGTH_CM  = 38.8f;
+constexpr float TANK_INTERNAL_WIDTH_CM   = 28.8f;"""))
 B(("tabla", {
     "headers": ["Constante", "Valor", "Qué controla"],
     "rows": [
         ["PH_DIVIDER", "2.0", "Factor del divisor del pH (2.0 con 4.7k + 4.7k)"],
         ["TURBIDITY_DIVIDER", "2.0", "Factor del divisor de turbidez"],
-        ["DEFAULT_TANK_HEIGHT_CM", "100", "Altura inicial del tanque, ajustable desde la web"],
-        ["TANK_DIAMETER_CM", "80", "Diámetro para estimar litros"],
+        ["DEFAULT_TANK_HEIGHT_CM", "40.6", "Altura interior total del tanque"],
+        ["DEFAULT_MAX_LEVEL_CM", "31.5", "Nivel de rebose: 100 % de capacidad útil"],
+        ["TANK_INTERNAL_LENGTH_CM", "38.8", "Largo interior para calcular litros"],
+        ["TANK_INTERNAL_WIDTH_CM", "28.8", "Ancho interior para calcular litros"],
         ["DEFAULT_FLOW_PPL", "450", "Pulsos por litro del YF-S201"],
         ["DEFAULT_PH_NEUTRAL_V", "2.50", "Tensión en buffer pH 7 (se recalibra)"],
         ["DEFAULT_PH_SLOPE_V", "0.18", "Voltios por unidad de pH"],
@@ -693,7 +700,8 @@ B(("p", "La calibración y el volumen acumulado se guardan en la memoria NVS con
 B(("tabla", {
     "headers": ["Parámetro", "Valor por defecto", "Cómo se ajusta"],
     "rows": [
-        ["Altura del tanque", "100 cm", "Formulario del dashboard o POST /api/config"],
+        ["Altura del tanque", "40.6 cm", "Formulario del dashboard o POST /api/config"],
+        ["Nivel máximo (rebose)", "31.5 cm", "Formulario del dashboard"],
         ["Offset del sensor", "0 cm", "Formulario del dashboard"],
         ["Tensión de neutro del pH", "2.50 V", "Botón «Buffer pH 7»"],
         ["Pendiente del pH", "0.18 V/pH", "Botón «Buffer pH 4»"],
@@ -805,7 +813,8 @@ B(("p", "Ejemplo de respuesta de telemetría (abreviada):"))
 B(("codigo", """{
   "ts": 123456, "uptime": 1800,
   "wifi": { "connected": true, "ip": "192.168.1.50", "rssi": -58 },
-  "level": { "ok": true, "distanceCm": 34.7, "levelCm": 65.3, "percent": 65.3, "liters": 328.1 },
+  "level": { "ok": true, "distanceCm": 19.8, "levelCm": 20.8, "percent": 66, "liters": 23.2,
+             "tankHeightCm": 40.6, "maxLevelCm": 31.5 },
   "flow": { "ok": true, "lpm": 4.14, "totalL": 135.1, "pulses": 60789 },
   "temperature": { "ok": true, "c": 22.4 },
   "ph": { "ok": true, "value": 7.24, "voltage": 2.46, "raw": 3049 },
@@ -1054,7 +1063,7 @@ B(("tabla", {
     "rows": [
         ["1. Sensores y web local", "Montaje, firmware, dashboard, calibración y pruebas", "Software listo; hardware pendiente"],
         ["2. Web publicada y nube", "Vercel, Supabase, histórico y acceso remoto", "Planificado"],
-        ["3. Modelo digital 3D", "Representación del tanque con el nivel real", "Anotado"],
+        ["3. Modelo digital 3D", "Representación del tanque con el nivel real", "MVP implementado"],
         ["4. Operación", "Alertas, OTA, caja IP65 y mantenimiento", "Futuro"],
     ],
     "widths": [4.6, 8.6, 3.8],
@@ -1065,11 +1074,10 @@ B(("p", "La ruta propuesta usa Supabase para las lecturas y Vercel para el table
         "un POST cada 10 a 30 segundos con su token; el dashboard leería la última lectura por REST o "
         "Realtime. Es necesario resolver el contenido mixto: una página HTTPS no puede consultar el "
         "ESP32 HTTP local, por eso los datos deben salir del ESP32 hacia un servicio público."))
-B(("h2", "15.2 Fase 3: modelo digital 3D"))
-B(("p", "El modelo 3D del reservorio queda anotado para una fase posterior. Requiere la geometría real "
-        "del tanque, la curva de volumen contra altura si no es cilíndrico y el histórico de la fase 2. "
-        "Se integraría como una pestaña del dashboard, no como reemplazo. La idea es que el nivel del "
-        "modelo refleje la medición real y permita ver zonas (óptimo, bajo, crítico) de un vistazo."))
+B(("h2", "15.2 Fase 3: modelo digital 3D (MVP implementado)"))
+B(("p", "El modelo digital ya está disponible en `modelo.html` con las medidas del plano Rev. 04 y el "
+        "nivel conectado a la telemetría (capítulo 16). Queda pendiente la versión realista a partir de "
+        "fotos, el corte dinámico y la animación del histórico de la fase 2."))
 B(("h2", "15.3 Mejoras de operación"))
 B(("lista", [
     "Alertas por correo o Telegram cuando el nivel, el pH o el caudal salgan de rango.",
@@ -1077,6 +1085,60 @@ B(("lista", [
     "Caja IP65 con prensaestopas y protección contra sobretensión.",
     "Gráficas de 24 horas y 7 días con datos históricos.",
     "Limpieza periódica del lente de turbidez y recalibración del pH.",
+]))
+
+# ---------------------------------------------------------------------------
+# 16. MODELO DIGITAL 3D
+# ---------------------------------------------------------------------------
+B(("h1", "16. Modelo digital 3D"))
+B(("p", "El modelo digital del reservorio está implementado como una página web interactiva "
+        "(`web/modelo.html`) construida con Three.js. Toma las medidas del plano **Reservorio + caseta "
+        "de válvulas (Rev. 04)** y representa el tanque de vidrio, la caseta, las cuatro válvulas y el "
+        "nivel de agua. No es una foto ni una maqueta estática: la geometría se genera por código y el "
+        "nivel puede seguir la telemetría real."))
+B(("imagen", ("modelo-3d.png", 16.4, "Modelo digital del reservorio y la caseta, con el nivel de agua al 72 %.")))
+B(("h2", "16.1 Qué representa"))
+B(("tabla", {
+    "headers": ["Elemento", "Medida en el modelo", "Origen"],
+    "rows": [
+        ["Reservorio exterior", "40.0 × 30.0 × 40.6 cm", "Plano Rev. 04"],
+        ["Vidrio", "6 mm (paredes y base)", "Plano Rev. 04"],
+        ["Volumen interior", "38.8 × 28.8 × 40.0 cm", "Plano Rev. 04"],
+        ["Caseta de válvulas", "22.0 × 20.0 × 26.0 cm, detrás del tanque", "Plano Rev. 04"],
+        ["Rebose / nivel máximo", "31.5 cm (borde libre 8.5 cm)", "Plano Rev. 04"],
+        ["Válvulas", "4 PVC Ø 1/2 pulg: ingreso, salida, by-pass, limpia", "Plano Rev. 04"],
+        ["Nivel de agua", "0 a 31.5 cm", "Telemetría del ESP32 o demo"],
+        ["Capacidad útil", "35.2 L (total 44.7 L)", "Cálculo del plano"],
+    ],
+    "widths": [4.6, 7.2, 5.2],
+    "caption": "Elementos y medidas del modelo 3D",
+}))
+B(("p", "El trazado de las tuberías es una simplificación del isométrico: respeta las alturas "
+        "(ingreso 36 cm, rebose 31.5/20 cm, salida 5.5 cm, limpia 1.5 cm), los diámetros y la posición "
+        "general, pero no reproduce cada codo y unión del plano."))
+B(("h2", "16.2 Cómo se usa"))
+B(("lista", [
+    "Se abre desde el botón «Modelo 3D» del dashboard o directamente en `/modelo.html`.",
+    "Arrastrar con el mouse o el dedo gira la vista; la rueda o el gesto de pinza acercan.",
+    "Los botones «Isométrica», «Frontal» y «Superior» cambian la cámara; doble clic reinicia.",
+    "El deslizador «Nivel de prueba» mueve el agua entre 0 y 31.5 cm y muestra el volumen en litros.",
+    "«Fuente de datos» permite usar el ESP32 (telemetría real) o la simulación local.",
+    "«Ocultar caseta» y «Ocultar medidas» simplifican la vista para inspeccionar el tanque.",
+]))
+B(("h2", "16.3 Integración con la telemetría"))
+B(("p", "En modo ESP32 la página consulta `/api/telemetry` cada 3.5 segundos y usa `level.percent` "
+        "para mover el agua. El porcentaje se calcula sobre el nivel máximo útil (31.5 cm), de modo que "
+        "100 % coincide con el rebose. Si la placa no responde, el modelo sigue funcionando en modo "
+        "demostración, igual que el dashboard."))
+B(("p", "Three.js se guarda en `web/vendor/` (unos 676 KB) y se carga desde el mismo servidor: el modelo "
+        "funciona sin internet, tanto en la PC como servido por el ESP32. En este último caso la primera "
+        "carga puede tardar unos segundos por el tamaño de la librería."))
+B(("h2", "16.4 Próximos pasos"))
+B(("lista", [
+    "Reemplazar o complementar la geometría con un modelo `.glb` hecho por fotogrametría, si se busca realismo.",
+    "Agregar un corte dinámico para ver el interior sin ocultar toda la caseta.",
+    "Animar el histórico de nivel y las alertas por zonas (óptimo, bajo, crítico).",
+    "Texturizar el vidrio y el agua con reflejos del entorno para una presentación más realista.",
 ]))
 
 # ---------------------------------------------------------------------------
@@ -1101,9 +1163,11 @@ B(("tabla", {
     "caption": "Fórmulas utilizadas por el firmware",
 }))
 B(("h2", "A.1 Ejemplo numérico"))
-B(("p", "Tanque cilíndrico de 80 cm de diámetro y 100 cm de altura. Radio = 40 cm. Volumen total = "
-        "π × 40² × 100 / 1000 = **502.65 litros**. Si el sensor mide 34.7 cm desde la tapa, el nivel es "
-        "100 − 34.7 = 65.3 cm, es decir 65.3 %. El volumen es π × 40² × 65.3 / 1000 = **328.2 litros**."))
+B(("p", "Reservorio rectangular de 38.8 × 28.8 cm interiores y 40.0 cm de altura. Volumen total = "
+        "38.8 × 28.8 × 40.0 / 1000 = **44.70 litros**. El rebose está a 31.5 cm, así que la capacidad "
+        "útil es 38.8 × 28.8 × 31.5 / 1000 = **35.20 litros**. Si el sensor mide 19.8 cm desde la tapa, "
+        "el nivel es 40.6 − 19.8 = 20.8 cm, es decir 66 % de 31.5 cm. El volumen es "
+        "38.8 × 28.8 × 20.8 / 1000 = **23.24 litros**."))
 B(("p", "Con un caudal de 4.14 L/min, el sensor entrega 4.14 × 450 / 60 = **31 pulsos por segundo**. "
         "En una ventana de un segundo, 31 pulsos producen exactamente 4.13 L/min."))
 B(("h2", "A.2 Incertidumbre y límites"))

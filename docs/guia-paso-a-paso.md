@@ -457,8 +457,8 @@ fila, otra resistencia hasta el riel azul; y de esa fila (el punto medio) un cab
 4. A más de 4 m o sin obstáculo, debe mostrar `--` (sin lectura), no un número absurdo.
 
 > El porcentaje de nivel puede verse raro en la mesa: se calcula como
-> `altura del tanque − distancia`. Con el tanque configurado en 100 cm y el sensor a 30 cm
-> de la pared, marcará 70 %. Es correcto. Para pruebas, mira **Distancia**, no el %.
+> `altura del tanque − distancia`. Con el tanque de 40.6 cm y el sensor a 20 cm de la pared,
+> marcará 65 % de los 31.5 cm útiles. Es correcto. Para pruebas, mira **Distancia**, no el %.
 
 **Si no funciona**
 
