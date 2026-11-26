@@ -793,7 +793,7 @@ const OVERFLOW_CM = 31;  // rebose físico
 const tankFx = new THREE.Group();
 world.add(tankFx);
 
-const FLOW_PERIOD = 2.4; // cm entre franjas
+const FLOW_PERIOD = 4;   // cm entre franjas
 
 function stripeTexture() {
   const c = document.createElement('canvas');
@@ -801,9 +801,9 @@ function stripeTexture() {
   c.height = 4;
   const g = c.getContext('2d');
   const grad = g.createLinearGradient(0, 0, 64, 0);
+  // Brillo suave (sin bordes duros): se ve como agua que avanza, no como un tubo de color.
   grad.addColorStop(0, 'rgba(255,255,255,0)');
-  grad.addColorStop(0.6, 'rgba(255,255,255,0.95)');
-  grad.addColorStop(0.75, 'rgba(255,255,255,0.95)');
+  grad.addColorStop(0.5, 'rgba(255,255,255,0.6)');
   grad.addColorStop(1, 'rgba(255,255,255,0)');
   g.fillStyle = grad;
   g.fillRect(0, 0, 64, 4);
@@ -831,7 +831,7 @@ function flowPath(points, bends = []) {
   return path;
 }
 
-function flowLine(path, color, radius = PR * 1.16) {
+function flowLine(path, color, radius = PR * 1.05) {  // pegado al tubo
   const length = path.getLength();
   const tex = stripeTexture();
   tex.repeat.set(length / FLOW_PERIOD, 1);
@@ -843,12 +843,12 @@ function flowLine(path, color, radius = PR * 1.16) {
   return { mesh, mat, tex, speed: 6 };
 }
 
-function stepFlow(f, lpm, dt, maxOpacity = 0.92) {
+function stepFlow(f, lpm, dt, maxOpacity = 0.45) {
   const active = lpm > 0.02;
   f.mat.opacity += ((active ? maxOpacity : 0) - f.mat.opacity) * Math.min(1, dt * 4);
   f.mesh.visible = f.mat.opacity > 0.02;
-  // 1 L/min en PVC de 1/2" son ~8 cm/s; se limita para que se vea bien.
-  if (active) f.speed = THREE.MathUtils.clamp(lpm * 8.3, 4, 60);
+  // Movimiento lento y tranquilo: más caudal = un poco más rápido (entre 1.5 y 8 cm/s).
+  if (active) f.speed = THREE.MathUtils.clamp(lpm * 1.2, 1.5, 8);
   f.tex.offset.x -= (f.speed / FLOW_PERIOD) * dt;
 }
 
@@ -914,13 +914,13 @@ function updateTwin(dt) {
 
   stepFlow(flowIn, lpmIn, dt);
   stepFlow(flowOut, lpmOut, dt);
-  stepFlow(flowOverflow, t && currentLevel >= OVERFLOW_CM ? 3 : 0, dt, 0.8);
+  stepFlow(flowOverflow, t && currentLevel >= OVERFLOW_CM ? 3 : 0, dt, 0.4);
 
   // Chorro: largo hasta el agua y franjas a la misma escala.
   const drop = Math.max(0.3, 35 - surfaceY);
   jet.scale.y = drop;
   jetTex.repeat.set(drop / FLOW_PERIOD, 1);
-  stepFlow(jetFlow, lpmIn > 0.02 ? Math.max(lpmIn, 3) : 0, dt, 0.7);
+  stepFlow(jetFlow, lpmIn > 0.02 ? Math.max(lpmIn, 3) : 0, dt, 0.55);
   splash.position.set(3, surfaceY + 0.08, -12);
   const s = 1 + ((clock.elapsedTime * 1.4) % 1) * 1.8;
   splash.scale.set(s, s, 1);

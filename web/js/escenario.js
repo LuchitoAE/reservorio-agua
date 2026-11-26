@@ -32,7 +32,7 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 
 const scene = new THREE.Scene();
 const DAY_SKY = new THREE.Color(0x9ccbe8);
-const NIGHT_SKY = new THREE.Color(0x0a1424);
+const NIGHT_SKY = new THREE.Color(0x3a5472);  // noche azulada: la escena se sigue viendo
 scene.background = DAY_SKY.clone();
 scene.fog = new THREE.Fog(scene.background, 240, 560);
 
@@ -153,7 +153,7 @@ function box(w, h, d, mat, x, y, z) {
 
 /* ----------------------------------------------------- flujo animado (agua) */
 
-const FLOW_PERIOD = 6;
+const FLOW_PERIOD = 8;
 
 function stripeTexture() {
   const c = document.createElement('canvas');
@@ -161,9 +161,9 @@ function stripeTexture() {
   c.height = 4;
   const g = c.getContext('2d');
   const grad = g.createLinearGradient(0, 0, 64, 0);
+  // Brillo suave: se ve como agua que avanza, no como un tubo de color.
   grad.addColorStop(0, 'rgba(255,255,255,0)');
-  grad.addColorStop(0.6, 'rgba(255,255,255,0.95)');
-  grad.addColorStop(0.75, 'rgba(255,255,255,0.95)');
+  grad.addColorStop(0.5, 'rgba(255,255,255,0.65)');
   grad.addColorStop(1, 'rgba(255,255,255,0)');
   g.fillStyle = grad;
   g.fillRect(0, 0, 64, 4);
@@ -198,7 +198,7 @@ function pipeLine(curve, { radius = 0.55, color = 0xa78bfa, pipe = true } = {}) 
   const tex = stripeTexture();
   tex.repeat.set(length / FLOW_PERIOD, 1);
   const mat = new THREE.MeshBasicMaterial({ color, map: tex, transparent: true, opacity: 0, depthWrite: false });
-  const mesh = new THREE.Mesh(new THREE.TubeGeometry(curve, segments, radius * 1.6, 10), mat);
+  const mesh = new THREE.Mesh(new THREE.TubeGeometry(curve, segments, radius * 1.12, 10), mat);
   mesh.visible = false;
   scene.add(mesh);
   return { mesh, mat, tex, speed: 8, curve };
@@ -206,12 +206,12 @@ function pipeLine(curve, { radius = 0.55, color = 0xa78bfa, pipe = true } = {}) 
 
 let snapFlows = true;  // primer dato: sin transición
 
-function stepFlow(f, lpm, dt, { max = 0.95, scale = 3 } = {}) {
+function stepFlow(f, lpm, dt, { max = 0.5, scale = 1.2 } = {}) {
   const active = lpm > 0.02;
   const k = snapFlows ? 1 : Math.min(1, dt * 3);
   f.mat.opacity += ((active ? max : 0) - f.mat.opacity) * k;
   f.mesh.visible = f.mat.opacity > 0.02;
-  if (active) f.speed = THREE.MathUtils.clamp(lpm * scale, 6, 70);
+  if (active) f.speed = THREE.MathUtils.clamp(lpm * scale, 2, 12);  // lento y tranquilo
   f.tex.offset.x -= (f.speed / FLOW_PERIOD) * dt;
 }
 
@@ -241,7 +241,7 @@ const stream = pipeLine(
   { radius: 1.3, color: 0x7fd9f5, pipe: false },
 );
 stream.mesh.visible = true;  // la quebrada corre siempre
-stream.mat.opacity = 0.75;
+stream.mat.opacity = 0.6;
 
 /* ------------------------------------------------------------- reservorio */
 
@@ -479,12 +479,12 @@ function label(html, position, cls = 'tag--step', { near = 0 } = {}) {
   return item;
 }
 
-label('1 · Manantial y captación<small>el agua brota del cerro</small>', [SPRING.x, springY + 9, SPRING.z]);
-const tagIn = label('2 · Línea de conducción', inlet.curve.getPointAt(0.45).add(new THREE.Vector3(0, 6, 0)));
-const tagRes = label('3 · Reservorio apoyado', [RES.x, RES_Y + RH + 7, RES.z]);
-label('4 · Caseta de válvulas', [CASETA.x + 6, resBase + 7.5, CASETA.z - 2], 'tag--step tag--secondary', { near: 120 });
-const tagOut = label('5 · Línea de aducción', outlet.curve.getPointAt(0.6).add(new THREE.Vector3(0, 6, 0)));
-label('6 · Pueblo<small>red de distribución y piletas</small>', [VIL.x + 26, VIL_Y + 14, 104]);
+const tagSpring = label('Manantial y captación<small>el agua brota del cerro</small>', [SPRING.x, springY + 9, SPRING.z]);
+const tagIn = label('Línea de conducción', inlet.curve.getPointAt(0.45).add(new THREE.Vector3(0, 6, 0)));
+const tagRes = label('Reservorio apoyado', [RES.x, RES_Y + RH + 7, RES.z]);
+const tagCaseta = label('Caseta de válvulas', [CASETA.x + 6, resBase + 7.5, CASETA.z - 2], 'tag--step tag--secondary', { near: 120 });
+const tagOut = label('Línea de aducción', outlet.curve.getPointAt(0.6).add(new THREE.Vector3(0, 6, 0)));
+const tagVillage = label('Pueblo<small>red de distribución y piletas</small>', [VIL.x + 26, VIL_Y + 14, 104]);
 label('Quebrada', stream.curve.getPointAt(0.55).add(new THREE.Vector3(0, 3, 0)), 'tag--water tag--secondary');
 const tagOver = label('Rebose', overflow.curve.getPointAt(0.6).add(new THREE.Vector3(0, 3, 0)), 'tag--water tag--secondary');
 label(inMeter.label, inMeter.pos, 'tag--flow tag--secondary', { near: 120 });
@@ -496,7 +496,7 @@ function updateLabels() {
   const h = window.innerHeight;
   for (const item of labels) {
     projected.copy(item.pos).project(camera);
-    const tooFar = item.near > 0 && camera.position.distanceTo(item.pos) > item.near;
+    const tooFar = item.near > 0 && !item.active && camera.position.distanceTo(item.pos) > item.near;
     const visible = projected.z > -1 && projected.z < 1 && !item.off && !tooFar;
     item.el.style.opacity = visible ? '0.96' : '0';
     if (!visible) continue;
@@ -512,6 +512,11 @@ const views = {
   reservorio: { pos: [32, RES_Y + 24, RES.z + 40], target: [RES.x, RES_Y + 3, RES.z] },
   pueblo: { pos: [80, 60, 190], target: [VIL.x, VIL_Y, 112] },
 };
+{
+  const mid = inlet.curve.getPointAt(0.5);
+  views.conduccion = { pos: [mid.x + 62, mid.y + 46, mid.z + 34], target: [mid.x, mid.y, mid.z] };
+  views.caseta = { pos: [CASETA.x + 30, resBase + 20, CASETA.z - 24], target: [CASETA.x, resBase + 2, CASETA.z + 2] };
+}
 let camAnim = null;
 
 function goToView(name, instant = false) {
@@ -534,31 +539,33 @@ canvas.addEventListener('dblclick', () => goToView('general'));
 
 /* ---------------------------------------------------------------- datos */
 
+const $ = (id) => document.getElementById(id);
 const ui = {
-  badge: document.getElementById('mode-badge'),
-  simNote: document.getElementById('sim-note'),
-  simClock: document.getElementById('sim-clock'),
-  pct: document.getElementById('pct'),
-  liters: document.getElementById('liters'),
-  realM3: document.getElementById('real-m3'),
-  state: document.getElementById('state'),
-  bar: document.getElementById('bar'),
-  loading: document.getElementById('loading'),
+  badge: $('mode-badge'),
+  simNote: $('sim-note'),
+  simClock: $('sim-clock'),
+  pct: $('k-pct'),
+  m3: $('k-m3'),
+  inLpm: $('k-in'),
+  outLpm: $('k-out'),
+  net: $('k-net'),
+  state: $('state'),
+  bar: $('bar'),
+  loading: $('loading'),
+  stepNum: $('paso-num'),
+  stepTitle: $('paso-titulo'),
+  stepText: $('paso-texto'),
+  stepData: $('paso-dato'),
+  prev: $('prev'),
+  next: $('next'),
+  dots: $('dots'),
 };
-const rows = Object.fromEntries([...document.querySelectorAll('[data-live]')].map((li) => [li.dataset.live, li]));
 const fmt = (v, d) => (typeof v === 'number' && Number.isFinite(v)
   ? v.toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d })
   : '--');
 
-function setRow(key, text, cls = '') {
-  const li = rows[key];
-  if (!li) return;
-  li.querySelector('b').textContent = text;
-  li.className = cls ? `is-${cls}` : '';
-}
-
 function levelState(cm, full) {
-  if (cm >= OVERFLOW_CM) return ['¡REBALSANDO! El exceso sale por el rebose', 'is-over'];
+  if (cm >= OVERFLOW_CM) return ['¡REBALSANDO!', 'is-over'];
   if (cm >= full) return ['TANQUE LLENO', 'is-full'];
   if (cm >= full - 5) return ['CASI LLENO', 'is-high'];
   if (cm <= 2) return ['TANQUE VACÍO', 'is-low'];
@@ -568,6 +575,105 @@ function levelState(cm, full) {
 
 const simulator = createSimulator();
 const live = { data: null, levelCm: 15, targetLevelCm: 15, clarity: 100, started: false, kind: null };
+const now = { lpmIn: 0, lpmOut: 0, pct: null, m3: null };
+
+/* --------------------------------------------------------- recorrido guiado */
+
+const STEPS = [
+  {
+    view: 'general',
+    title: 'Un sistema de agua por gravedad',
+    text: 'El agua baja sola desde un manantial en el cerro hasta un reservorio, y del reservorio al pueblo. No necesita bombas: todo funciona por la pendiente del terreno.',
+    tag: null,
+    data: () => (now.pct === null ? '' : `Ahora el reservorio está al ${now.pct.toFixed(0)} %.`),
+  },
+  {
+    view: 'manantial',
+    title: 'Manantial y captación',
+    text: 'El agua brota entre las rocas del cerro. Una caja de concreto (la cámara de captación) la recoge y la protege para que no se contamine. Lo que no se capta sigue por la quebrada.',
+    tag: tagSpring,
+  },
+  {
+    view: 'conduccion',
+    title: 'Línea de conducción',
+    text: 'Una tubería enterrada baja el agua por gravedad hasta el reservorio. Al llegar, un medidor de caudal cuenta cuánta agua entra.',
+    tag: tagIn,
+    data: () => `Ahora llegan ${fmt(now.lpmIn, 1)} litros por minuto.`,
+  },
+  {
+    view: 'reservorio',
+    title: 'Reservorio apoyado',
+    text: 'Guarda el agua para las horas en que el pueblo usa más, y ahí se clora. Está en una loma más alta que el pueblo para que el agua llegue sola a las casas.',
+    tag: tagRes,
+    data: () => (now.pct === null ? '' : `Ahora está al ${now.pct.toFixed(0)} %: unos ${fmt(now.m3, 1)} m³ de 10 m³.`),
+  },
+  {
+    view: 'caseta',
+    title: 'Caseta de válvulas',
+    text: 'Controla la entrada, la salida, el by-pass, la limpia y el rebose: las mismas tuberías de la maqueta. Otro medidor de caudal mide el agua que sale hacia el pueblo.',
+    tag: tagCaseta,
+    data: () => `Ahora salen ${fmt(now.lpmOut, 1)} litros por minuto.`,
+  },
+  {
+    view: 'pueblo',
+    title: 'El pueblo',
+    text: 'La línea de aducción lleva el agua a la red de distribución y a las piletas de cada casa. Un reservorio de unos 10 m³ alcanza para 300 a 400 personas.',
+    tag: tagVillage,
+    data: () => {
+      const net = now.lpmIn - now.lpmOut;
+      if (net > 0.05) return 'Ahora entra más agua de la que se usa: el reservorio se llena.';
+      if (net < -0.05) return 'Ahora el pueblo usa más agua de la que llega: el reservorio baja.';
+      return 'Ahora entra y sale casi la misma cantidad de agua.';
+    },
+  },
+];
+
+let step = 0;
+
+STEPS.forEach((_, i) => {
+  const dot = document.createElement('button');
+  dot.type = 'button';
+  dot.setAttribute('role', 'tab');
+  dot.setAttribute('aria-label', `Paso ${i + 1}: ${STEPS[i].title}`);
+  dot.addEventListener('click', () => setStep(i));
+  ui.dots.appendChild(dot);
+});
+
+function updateStepData() {
+  const text = STEPS[step].data?.() ?? '';
+  ui.stepData.hidden = !text;
+  if (ui.stepData.textContent !== text) ui.stepData.textContent = text;
+}
+
+function setStep(i, { fly = true } = {}) {
+  step = Math.max(0, Math.min(STEPS.length - 1, i));
+  const st = STEPS[step];
+  ui.stepNum.textContent = `Paso ${step + 1} de ${STEPS.length}`;
+  ui.stepTitle.textContent = st.title;
+  ui.stepText.textContent = st.text;
+  updateStepData();
+  ui.prev.disabled = step === 0;
+  ui.next.textContent = step === STEPS.length - 1 ? 'Volver al inicio ›' : 'Siguiente ›';
+  [...ui.dots.children].forEach((dot, k) => {
+    dot.classList.toggle('is-active', k === step);
+    dot.setAttribute('aria-selected', String(k === step));
+  });
+  // Resalta la etiqueta de la parte que se explica.
+  for (const item of labels) {
+    item.active = item === st.tag;
+    item.el.classList.toggle('is-active', item.active);
+  }
+  goToView(st.view, !fly);
+}
+
+ui.prev.addEventListener('click', () => setStep(step - 1));
+ui.next.addEventListener('click', () => setStep(step === STEPS.length - 1 ? 0 : step + 1));
+window.addEventListener('keydown', (event) => {
+  if (event.key === 'ArrowRight') setStep(Math.min(STEPS.length - 1, step + 1));
+  if (event.key === 'ArrowLeft') setStep(step - 1);
+});
+
+/* -------------------------------------------------------------------- datos */
 
 function render(t) {
   live.data = t;
@@ -588,29 +694,31 @@ function render(t) {
     if (!live.started) live.levelCm = lv.levelCm;
   }
   const pct = Math.max(0, Math.min(100, (live.targetLevelCm / full) * 100));
+  now.pct = lv.ok ? pct : null;
+  now.m3 = lv.ok ? (pct / 100) * REAL_M3 : null;
   ui.pct.textContent = lv.ok ? pct.toFixed(0) : '--';
-  ui.liters.textContent = lv.ok ? fmt(lv.liters, 1) : '--';
-  ui.realM3.textContent = lv.ok ? fmt((pct / 100) * REAL_M3, 1) : '--';
+  ui.m3.textContent = lv.ok ? fmt(now.m3, 1) : '--';
   ui.bar.style.width = `${lv.ok ? pct : 0}%`;
   const [text, cls] = lv.ok ? levelState(live.targetLevelCm, full) : ['Sin lectura de nivel', ''];
   ui.state.textContent = text;
   ui.state.className = `state ${cls}`.trim();
 
-  const lpmIn = t.flowIn?.ok ? t.flowIn.lpm : 0;
-  const lpmOut = t.flowOut?.ok ? t.flowOut.lpm : 0;
-  const net = lpmIn - lpmOut;
-  setRow('flowIn', `${fmt(lpmIn, 1)} L/min`, lpmIn > 0.02 ? 'flow' : '');
-  setRow('flowOut', `${fmt(lpmOut, 1)} L/min`, lpmOut > 0.02 ? 'flow' : '');
-  setRow('net', net > 0.05 ? `+${fmt(net, 1)} L/min · se llena` : net < -0.05 ? `${fmt(net, 1)} L/min · baja` : 'estable');
+  now.lpmIn = t.flowIn?.ok ? t.flowIn.lpm : 0;
+  now.lpmOut = t.flowOut?.ok ? t.flowOut.lpm : 0;
+  const net = now.lpmIn - now.lpmOut;
+  ui.inLpm.textContent = fmt(now.lpmIn, 1);
+  ui.outLpm.textContent = fmt(now.lpmOut, 1);
+  ui.net.textContent = net > 0.05
+    ? `+${fmt(net, 1)} L/min · el reservorio se llena`
+    : net < -0.05 ? `${fmt(net, 1)} L/min · el reservorio baja` : 'Estable: entra lo mismo que sale';
+  ui.net.className = net > 0.05 ? 'is-up' : net < -0.05 ? 'is-down' : '';
   const tb = t.turbidity ?? {};
-  setRow('turbidity', tb.ok ? `${fmt(tb.clarity, 0)} %` : 'sin señal', tb.ok ? 'ok' : 'bad');
-  setRow('ph', t.ph?.ok ? fmt(t.ph.value, 2) : 'sin señal', t.ph?.ok ? 'ok' : 'bad');
-  setRow('temperature', t.temperature?.ok ? `${fmt(t.temperature.c, 1)} °C` : 'sin señal', t.temperature?.ok ? 'ok' : 'bad');
   if (tb.ok) live.clarity = tb.clarity;
 
-  tagIn.el.innerHTML = `2 · Línea de conducción<small>llega ${fmt(lpmIn, 1)} L/min</small>`;
-  tagOut.el.innerHTML = `5 · Línea de aducción<small>sale ${fmt(lpmOut, 1)} L/min al pueblo</small>`;
-  tagRes.el.innerHTML = `3 · Reservorio apoyado<small>${lv.ok ? `${pct.toFixed(0)} % · ≈ ${fmt((pct / 100) * REAL_M3, 1)} m³` : 'sin lectura'}</small>`;
+  tagIn.el.innerHTML = `Línea de conducción<small>llega ${fmt(now.lpmIn, 1)} L/min</small>`;
+  tagOut.el.innerHTML = `Línea de aducción<small>sale ${fmt(now.lpmOut, 1)} L/min al pueblo</small>`;
+  tagRes.el.innerHTML = `Reservorio apoyado<small>${lv.ok ? `${pct.toFixed(0)} % · ≈ ${fmt(now.m3, 1)} m³` : 'sin lectura'}</small>`;
+  updateStepData();
   live.started = true;
 }
 
@@ -630,7 +738,7 @@ setInterval(poll, pollMs(1000));
 const tmp = new THREE.Color();
 function applyDaylight(hour) {
   const elev = Math.sin(((hour - 6) / 12) * Math.PI);          // >0 de día
-  const day = THREE.MathUtils.clamp(elev * 1.6 + 0.15, 0, 1);
+  const day = THREE.MathUtils.clamp(elev * 1.6 + 0.15, 0.42, 1);  // de noche no queda a oscuras
   scene.background.copy(NIGHT_SKY).lerp(DAY_SKY, day);
   scene.fog.color.copy(scene.background);
   sun.intensity = 0.15 + 2.3 * day;
@@ -655,7 +763,11 @@ function resize() {
 }
 window.addEventListener('resize', resize);
 resize();
-goToView(views[location.hash.slice(1)] ? location.hash.slice(1) : 'general', true);
+{
+  // escenario#manantial, #reservorio, #pueblo… abre en ese paso del recorrido.
+  const fromHash = STEPS.findIndex((st) => st.view === location.hash.slice(1));
+  setStep(fromHash >= 0 ? fromHash : 0, { fly: false });
+}
 
 let first = true;
 function animate() {
@@ -669,13 +781,13 @@ function animate() {
     const lpmOut = t.flowOut?.ok ? t.flowOut.lpm : 0;
     stepFlow(inlet, lpmIn, dt);
     stepFlow(outlet, lpmOut, dt);
-    network.forEach((f) => stepFlow(f, lpmOut, dt, { max: 0.85 }));
+    network.forEach((f) => stepFlow(f, lpmOut, dt, { max: 0.4 }));
     stepFlow(overflow, live.levelCm >= OVERFLOW_CM ? 4 : 0, dt);
     tagOver.off = live.levelCm < OVERFLOW_CM;
     applyDaylight(t.simulated ? t.sim.hour : new Date().getHours() + new Date().getMinutes() / 60);
     snapFlows = false;
   }
-  stream.tex.offset.x -= (14 / FLOW_PERIOD) * dt;
+  stream.tex.offset.x -= (5 / FLOW_PERIOD) * dt;
 
   const frac = THREE.MathUtils.clamp(live.levelCm / INNER_CM, 0.01, 1);
   water.scale.y = Math.max(0.05, frac * innerH);
