@@ -347,7 +347,7 @@ button:hover { background: rgba(56, 189, 248, 0.14); border-color: var(--line-st
 .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 .dot--glass { background: rgba(191, 234, 255, 0.7); box-shadow: 0 0 0 2px rgba(191, 234, 255, 0.15); }
 .dot--water { background: #22d3ee; }
-.dot--pvc { background: #dde5ec; }
+.dot--pvc { background: #7c8389; }
 .dot--valve { background: var(--valve); }
 .dot--sensor { background: #1f5fbf; box-shadow: 0 0 0 2px rgba(195, 204, 214, 0.5); }
 .dot--flow { background: #a78bfa; }

@@ -17,6 +17,24 @@ Sistema de monitoreo de un reservorio de agua con ESP32 DevKit V1 (30 pines, USB
 
 Repositorio público: <https://github.com/LuchitoAE/reservorio-agua>
 
+## Web (26/11/2026, pedidos del usuario)
+
+- **`index.html` = tablero unido al modelo 3D**: el gemelo digital a pantalla completa con 6
+  tarjetas flotantes (nivel, agua que entra, agua que sale, temperatura, pH, claridad).
+  `js/tablero.js` pinta las tarjetas; `js/datos.js` es la única fuente de datos (real o
+  simulación); `js/model3d.js` solo dibuja y recibe `setTelemetry()`. En celular: modelo arriba
+  y tarjetas debajo en 2 columnas.
+- **Lenguaje para el público**: sin nombres de sensores, pines, voltajes, "ESP32", IP ni NTU.
+- **`mantenimiento.html`**: lo técnico (estado del ESP32, valores crudos, ajustes del tanque,
+  calibraciones, reinicio de totales). Solo funciona en la red de la maqueta; el enlace no
+  aparece en la web publicada.
+- `modelo.html` redirige al tablero (conserva `#vista`). `app.js` (dashboard viejo) se eliminó.
+- Modelo: tubería de **PVC gris** (`0x7c8389`); llaves de paso como la UyusTools XP112L
+  "liso": cuerpo blanco de una pieza con abultamiento central y **manija roja de mariposa**
+  con estrías; el by-pass se dibuja cerrado (manija cruzada).
+- Vercel publica solo la carpeta `web` (Root Directory); el informe y el firmware quedan solo
+  en el repositorio.
+
 ## Estado actual
 
 | Parte | Estado |

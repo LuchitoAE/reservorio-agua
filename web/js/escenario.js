@@ -128,7 +128,7 @@ function height(x, z) {
 
 const concreteMat = new THREE.MeshStandardMaterial({ color: 0xb9b6ad, roughness: 0.85 });
 const concreteDarkMat = new THREE.MeshStandardMaterial({ color: 0x8f8c84, roughness: 0.9 });
-const pipeMat = new THREE.MeshStandardMaterial({ color: 0xe7ecef, roughness: 0.4 });
+const pipeMat = new THREE.MeshStandardMaterial({ color: 0x7c8389, roughness: 0.4 });  // PVC gris
 const meterMat = new THREE.MeshStandardMaterial({ color: 0x1a2129, roughness: 0.55 });
 const glassMat = new THREE.MeshPhysicalMaterial({
   color: 0xd9f2ff, roughness: 0.05, transparent: true, opacity: 0.18, depthWrite: false,
