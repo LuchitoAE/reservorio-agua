@@ -24,17 +24,18 @@ const D = {
   pipe: 0.635,
 };
 
+// Tema claro (fondo claro): bordes, medidas y líneas en tonos oscuros para que contrasten.
 const COLORS = {
-  glass: 0xcdefff,
-  edge: 0x8fe3ff,
+  glass: 0xd4ecf7,
+  edge: 0x2f6f93,
   water: 0x0e9bbd,
   waterTop: 0x6fe4ff,
   pvc: 0x7c8389,   // PVC gris (tubería de agua)
   pvcDark: 0x8d99a5,
   valve: 0xd63b3b,
   steel: 0x9aa7b4,
-  base: 0x0a1d2b,
-  dim: 0x4cc9f0,
+  base: 0xb4c0cb,
+  dim: 0x1e4e79,
 };
 
 /* ------------------------------------------------------------------ setup */
@@ -49,7 +50,7 @@ renderer.toneMappingExposure = 1.05;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
 const scene = new THREE.Scene();
-scene.fog = new THREE.Fog(0x04101b, 190, 380);
+scene.fog = new THREE.Fog(0xe6edf3, 220, 460);  // mismo tono que el fondo de la página
 
 const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 1000);
 camera.position.set(74, 54, 94);
@@ -69,7 +70,7 @@ let soloCaseta = false;
 
 /* ----------------------------------------------------------------- lights */
 
-scene.add(new THREE.HemisphereLight(0xd6f3ff, 0x081624, 1.35));
+scene.add(new THREE.HemisphereLight(0xeaf6ff, 0x9aa8b5, 1.25));
 
 const keyLight = new THREE.DirectionalLight(0xffffff, 2.6);
 keyLight.position.set(70, 105, 65);
@@ -100,7 +101,7 @@ const glassMat = new THREE.MeshPhysicalMaterial({
   metalness: 0,
   roughness: 0.05,
   transparent: true,
-  opacity: 0.11,
+  opacity: 0.16,
   side: THREE.DoubleSide,
   depthWrite: false,
   clearcoat: 1,
@@ -110,7 +111,7 @@ const glassMat = new THREE.MeshPhysicalMaterial({
 const edgeMat = new THREE.LineBasicMaterial({
   color: COLORS.edge,
   transparent: true,
-  opacity: 0.65,
+  opacity: 0.7,
 });
 
 const waterMat = new THREE.MeshPhysicalMaterial({
@@ -174,7 +175,7 @@ const baseMat = new THREE.MeshStandardMaterial({ color: COLORS.base, roughness: 
 const dimMat = new THREE.LineBasicMaterial({
   color: COLORS.dim,
   transparent: true,
-  opacity: 0.55,
+  opacity: 0.85,
 });
 
 /* ------------------------------------------------------------------ world */
@@ -189,17 +190,17 @@ world.add(base);
 
 const ground = new THREE.Mesh(
   new THREE.PlaneGeometry(400, 400),
-  new THREE.MeshStandardMaterial({ color: 0x030b13, roughness: 1 }),
+  new THREE.MeshStandardMaterial({ color: 0xdfe7ee, roughness: 1 }),
 );
 ground.rotation.x = -Math.PI / 2;
 ground.position.y = -1.02;
 ground.receiveShadow = true;
 world.add(ground);
 
-const grid = new THREE.GridHelper(180, 36, 0x1c4a62, 0x0c2737);
+const grid = new THREE.GridHelper(180, 36, 0xa9b9c7, 0xc8d4de);
 grid.position.y = -1.0;
 grid.material.transparent = true;
-grid.material.opacity = 0.35;
+grid.material.opacity = 0.6;
 world.add(grid);
 
 /* --------------------------------------------------------------- reservoir */
@@ -260,11 +261,11 @@ const spillPoints = [
 const spillLine = new THREE.Line(
   new THREE.BufferGeometry().setFromPoints(spillPoints),
   new THREE.LineDashedMaterial({
-    color: 0x38bdf8,
+    color: 0x0e7490,
     dashSize: 1.3,
     gapSize: 1.1,
     transparent: true,
-    opacity: 0.45,
+    opacity: 0.7,
   }),
 );
 spillLine.computeLineDistances();
@@ -296,7 +297,7 @@ const waterLine = new THREE.LineLoop(
     new THREE.Vector3(D.inL / 2, 0, D.inA / 2),
     new THREE.Vector3(-D.inL / 2, 0, D.inA / 2),
   ]),
-  new THREE.LineBasicMaterial({ color: 0xc9f6ff, transparent: true, opacity: 0.75 }),
+  new THREE.LineBasicMaterial({ color: 0x1f86ad, transparent: true, opacity: 0.8 }),
 );
 waterGroup.add(waterLine);
 
@@ -778,6 +779,7 @@ addLabel('Limpia', [9.2, 3.2, -18], 'tag--secondary', { casetaOnly: true });
 addLabel('Desfogue automático (sin válvula)', [9, 15, -23.5], 'tag--water tag--secondary', { casetaOnly: true });
 addLabel('40.0 cm', [0, -0.6, 20.4], 'tag--dim');
 addLabel('30.0 cm', [25.6, -0.6, 0], 'tag--dim');
+addLabel('40.6 cm', [26.4, D.H / 2, 18.2], 'tag--dim');  // alto del tanque
 
 /* ------------------------------------------------------ datos en el modelo */
 // El modelo no dibuja los sensores (sus valores están en las tarjetas del tablero): solo
@@ -791,7 +793,7 @@ const OVERFLOW_CM = 31;  // rebose físico
 const tankFx = new THREE.Group();
 world.add(tankFx);
 
-const FLOW_PERIOD = 2.4; // cm entre franjas
+const FLOW_PERIOD = 4;   // cm entre franjas
 
 function stripeTexture() {
   const c = document.createElement('canvas');
@@ -799,9 +801,9 @@ function stripeTexture() {
   c.height = 4;
   const g = c.getContext('2d');
   const grad = g.createLinearGradient(0, 0, 64, 0);
+  // Brillo suave (sin bordes duros): se ve como agua que avanza, no como un tubo de color.
   grad.addColorStop(0, 'rgba(255,255,255,0)');
-  grad.addColorStop(0.6, 'rgba(255,255,255,0.95)');
-  grad.addColorStop(0.75, 'rgba(255,255,255,0.95)');
+  grad.addColorStop(0.5, 'rgba(255,255,255,0.6)');
   grad.addColorStop(1, 'rgba(255,255,255,0)');
   g.fillStyle = grad;
   g.fillRect(0, 0, 64, 4);
@@ -829,7 +831,7 @@ function flowPath(points, bends = []) {
   return path;
 }
 
-function flowLine(path, color, radius = PR * 1.16) {
+function flowLine(path, color, radius = PR * 1.05) {  // pegado al tubo
   const length = path.getLength();
   const tex = stripeTexture();
   tex.repeat.set(length / FLOW_PERIOD, 1);
@@ -841,12 +843,12 @@ function flowLine(path, color, radius = PR * 1.16) {
   return { mesh, mat, tex, speed: 6 };
 }
 
-function stepFlow(f, lpm, dt, maxOpacity = 0.92) {
+function stepFlow(f, lpm, dt, maxOpacity = 0.45) {
   const active = lpm > 0.02;
   f.mat.opacity += ((active ? maxOpacity : 0) - f.mat.opacity) * Math.min(1, dt * 4);
   f.mesh.visible = f.mat.opacity > 0.02;
-  // 1 L/min en PVC de 1/2" son ~8 cm/s; se limita para que se vea bien.
-  if (active) f.speed = THREE.MathUtils.clamp(lpm * 8.3, 4, 60);
+  // Movimiento lento y tranquilo: más caudal = un poco más rápido (entre 1.5 y 8 cm/s).
+  if (active) f.speed = THREE.MathUtils.clamp(lpm * 1.2, 1.5, 8);
   f.tex.offset.x -= (f.speed / FLOW_PERIOD) * dt;
 }
 
@@ -879,7 +881,7 @@ splash.renderOrder = 5;
 tankFx.add(splash);
 
 // Color del agua: de celeste (100 % de claridad) a marrón (0 %).
-const WATER_CLEAR = { body: new THREE.Color(0x07566e), top: new THREE.Color(0x5fd8f5), glow: new THREE.Color(0x0a4b60) };
+const WATER_CLEAR = { body: new THREE.Color(0x0d7fa6), top: new THREE.Color(0x6fd6f2), glow: new THREE.Color(0x0b5f7d) };
 const WATER_TURBID = { body: new THREE.Color(0x5b4426), top: new THREE.Color(0xa07f52), glow: new THREE.Color(0x2a1d0c) };
 let turbidMix = 0;
 
@@ -912,13 +914,13 @@ function updateTwin(dt) {
 
   stepFlow(flowIn, lpmIn, dt);
   stepFlow(flowOut, lpmOut, dt);
-  stepFlow(flowOverflow, t && currentLevel >= OVERFLOW_CM ? 3 : 0, dt, 0.8);
+  stepFlow(flowOverflow, t && currentLevel >= OVERFLOW_CM ? 3 : 0, dt, 0.4);
 
   // Chorro: largo hasta el agua y franjas a la misma escala.
   const drop = Math.max(0.3, 35 - surfaceY);
   jet.scale.y = drop;
   jetTex.repeat.set(drop / FLOW_PERIOD, 1);
-  stepFlow(jetFlow, lpmIn > 0.02 ? Math.max(lpmIn, 3) : 0, dt, 0.7);
+  stepFlow(jetFlow, lpmIn > 0.02 ? Math.max(lpmIn, 3) : 0, dt, 0.55);
   splash.position.set(3, surfaceY + 0.08, -12);
   const s = 1 + ((clock.elapsedTime * 1.4) % 1) * 1.8;
   splash.scale.set(s, s, 1);

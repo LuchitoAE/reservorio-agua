@@ -1,0 +1,147 @@
+/* Tema claro compartido por el tablero (index) y el caso real (escenario):
+   colores, cabecera, interruptor "Maqueta 3D | Caso real", chips y etiquetas 3D.
+   Se carga después de styles-modelo.css. */
+
+body.claro {
+  --text: #0f2537;
+  --muted: #4b6175;
+  --muted-2: #93a6b7;
+  --line: rgba(15, 37, 55, 0.12);
+  --line-strong: rgba(15, 37, 55, 0.24);
+  --accent: #0369a1;
+  --panel: rgba(255, 255, 255, 0.9);
+  color: var(--text);
+}
+
+html:has(body.claro),
+body.claro {
+  background:
+    radial-gradient(1100px 760px at 30% 0%, #ffffff, rgba(255, 255, 255, 0) 62%),
+    linear-gradient(165deg, #f1f6fa 0%, #e6edf3 60%, #dce5ec 100%);
+}
+
+body.claro::before {
+  background-image:
+    linear-gradient(rgba(15, 37, 55, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 37, 55, 0.035) 1px, transparent 1px);
+}
+
+.claro #loading { background: #eef3f7; color: var(--muted); }
+
+/* ------------------------------------------------------------- cabecera */
+.t-top {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 14px clamp(14px, 2vw, 28px);
+  background: linear-gradient(180deg, rgba(241, 246, 250, 0.96), rgba(241, 246, 250, 0));
+  pointer-events: none;
+}
+.t-top > * { pointer-events: auto; }
+.t-brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.t-mark {
+  width: 38px;
+  height: 38px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  border: 1px solid rgba(3, 105, 161, 0.25);
+  background: rgba(3, 105, 161, 0.1);
+  color: #0369a1;
+}
+.t-mark svg { width: 22px; height: 22px; }
+.t-brand h1 { margin: 0; font-size: 1.08rem; font-weight: 700; letter-spacing: -0.01em; color: var(--text); }
+.t-brand p { margin: 2px 0 0; font-size: 0.74rem; color: var(--muted); }
+.t-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 8px; }
+.t-actions [hidden] { display: none; }
+
+/* ------------------------------ interruptor: Maqueta 3D | Caso real */
+.modo-switch {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 10px 26px -16px rgba(15, 37, 55, 0.55);
+}
+.modo-switch a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.2s, color 0.2s;
+}
+.modo-switch a svg { width: 18px; height: 18px; }
+.modo-switch a:not(.is-active):hover { background: rgba(3, 105, 161, 0.1); color: #0369a1; }
+.modo-switch a.is-active {
+  background: #0369a1;
+  color: #ffffff;
+  box-shadow: 0 6px 14px -6px rgba(3, 105, 161, 0.7);
+}
+
+/* ---------------------------------------------------------------- chips */
+.claro .chip {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: var(--line-strong);
+  color: var(--muted);
+}
+.claro .chip--case { color: var(--text); font-weight: 600; text-decoration: none; }
+.claro .chip--case::before { display: none; }
+.claro .chip--case:hover { background: #ffffff; border-color: rgba(3, 105, 161, 0.45); }
+.claro .chip.is-esp32 { border-color: rgba(4, 120, 87, 0.45); color: #047857; font-weight: 600; }
+.claro .chip.is-esp32::before { background: #10b981; }
+.claro .chip.is-demo { border-color: rgba(180, 83, 9, 0.45); color: #92400e; font-weight: 600; }
+.claro .chip.is-demo::before { background: #f59e0b; }
+.chip--quiet { color: var(--muted); }
+.chip--quiet::before { display: none; }
+
+/* --------------------------------------- etiquetas 3D: fondo claro, letras oscuras */
+.claro .tag {
+  border-color: rgba(15, 37, 55, 0.18);
+  background: rgba(255, 255, 255, 0.93);
+  color: #0f2537;
+  font-weight: 600;
+  box-shadow: 0 6px 16px -10px rgba(15, 37, 55, 0.55);
+  transition: opacity 0.2s, background 0.25s, color 0.25s;
+}
+.claro .tag small { display: block; font-weight: 500; color: var(--muted); font-size: 9.5px; }
+.claro .tag--dim { border-color: rgba(30, 78, 121, 0.4); background: rgba(255, 255, 255, 0.88); color: #12406a; font-weight: 700; }
+.claro .tag--valve { border-color: rgba(214, 59, 59, 0.5); color: #9b1c1c; }
+.claro .tag--water { border-color: rgba(14, 116, 144, 0.45); color: #075985; }
+.claro .tag--flow { border-color: rgba(109, 40, 217, 0.4); color: #5b21b6; }
+.claro .tag--step { border-color: rgba(3, 105, 161, 0.35); color: #0f2537; }
+.claro .tag.is-active {
+  z-index: 2;
+  border-color: #0369a1;
+  background: #0369a1;
+  color: #ffffff;
+  box-shadow: 0 10px 24px -10px rgba(3, 105, 161, 0.8);
+}
+.claro .tag.is-active small { color: #d6ecfa; }
+
+@media (max-width: 860px) {
+  .t-top { grid-template-columns: 1fr auto; row-gap: 8px; padding: 10px 12px; }
+  .t-top .modo-switch { grid-column: 1 / -1; grid-row: 2; justify-self: stretch; }
+  .modo-switch a { flex: 1; justify-content: center; padding: 8px 10px; font-size: 0.8rem; }
+  .t-brand p { display: none; }
+  .t-mark { display: none; }
+  .t-brand h1 { font-size: 0.95rem; line-height: 1.2; }
+  .t-actions { gap: 6px; }
+  .t-actions .chip { font-size: 0.68rem; }
+  .claro #mode-badge, .claro .chip--case { display: inline-flex; }
+  .claro .tag--dim, .claro .tag--secondary { display: none; }
+}

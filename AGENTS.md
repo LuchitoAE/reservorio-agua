@@ -43,6 +43,19 @@ Repositorio público: <https://github.com/LuchitoAE/reservorio-agua>
   tarjetas). Quedan el flujo animado, el chorro, el rebose y el color del agua. Las tuberías
   vuelven a terminar en la pared de la caseta (z = −35). El "Caso real" conserva sus
   caudalímetros ilustrativos.
+- **Tablero con tema claro (26/11/2026, pedido del usuario):** fondo y piso claros, tarjetas
+  blancas con letras oscuras, etiquetas 3D blancas con texto oscuro, medidas y bordes del vidrio
+  en azul oscuro, agua azul (`styles-tablero.css`, colores en `model3d.js`). Se agregó la
+  medida del alto del tanque (40.6 cm).
+- **Interruptor "Maqueta 3D | Caso real"** al centro de la cabecera de ambas páginas
+  (`styles-claro.css`: tema claro compartido, cabecera, chips y etiquetas 3D).
+- **Flujo de agua sutil y lento** (tablero y caso real): brillo suave pegado al tubo, opacidad
+  ~0.45 y 1.5–12 cm/s, en lugar del "tubo de color" rápido.
+- **Tarjetas más grandes** (`--cardw` 262–330 px, números ~2.6 rem, gráfica 54 px).
+- **Caso real mejorado:** tema claro, cabecera sólida, noche azulada (no a oscuras), datos en
+  cuadritos (reservorio %, m³ reales, llega/sale, balance) y **recorrido guiado de 6 pasos**
+  (general, manantial, conducción, reservorio, caseta, pueblo) que mueve la cámara, resalta la
+  etiqueta y muestra el dato en vivo; flechas del teclado y `escenario#paso`.
 
 ## Estado actual
 
