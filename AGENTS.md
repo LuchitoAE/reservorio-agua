@@ -43,6 +43,10 @@ Repositorio público: <https://github.com/LuchitoAE/reservorio-agua>
   tarjetas). Quedan el flujo animado, el chorro, el rebose y el color del agua. Las tuberías
   vuelven a terminar en la pared de la caseta (z = −35). El "Caso real" conserva sus
   caudalímetros ilustrativos.
+- **Tablero con tema claro (26/11/2026, pedido del usuario):** fondo y piso claros, tarjetas
+  blancas con letras oscuras, etiquetas 3D blancas con texto oscuro, medidas y bordes del vidrio
+  en azul oscuro, agua azul (`styles-tablero.css`, colores en `model3d.js`). Se agregó la
+  medida del alto del tanque (40.6 cm). El caso real y mantenimiento siguen con su estilo.
 
 ## Estado actual
 
