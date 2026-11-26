@@ -7,6 +7,9 @@ temperatura, pH y claridad (turbidez). Muestra los datos en una **pantalla LCD**
 
 - **Página publicada:** <https://reservorio-agua-web.vercel.app/>
 - **En el WiFi de la maqueta:** <http://192.168.2.200> (datos en vivo y mantenimiento)
+- **En otra red WiFi:** la dirección que muestra la pantalla LCD al conectarse. Si la maqueta no
+  conoce la red, abre la red «Reservorio-Setup» (clave `reservorio`) para elegir el WiFi desde el
+  celular (`http://192.168.4.1/wifi`). Guarda hasta 3 redes además de la de la casa.
 
 ## Documentos
 
@@ -40,6 +43,7 @@ Alimentación: 5 V por el USB-C (laptop, PC o cargador de 5 V y 2 A). No usar pi
 | `/` (Tablero) | Maqueta 3D con 6 tarjetas de datos; balde de entrada, balde de salida y sumidero. |
 | `/escenario` (Caso real) | Sistema de agua rural por gravedad: manantial → reservorio → pueblo, con recorrido guiado. |
 | `/mantenimiento` | Calibración y valores técnicos. Solo desde el WiFi de la maqueta. |
+| `/wifi` | Elegir la red WiFi de la maqueta (se abre sola al conectarse a «Reservorio-Setup»). |
 
 Sin conexión con la maqueta, la web muestra una **simulación** de un día típico, siempre
 marcada como tal. En la página publicada, el botón «Conectar con la maqueta (mismo WiFi)» lee

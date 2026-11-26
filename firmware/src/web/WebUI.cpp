@@ -2,8 +2,10 @@
 
 #include <ArduinoJson.h>
 #include <LittleFS.h>
+#include <WiFi.h>
 
 #include "ConfigStore.h"
+#include "Redes.h"
 #include "Telemetry.h"
 #include "config.h"
 #include "sensors/Sensors.h"
@@ -93,6 +95,22 @@ void WebUI::registerRoutes() {
   server_.on("/api/reset", HTTP_POST, [this]() { handleReset(); });
   server_.on("/api/calibrate", HTTP_POST, [this]() { handleCalibrate(); });
   server_.on("/api/reboot", HTTP_POST, [this]() { handleReboot(); });
+  server_.on("/api/wifi", HTTP_GET, [this]() { handleWifiStatus(); });
+  server_.on("/api/wifi", HTTP_POST, [this]() { handleWifiSave(); });
+  server_.on("/api/wifi/olvidar", HTTP_POST, [this]() { handleWifiForget(); });
+
+  // Portal: los celulares y laptops piden estas direcciones al conectarse a una red;
+  // con la red "Reservorio-Setup" se los lleva a la página para elegir el WiFi.
+  for (const char* ruta : {"/generate_204", "/gen_204", "/hotspot-detect.html", "/library/test/success.html",
+                           "/connecttest.txt", "/ncsi.txt", "/redirect", "/fwlink"}) {
+    server_.on(ruta, HTTP_GET, [this]() {
+      if (redes::apActivo()) {
+        redirectToPortal();
+      } else {
+        server_.send(204);
+      }
+    });
+  }
 
   server_.onNotFound([this]() { handleNotFound(); });
 }
@@ -234,6 +252,43 @@ void WebUI::handleReboot() {
   rebootAtMs_ = millis() + 800;
 }
 
+void WebUI::redirectToPortal() {
+  server_.sendHeader("Location", "http://" + WiFi.softAPIP().toString() + "/wifi", true);
+  server_.send(302, "text/plain", "");
+}
+
+void WebUI::handleWifiStatus() {
+  JsonDocument doc;
+  redes::estado(doc);
+  String out;
+  serializeJson(doc, out);
+  addCorsHeaders();
+  server_.send(200, "application/json", out);
+}
+
+void WebUI::handleWifiSave() {
+  JsonDocument doc;
+  if (deserializeJson(doc, server_.arg("plain"))) {
+    addCorsHeaders();
+    server_.send(400, "application/json", "{\"error\":\"json invalido\"}");
+    return;
+  }
+  const String ssid = doc["ssid"] | "";
+  const String pass = doc["pass"] | "";
+  const bool ok = redes::guardar(ssid, pass);
+  addCorsHeaders();
+  server_.send(ok ? 200 : 422, "application/json",
+               ok ? "{\"ok\":true}" : "{\"ok\":false,\"error\":\"nombre o clave invalidos (la clave tiene de 8 a 63 caracteres)\"}");
+}
+
+void WebUI::handleWifiForget() {
+  JsonDocument doc;
+  deserializeJson(doc, server_.arg("plain"));
+  const bool ok = redes::olvidar(doc["ssid"] | "");
+  addCorsHeaders();
+  server_.send(ok ? 200 : 404, "application/json", ok ? "{\"ok\":true}" : "{\"ok\":false}");
+}
+
 void WebUI::handleOptions() {
   addCorsHeaders();
   server_.send(204);
@@ -246,6 +301,15 @@ void WebUI::handleNotFound() {
   }
 
   const String path = server_.uri();
+  // Portal: con la red de configuración, cualquier sitio que se pida lleva a /wifi.
+  if (redes::apActivo()) {
+    const String host = server_.hostHeader();
+    const String apIp = WiFi.softAPIP().toString();
+    if (!host.isEmpty() && host != apIp && host != WiFi.localIP().toString() && !host.endsWith(".local")) {
+      redirectToPortal();
+      return;
+    }
+  }
   if (path.startsWith("/api/")) {
     addCorsHeaders();
     server_.send(404, "application/json", "{\"error\":\"ruta no encontrada\"}");

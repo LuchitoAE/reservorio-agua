@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#061320" />
+  <title>Configurar WiFi · Reservorio de Agua</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%2338bdf8' d='M16 3C10 11 7 15 7 19a9 9 0 0 0 18 0c0-4-3-8-9-16z'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="./styles.css" />
+  <style>
+    .wifi-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+    .wifi-list button {
+      width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px;
+      border: 1px solid var(--line); background: rgba(255, 255, 255, 0.04); color: var(--text);
+      font: inherit; font-size: 0.92rem; text-align: left; cursor: pointer;
+    }
+    .wifi-list button:hover, .wifi-list button.is-selected { border-color: rgba(56, 189, 248, 0.6); background: rgba(56, 189, 248, 0.1); }
+    .wifi-list .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .wifi-list .meta { font-size: 0.75rem; color: var(--muted); }
+    .bars { display: inline-flex; align-items: flex-end; gap: 2px; height: 14px; }
+    .bars i { width: 4px; border-radius: 1px; background: rgba(255, 255, 255, 0.18); }
+    .bars i:nth-child(1) { height: 5px; } .bars i:nth-child(2) { height: 9px; } .bars i:nth-child(3) { height: 14px; }
+    .bars i.on { background: #38bdf8; }
+    .estado { font-size: 1rem; line-height: 1.5; margin: 0; }
+    .estado b { color: var(--text); }
+    .estado a { color: #7dd3fc; }
+    .aviso { margin: 12px 0 0; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(251, 191, 36, 0.4); background: rgba(251, 191, 36, 0.08); color: #ffe6a3; font-size: 0.85rem; line-height: 1.5; }
+    .aviso[hidden], form[hidden] { display: none; }
+    form.panel-block label { margin-top: 6px; }
+    .saved { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+    .saved li { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 0.9rem; }
+    main { max-width: 760px; }
+  </style>
+</head>
+<body>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+          <path d="M2.5 9a14 14 0 0 1 19 0M5.5 12.5a9.5 9.5 0 0 1 13 0M8.5 16a5 5 0 0 1 7 0" stroke-linecap="round" />
+          <circle cx="12" cy="19.3" r="1.2" fill="currentColor" />
+        </svg>
+      </span>
+      <div>
+        <h1>Configurar WiFi</h1>
+        <p>Conectar la maqueta a otra red</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <a class="chip chip--ghost chip--link" href="./">← Tablero</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel">
+      <p class="estado" id="estado">Consultando a la maqueta…</p>
+      <p class="aviso" id="aviso" hidden></p>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <h2>Redes cercanas</h2>
+          <p>Toca la red a la que quieres conectar la maqueta (solo redes de 2,4 GHz).</p>
+        </div>
+        <button type="button" class="btn btn--ghost" id="refrescar">Buscar de nuevo</button>
+      </div>
+      <ul class="wifi-list" id="redes"><li class="meta">Buscando redes…</li></ul>
+
+      <form class="panel-block" id="form" hidden autocomplete="off">
+        <h3 style="margin-top: 16px">Conectar</h3>
+        <label>Nombre de la red
+          <input type="text" name="ssid" maxlength="32" required />
+        </label>
+        <label>Clave
+          <input type="password" name="pass" maxlength="63" placeholder="De 8 a 63 caracteres (vacía si la red es abierta)" />
+        </label>
+        <label style="flex-direction: row; align-items: center; gap: 8px">
+          <input type="checkbox" id="ver" style="width: auto" /> Mostrar la clave
+        </label>
+        <div class="row">
+          <button type="submit" class="btn btn--primary">Guardar y conectar</button>
+          <button type="button" class="btn btn--ghost" id="cancelar">Cancelar</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h3>Redes guardadas</h3>
+      <ul class="saved" id="guardadas"></ul>
+      <p class="hint">La maqueta se conecta sola a la red guardada con mejor señal. En la red de la casa usa la
+        dirección fija 192.168.2.200; en otras redes, la que le dé esa red: <b>la pantalla LCD la muestra</b> al
+        conectarse.</p>
+      <p class="hint"><b>Hotspot del celular:</b> usa el nombre y la clave de tu «Zona WiFi» y elige la banda de
+        2,4 GHz (en iPhone: «Maximizar compatibilidad»).</p>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="./js/wifi.js"></script>
+</body>
+</html>

@@ -6,7 +6,7 @@
  * (siempre marcada). Las herramientas técnicas están en mantenimiento.html.
  */
 
-import { cloudHost, directEnabled, directTelemetry, setDirect } from './api.js';
+import { cloudHost, directEnabled, directTelemetry, esp32Base, setDirect, setEsp32Ip } from './api.js';
 import { Sparkline } from './charts.js';
 import { iniciarDatos } from './datos.js';
 import { FLOW_KEYS, SENSOR_KEYS, lecturas } from './lecturas.js';
@@ -194,12 +194,31 @@ $('#direct-btn').addEventListener('click', async () => {
     return;
   }
   toast('Conectando con la maqueta… si el navegador lo pide, pulsa "Permitir"');
-  try {
+  const conectar = async () => {
     await directTelemetry(8000);  // aquí aparece el aviso de permiso del navegador
     setDirect(true);
     toast('Conectado con la maqueta: datos reales', 'ok');
     datos.refresh();
+  };
+  try {
+    await conectar();
   } catch {
+    // En otra red la maqueta tiene otra dirección: la muestra su pantalla LCD al conectarse.
+    const host = esp32Base().replace(/^https?:\/\//, '');
+    const ip = window.prompt(
+      `No se encontró la maqueta en ${host}.\n`
+      + 'Escribe la dirección que muestra su pantalla LCD (por ejemplo 192.168.43.57):',
+      '',
+    );
+    if (ip && /^\d{1,3}(\.\d{1,3}){3}$/.test(ip.trim())) {
+      setEsp32Ip(ip.trim());
+      try {
+        await conectar();
+        return;
+      } catch {
+        // sigue al aviso
+      }
+    }
     toast('No se pudo. Conéctate al mismo WiFi de la maqueta, usa Chrome o Edge y pulsa "Permitir".', 'bad');
   }
 });

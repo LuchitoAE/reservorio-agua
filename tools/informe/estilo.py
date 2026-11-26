@@ -103,8 +103,15 @@ def texto(doc_o_celda, contenido, tam=None, color=None, centrado=False, cursiva=
 
 
 def vinetas(doc, items, numerada=False):
-    for item in items:
-        texto(doc, item, estilo='List Number' if numerada else 'List Bullet')
+    # Las listas numeradas llevan el número escrito: así cada lista empieza en 1 (el estilo
+    # 'List Number' de Word continúa la numeración de la lista anterior).
+    for i, item in enumerate(items, 1):
+        if numerada:
+            par = texto(doc, f'**{i}.** {item}', despues=3)
+            par.paragraph_format.left_indent = Cm(0.75)
+            par.paragraph_format.first_line_indent = Cm(-0.5)
+        else:
+            texto(doc, item, estilo='List Bullet')
 
 
 def titulo(doc, contenido, nivel=1):

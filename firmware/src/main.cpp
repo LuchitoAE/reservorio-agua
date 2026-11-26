@@ -7,6 +7,7 @@
 #include "CloudSync.h"
 #include "ConfigStore.h"
 #include "Display.h"
+#include "Redes.h"
 #include "Telemetry.h"
 #include "config.h"
 #include "secrets.h"
@@ -20,59 +21,8 @@ WebUI gWeb;
 
 namespace {
 
-bool gApMode = false;
-uint32_t gLastWifiAttemptMs = 0;
+String gRedMostrada = "-";  // para avisar en la LCD cuando cambia la red o la dirección
 uint32_t gLastHeartbeatMs = 0;
-
-bool credentialsConfigured() {
-  return String(WIFI_SSID) != "TU_RED_WIFI" && strlen(WIFI_SSID) > 0;
-}
-
-void startAccessPoint() {
-  if (gApMode) return;
-  gApMode = true;
-  WiFi.mode(WIFI_AP_STA);  // AP para configurar + STA para seguir intentando
-  WiFi.softAP(cfg::AP_SSID, cfg::AP_PASS);
-  Serial.printf("[wifi] AP de respaldo: %s (http://%s)\n", cfg::AP_SSID,
-                WiFi.softAPIP().toString().c_str());
-}
-
-// IP fija opcional (WIFI_STATIC_IP en secrets.h). Sin ella, el router asigna la IP.
-void configureStaticIp() {
-#ifdef WIFI_STATIC_IP
-  IPAddress ip, gateway, subnet, dns;
-  if (!ip.fromString(WIFI_STATIC_IP) || !gateway.fromString(WIFI_GATEWAY) ||
-      !subnet.fromString(WIFI_SUBNET)) {
-    Serial.println("[wifi] IP fija mal escrita en secrets.h -> se usa DHCP");
-    return;
-  }
-#ifdef WIFI_DNS
-  if (!dns.fromString(WIFI_DNS)) dns = gateway;
-#else
-  dns = gateway;
-#endif
-  if (WiFi.config(ip, gateway, subnet, dns)) {
-    Serial.printf("[wifi] IP fija %s\n", WIFI_STATIC_IP);
-  } else {
-    Serial.println("[wifi] no se pudo fijar la IP -> se usa DHCP");
-  }
-#endif
-}
-
-void beginStation() {
-  if (!credentialsConfigured()) {
-    Serial.println("[wifi] sin credenciales en secrets.h -> modo AP");
-    startAccessPoint();
-    return;
-  }
-
-  WiFi.mode(gApMode ? WIFI_AP_STA : WIFI_STA);
-  WiFi.setAutoReconnect(true);
-  WiFi.setSleep(false);
-  configureStaticIp();
-  WiFi.begin(WIFI_SSID, WIFI_PASS);
-  gLastWifiAttemptMs = millis();
-}
 
 void startMdns() {
   if (!MDNS.begin(cfg::MDNS_HOST)) {
@@ -115,41 +65,17 @@ void startOta() {
 #endif
 }
 
-void connectWifiAtBoot() {
-  if (!credentialsConfigured()) {
-    startAccessPoint();
-    return;
+// Muestra en la LCD la red y la dirección al conectarse (o cómo configurar el WiFi).
+void avisarRed() {
+  const bool ok = WiFi.status() == WL_CONNECTED;
+  const String clave = ok ? WiFi.SSID() + " " + WiFi.localIP().toString() : (redes::apActivo() ? "ap" : "");
+  if (clave == gRedMostrada) return;
+  gRedMostrada = clave;
+  if (ok) {
+    gDisplay.mensaje("WiFi " + WiFi.SSID(), WiFi.localIP().toString(), 10000);
+  } else if (redes::apActivo()) {
+    gDisplay.mensaje(cfg::AP_SSID, "Clave reservorio", 8000);
   }
-
-  beginStation();
-  Serial.printf("[wifi] conectando a \"%s\"", WIFI_SSID);
-  const uint32_t start = millis();
-  while (WiFi.status() != WL_CONNECTED && millis() - start < cfg::WIFI_TIMEOUT_MS) {
-    delay(250);
-    Serial.print('.');
-  }
-  Serial.println();
-
-  if (WiFi.status() == WL_CONNECTED) {
-    Serial.printf("[wifi] OK  IP: %s  RSSI: %d dBm\n", WiFi.localIP().toString().c_str(),
-                  WiFi.RSSI());
-  } else {
-    Serial.println("[wifi] no conecto, levantando AP de respaldo");
-    startAccessPoint();
-  }
-}
-
-void wifiWatchdog() {
-  const uint32_t now = millis();
-  if (WiFi.status() == WL_CONNECTED) return;
-  if (now - gLastWifiAttemptMs < cfg::WIFI_RETRY_MS) return;
-
-  gLastWifiAttemptMs = now;
-  if (credentialsConfigured()) {
-    Serial.println("[wifi] reconectando...");
-    WiFi.begin(WIFI_SSID, WIFI_PASS);
-  }
-  if (!gApMode && now > cfg::WIFI_TIMEOUT_MS + cfg::WIFI_RETRY_MS) startAccessPoint();
 }
 
 void heartbeat() {
@@ -181,7 +107,7 @@ void setup() {
   gSensors.begin(&gConfig);
   gDisplay.begin();
 
-  connectWifiAtBoot();
+  redes::begin(&gConfig);
   startMdns();
   startOta();
 
@@ -200,7 +126,8 @@ void loop() {
   gDisplay.update(gSensors, gConfig);
   gWeb.loop();
   cloud::loop(gSensors, gConfig);
-  wifiWatchdog();
+  redes::loop();
+  avisarRed();
   heartbeat();
   delay(2);
 }

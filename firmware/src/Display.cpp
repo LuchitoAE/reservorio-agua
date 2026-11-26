@@ -4,12 +4,13 @@
 #include <math.h>
 
 #include "ConfigStore.h"
+#include "Redes.h"
 #include "config.h"
 #include "sensors/Sensors.h"
 
 namespace {
 constexpr uint32_t kPageMs = 4000;  // 4 s por página: tiempo de lectura cómodo para el público
-constexpr uint8_t kPageCount = 4;   // nivel, calidad, claridad, caudal
+constexpr uint8_t kPageCount = 6;   // nivel, calidad, claridad, caudal + 2 de WiFi (solo sin red)
 constexpr uint32_t kRetryMs = 5000; // sin pantalla: la vuelve a buscar cada 5 s
 
 String pad(const String& text) {
@@ -118,8 +119,27 @@ void Display::printLine(uint8_t row, const String& text) {
   lcd_->print(pad(text));
 }
 
+void Display::mensaje(const String& linea1, const String& linea2, uint32_t ms) {
+  mensaje_[0] = linea1;
+  mensaje_[1] = linea2;
+  mensajeHasta_ = millis() + ms;
+  mensajePendiente_ = true;
+}
+
 void Display::update(const Sensors& sensors, const ConfigStore& config) {
   const uint32_t now = millis();
+  if (ready_ && mensajeHasta_ != 0) {
+    if (static_cast<int32_t>(mensajeHasta_ - now) > 0) {
+      if (mensajePendiente_) {
+        printLine(0, mensaje_[0]);
+        printLine(1, mensaje_[1]);
+        mensajePendiente_ = false;
+      }
+      return;
+    }
+    mensajeHasta_ = 0;
+    lastChangeMs_ = now - kPageMs;  // al terminar, sigue con las páginas de inmediato
+  }
   if (!ready_) {
     // Se puede conectar la pantalla con el ESP32 encendido.
     if (now - lastProbeMs_ >= kRetryMs) connect(false);
@@ -182,6 +202,17 @@ bool Display::renderPage(uint8_t page, const Sensors& sensors, const ConfigStore
       printLine(1, center(clarityLabel(clarity)));
       return true;
     }
+    case 4:  // Sin WiFi: cómo configurarlo desde el celular
+      if (!redes::apActivo() || redes::conectado()) return false;
+      printLine(0, cfg::AP_SSID);
+      printLine(1, "Clave reservorio");
+      return true;
+    case 5:
+      if (!redes::apActivo() || redes::conectado()) return false;
+      printLine(0, "Abre en celular:");
+      printLine(1, "192.168.4.1/wifi");
+      return true;
+    case 3:
     default: {  // Caudal de entrada y de salida
       printLine(0, twoCols("Entra", num(sensors.flowIn().litersPerMinute(), 1) + " L/min"));
       printLine(1, twoCols("Sale", num(sensors.flowOut().litersPerMinute(), 1) + " L/min"));
