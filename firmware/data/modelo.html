@@ -2,95 +2,11 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#04101b" />
-  <title>Modelo 3D · Reservorio</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%2338bdf8' d='M16 3C10 11 7 15 7 19a9 9 0 0 0 18 0c0-4-3-8-9-16z'/%3E%3C/svg%3E" />
-  <link rel="stylesheet" href="./styles-modelo.css" />
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "./vendor/three.module.min.js",
-        "three/addons/": "./vendor/addons/"
-      }
-    }
-  </script>
+  <title>Reservorio de Agua</title>
+  <meta http-equiv="refresh" content="0; url=./index.html" />
+  <script>location.replace('./index.html' + location.hash);</script>
 </head>
 <body>
-  <canvas id="scene"></canvas>
-  <div id="labels" aria-hidden="true"></div>
-
-  <header class="m-top">
-    <a class="back" href="./index.html">
-      <span aria-hidden="true">←</span> Dashboard
-    </a>
-    <div class="m-title">
-      <h1>Gemelo digital del reservorio</h1>
-      <p>Vidrio 6 mm · 40 × 30 × 40.6 cm · caseta 22 × 20 × 26 cm</p>
-    </div>
-    <a class="chip chip--case" href="./escenario.html">Caso real</a>
-    <span id="mode-badge" class="chip">demo</span>
-  </header>
-
-  <aside class="panel" aria-label="Controles del modelo">
-    <p class="sim-note" id="sim-note" hidden><b>SIMULACIÓN</b> El ESP32 no está conectado: datos
-      de un día típico, no reales. Hora simulada <span id="sim-clock">--</span>.</p>
-    <p class="eyebrow">Nivel de agua</p>
-    <p class="level"><span id="level-pct">--</span><small>%</small></p>
-    <p class="liters"><span id="level-cm">--</span> cm · <span id="level-l">--</span> L</p>
-    <p class="state" id="level-state">--</p>
-    <div class="bar"><span id="level-bar"></span></div>
-
-    <p class="eyebrow">Sensores en vivo</p>
-    <ul class="live">
-      <li data-live="temperature"><i></i><span>Temperatura</span><b>--</b></li>
-      <li data-live="ph"><i></i><span>pH</span><b>--</b></li>
-      <li data-live="turbidity"><i></i><span>Claridad</span><b>--</b></li>
-      <li data-live="flowIn"><i></i><span>Entrada</span><b>--</b></li>
-      <li data-live="flowOut"><i></i><span>Salida</span><b>--</b></li>
-      <li data-live="net"><i></i><span>Neto</span><b>--</b></li>
-    </ul>
-
-    <label class="field">Fuente de datos
-      <select id="source">
-        <option value="auto">Auto (ESP32 o simulación)</option>
-        <option value="esp32">Solo ESP32</option>
-        <option value="demo">Manual (nivel de prueba)</option>
-      </select>
-    </label>
-
-    <label class="field">Nivel de prueba
-      <input id="level-slider" type="range" min="0" max="100" step="1" value="72" />
-    </label>
-
-    <div class="btn-row">
-      <button type="button" data-view="iso">Isométrica</button>
-      <button type="button" data-view="front">Frontal</button>
-      <button type="button" data-view="top">Superior</button>
-    </div>
-    <div class="btn-row">
-      <button type="button" id="toggle-caseta">Ocultar caseta</button>
-      <button type="button" id="toggle-medidas">Ocultar medidas</button>
-    </div>
-    <div class="btn-row">
-      <button type="button" id="toggle-aislar">Aislar caseta</button>
-    </div>
-
-    <p class="hint">Arrastrá para girar · rueda para acercar · doble clic para reiniciar</p>
-  </aside>
-
-  <div class="legend">
-    <span><i class="dot dot--glass"></i>Vidrio</span>
-    <span><i class="dot dot--water"></i>Agua</span>
-    <span><i class="dot dot--pvc"></i>PVC Ø 1/2"</span>
-    <span><i class="dot dot--valve"></i>Válvulas</span>
-    <span><i class="dot dot--sensor"></i>Sensores</span>
-    <span><i class="dot dot--flow"></i>Flujo en vivo</span>
-  </div>
-
-  <div id="loading">Cargando modelo…</div>
-  <noscript><p class="noscript">Este modelo necesita JavaScript y WebGL.</p></noscript>
-
-  <script type="module" src="./js/model3d.js"></script>
+  <p>El modelo 3D ahora está en el <a href="./index.html">tablero</a>.</p>
 </body>
 </html>

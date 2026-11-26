@@ -7,9 +7,12 @@ namespace {
 constexpr float kFormulaMinV = 2.5f;   // límite inferior de la curva del fabricante
 constexpr float kMaxNtu = 3000.0f;
 
-// Voltaje de la salida A del módulo (antes del divisor).
+// Voltaje de la salida A del módulo (antes del divisor). Promedia 16 lecturas del ADC:
+// una sola salta en escalones de ~0.03 V, que en este sensor son ~10 % de claridad.
 float readVolts() {
-  return analogReadMilliVolts(PIN_TURB_ADC) / 1000.0f * cfg::TURBIDITY_DIVIDER;
+  uint32_t sum = 0;
+  for (uint8_t i = 0; i < 16; i++) sum += analogReadMilliVolts(PIN_TURB_ADC);
+  return sum / 16.0f / 1000.0f * cfg::TURBIDITY_DIVIDER;
 }
 
 float averageVolts(uint8_t samples) {
@@ -52,8 +55,13 @@ float TurbiditySensor::turbidV() const {
   return config_ != nullptr ? config_->turbTurbidV() : cfg::DEFAULT_TURB_TURBID_V;
 }
 
+float TurbiditySensor::steadyVolts() {
+  if (filter_.count() >= 10) return filteredVolts();
+  return averageVolts(60);  // ~1.2 s de lecturas promediadas
+}
+
 float TurbiditySensor::ntu() const {
-  const float v = filter_.median();
+  const float v = filteredVolts();
   const float clear = clearV();
   if (isnan(v) || clear <= 0.0f) return NAN;
   const float ve = v * cfg::TURB_FORMULA_CLEAR_V / clear;
@@ -64,7 +72,7 @@ float TurbiditySensor::ntu() const {
 }
 
 float TurbiditySensor::clarityPercent() const {
-  const float v = filter_.median();
+  const float v = filteredVolts();
   const float clear = clearV();
   const float turbid = turbidV();
   if (isnan(v) || clear <= 0.0f) return NAN;
@@ -77,20 +85,19 @@ float TurbiditySensor::clarityPercent() const {
   return constrain(pct, 0.0f, 100.0f);
 }
 
+// Se calibra con el mismo valor que se muestra: así el agua de referencia da 100 % / 0 %.
 bool TurbiditySensor::calibrateClear() {
   if (config_ == nullptr) return false;
-  const float v = averageVolts(20);
-  if (v < 0.2f || v > 5.0f) return false;
+  const float v = steadyVolts();
+  if (isnan(v) || v < 0.2f || v > 5.0f) return false;
   config_->setTurbClearV(v);
-  filter_.reset();
   return true;
 }
 
 bool TurbiditySensor::calibrateTurbid() {
   if (config_ == nullptr) return false;
-  const float v = averageVolts(20);
-  if (v < 0.2f || v > 5.0f) return false;
+  const float v = steadyVolts();
+  if (isnan(v) || v < 0.2f || v > 5.0f) return false;
   config_->setTurbTurbidV(v);
-  filter_.reset();
   return true;
 }

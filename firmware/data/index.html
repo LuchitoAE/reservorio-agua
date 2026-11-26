@@ -3,18 +3,30 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#061320" />
+  <meta name="theme-color" content="#04101b" />
   <title>Reservorio de Agua · Monitoreo</title>
-  <meta name="description" content="Tablero de monitoreo del reservorio: nivel, caudal, temperatura, pH y turbidez." />
+  <meta name="description" content="Monitoreo en tiempo real de un reservorio de agua: nivel, agua que entra y sale, temperatura, pH y claridad, sobre su modelo 3D." />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%2338bdf8' d='M16 3C10 11 7 15 7 19a9 9 0 0 0 18 0c0-4-3-8-9-16z'/%3E%3C/svg%3E" />
-  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./styles-modelo.css" />
+  <link rel="stylesheet" href="./styles-tablero.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three.module.min.js",
+        "three/addons/": "./vendor/addons/"
+      }
+    }
+  </script>
 </head>
-<body>
-  <div class="bg-glow" aria-hidden="true"></div>
+<body class="tablero">
+  <div class="stage">
+    <canvas id="scene" aria-label="Modelo 3D del reservorio"></canvas>
+    <div id="labels" aria-hidden="true"></div>
+  </div>
 
-  <header class="topbar">
-    <div class="brand">
-      <span class="brand-mark" aria-hidden="true">
+  <header class="t-top">
+    <div class="t-brand">
+      <span class="t-mark" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
           <path d="M12 2.7C8 8 5.8 11 5.8 14a6.2 6.2 0 0 0 12.4 0c0-3-2.2-6-6.2-11.3Z" />
           <path d="M9.2 15.2c.3-1.5 1.2-2.5 2.1-3.4" stroke-linecap="round" />
@@ -22,302 +34,90 @@
       </span>
       <div>
         <h1>Reservorio de Agua</h1>
-        <p>Monitoreo en tiempo real · ESP32</p>
+        <p>Monitoreo en tiempo real</p>
       </div>
     </div>
-
-    <div class="topbar-actions">
-      <a class="chip chip--ghost chip--link" href="./escenario.html">Caso real</a>
-      <a class="chip chip--ghost chip--link" href="./modelo.html">Modelo 3D</a>
-      <span id="source-badge" class="chip chip--muted">conectando…</span>
-      <span id="last-update" class="chip chip--ghost">—</span>
-    </div>
+    <nav class="t-actions">
+      <a class="chip chip--case" href="./escenario.html">Caso real</a>
+      <a class="chip chip--case" id="maint-link" href="./mantenimiento.html" hidden>Mantenimiento</a>
+      <span id="mode-badge" class="chip">conectando…</span>
+      <span id="last-update" class="chip chip--quiet">—</span>
+    </nav>
   </header>
 
-  <main>
-    <div class="sim-banner" id="sim-banner" role="status" hidden>
-      <strong>SIMULACIÓN</strong>
-      <span>El ESP32 no está conectado: estos datos <b>no son reales</b>. Se muestra un día típico
-        de un reservorio rural alimentado por un manantial (1 día = 12 min). Hora simulada
-        <b id="sim-clock">--</b>. Cuando el ESP32 se conecte, verás sus datos reales.</span>
-    </div>
+  <div class="sim-float" id="sim-banner" role="status" hidden>
+    <b>SIMULACIÓN</b>
+    <span>La maqueta no está conectada: estos datos <strong>no son reales</strong>. Es un día típico de
+      un reservorio que lleva agua de un manantial a un pueblo · hora simulada
+      <strong id="sim-clock">--</strong></span>
+    <button type="button" id="direct-btn" hidden>Conectar con la maqueta (mismo WiFi)</button>
+  </div>
 
-    <section class="hero" aria-label="Resumen del nivel">
-      <div class="tank-wrap">
-        <div class="tank" role="img" aria-labelledby="tank-label">
-          <div class="tank-water" data-tank-water style="--level: 0%">
-            <span class="tank-wave"></span>
-            <span class="tank-wave tank-wave--slow"></span>
-          </div>
-          <div class="tank-glare" aria-hidden="true"></div>
-        </div>
-        <div class="tank-scale" aria-hidden="true">
-          <span>100</span><span>75</span><span>50</span><span>25</span><span>0</span>
-        </div>
-      </div>
+  <section class="cards cards--left" aria-label="Agua del tanque">
+    <article class="fcard" data-card="level" style="--accent: #38bdf8">
+      <header><i class="fcard-dot" data-state="level"></i><h2>Nivel de agua</h2></header>
+      <p class="fcard-value"><b data-field="percent">--</b><small>%</small></p>
+      <div class="fcard-bar"><span data-bar="level"></span></div>
+      <p class="fcard-sub"><span data-field="liters">--</span> litros · <span data-field="levelCm">--</span> cm de agua</p>
+      <p class="fcard-meta" data-meta="level">Sin lectura</p>
+      <canvas class="fcard-spark" data-spark="level" aria-hidden="true"></canvas>
+    </article>
 
-      <div class="hero-info">
-        <p class="eyebrow" id="tank-label">Nivel del reservorio</p>
-        <p class="hero-value">
-          <span data-field="percent">--</span><small>%</small>
-        </p>
-        <p class="hero-sub">
-          <span data-field="liters">--</span> L estimados
-          <span class="sep">·</span>
-          <span data-field="levelCm">--</span> cm
-        </p>
-        <div class="hero-pills">
-          <span class="pill"><i class="pill-dot" data-state-dot="temperature"></i>Temperatura <b data-field="temperature">--</b></span>
-          <span class="pill"><i class="pill-dot" data-state-dot="ph"></i>pH <b data-field="ph">--</b></span>
-          <span class="pill"><i class="pill-dot" data-state-dot="turbidity"></i>Turbidez <b data-field="ntu">--</b></span>
-          <span class="pill" title="Caudal de entrada menos caudal de salida">Neto <b data-field="netLpm">--</b> L/min</span>
-        </div>
-        <p class="hero-hint" id="hero-hint">Esperando la primera lectura…</p>
-      </div>
-    </section>
+    <article class="fcard" data-card="flowIn" style="--accent: #a78bfa">
+      <header><i class="fcard-dot" data-state="flowIn"></i><h2>Agua que entra</h2></header>
+      <p class="fcard-value"><b data-field="lpmIn">--</b><small>L/min</small></p>
+      <p class="fcard-sub">Total <span data-field="totalLIn">--</span> litros</p>
+      <p class="fcard-meta" data-meta="flowIn">Sin lectura</p>
+      <canvas class="fcard-spark" data-spark="flowIn" aria-hidden="true"></canvas>
+    </article>
 
-    <section class="grid" aria-label="Sensores">
-      <article class="card" data-sensor="level">
-        <header class="card-head">
-          <span class="card-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-              <path d="M3 8c2.5 0 2.5 2 5 2s2.5-2 5-2 2.5 2 5 2 2.5-2 3-2" stroke-linecap="round"/>
-              <path d="M3 14c2.5 0 2.5 2 5 2s2.5-2 5-2 2.5 2 5 2 2.5-2 3-2" stroke-linecap="round"/>
-              <path d="M3 20c2.5 0 2.5 2 5 2" stroke-linecap="round" opacity=".5"/>
-            </svg>
-          </span>
-          <div class="card-title">
-            <h2>Nivel de agua</h2>
-            <p>HC-SR04 · ultrasónico</p>
-          </div>
-          <span class="dot" data-state="level" title="estado"></span>
-        </header>
-        <div class="card-value"><span class="value" data-field="percent">--</span><span class="unit">%</span></div>
-        <p class="card-meta" data-meta="level">Sin lectura</p>
-        <canvas class="spark" data-spark="level" height="46" aria-hidden="true"></canvas>
-        <footer class="card-foot">
-          <span>Distancia <b data-field="distance">--</b> cm</span>
-          <span>Calibración <b data-field="tankHeight">--</b> cm</span>
-        </footer>
-      </article>
+    <article class="fcard" data-card="flowOut" style="--accent: #f472b6">
+      <header><i class="fcard-dot" data-state="flowOut"></i><h2>Agua que sale</h2></header>
+      <p class="fcard-value"><b data-field="lpmOut">--</b><small>L/min</small></p>
+      <p class="fcard-sub">Total <span data-field="totalLOut">--</span> litros</p>
+      <p class="fcard-meta" data-meta="flowOut">Sin lectura</p>
+      <canvas class="fcard-spark" data-spark="flowOut" aria-hidden="true"></canvas>
+    </article>
+  </section>
 
-      <article class="card" data-sensor="flowIn">
-        <header class="card-head">
-          <span class="card-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-              <path d="M3 12h12" stroke-linecap="round"/>
-              <path d="m11 8 4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M19 5v14" stroke-linecap="round"/>
-            </svg>
-          </span>
-          <div class="card-title">
-            <h2>Caudal de entrada</h2>
-            <p>ZJ-S201 · efecto Hall · D23</p>
-          </div>
-          <span class="dot" data-state="flowIn" title="estado"></span>
-        </header>
-        <div class="card-value"><span class="value" data-field="lpmIn">--</span><span class="unit">L/min</span></div>
-        <p class="card-meta" data-meta="flowIn">Sin lectura</p>
-        <canvas class="spark" data-spark="flowIn" height="46" aria-hidden="true"></canvas>
-        <footer class="card-foot">
-          <span>Acumulado <b data-field="totalLIn">--</b> L</span>
-          <span>Pulsos <b data-field="pulsesIn">--</b></span>
-        </footer>
-      </article>
+  <section class="cards cards--right" aria-label="Calidad del agua">
+    <article class="fcard" data-card="temperature" style="--accent: #fb923c">
+      <header><i class="fcard-dot" data-state="temperature"></i><h2>Temperatura</h2></header>
+      <p class="fcard-value"><b data-field="temperature">--</b><small>°C</small></p>
+      <p class="fcard-sub">Normal: 10 a 25 °C</p>
+      <p class="fcard-meta" data-meta="temperature">Sin lectura</p>
+      <canvas class="fcard-spark" data-spark="temperature" aria-hidden="true"></canvas>
+    </article>
 
-      <article class="card" data-sensor="flowOut">
-        <header class="card-head">
-          <span class="card-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-              <path d="M5 5v14" stroke-linecap="round"/>
-              <path d="M9 12h12" stroke-linecap="round"/>
-              <path d="m17 8 4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </span>
-          <div class="card-title">
-            <h2>Caudal de salida</h2>
-            <p>ZJ-S201 · efecto Hall · D26</p>
-          </div>
-          <span class="dot" data-state="flowOut" title="estado"></span>
-        </header>
-        <div class="card-value"><span class="value" data-field="lpmOut">--</span><span class="unit">L/min</span></div>
-        <p class="card-meta" data-meta="flowOut">Sin lectura</p>
-        <canvas class="spark" data-spark="flowOut" height="46" aria-hidden="true"></canvas>
-        <footer class="card-foot">
-          <span>Acumulado <b data-field="totalLOut">--</b> L</span>
-          <span>Pulsos <b data-field="pulsesOut">--</b></span>
-        </footer>
-      </article>
+    <article class="fcard" data-card="ph" style="--accent: #34d399">
+      <header><i class="fcard-dot" data-state="ph"></i><h2>pH del agua</h2></header>
+      <p class="fcard-value"><b data-field="ph">--</b><small>pH</small></p>
+      <p class="fcard-sub">Normal: 6,5 a 8,5</p>
+      <p class="fcard-meta" data-meta="ph">Sin lectura</p>
+      <canvas class="fcard-spark" data-spark="ph" aria-hidden="true"></canvas>
+    </article>
 
-      <article class="card" data-sensor="temperature">
-        <header class="card-head">
-          <span class="card-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-              <path d="M10 13.6V5a2 2 0 1 1 4 0v8.6a4.5 4.5 0 1 1-4 0Z" stroke-linejoin="round"/>
-              <path d="M12 9v6" stroke-linecap="round"/>
-            </svg>
-          </span>
-          <div class="card-title">
-            <h2>Temperatura</h2>
-            <p>DS18B20 · 1-Wire</p>
-          </div>
-          <span class="dot" data-state="temperature" title="estado"></span>
-        </header>
-        <div class="card-value"><span class="value" data-field="temperature">--</span><span class="unit">°C</span></div>
-        <p class="card-meta" data-meta="temperature">Sin lectura</p>
-        <canvas class="spark" data-spark="temperature" height="46" aria-hidden="true"></canvas>
-        <footer class="card-foot">
-          <span>Resolución <b>0.06 °C</b></span>
-          <span>Conversión <b>12 bit</b></span>
-        </footer>
-      </article>
+    <article class="fcard" data-card="turbidity" style="--accent: #fbbf24">
+      <header><i class="fcard-dot" data-state="turbidity"></i><h2>Claridad del agua</h2></header>
+      <p class="fcard-value"><b data-field="clarity">--</b><small>%</small></p>
+      <p class="fcard-sub">100 % = agua limpia</p>
+      <p class="fcard-meta" data-meta="turbidity">Sin lectura</p>
+      <canvas class="fcard-spark" data-spark="turbidity" aria-hidden="true"></canvas>
+    </article>
+  </section>
 
-      <article class="card" data-sensor="ph">
-        <header class="card-head">
-          <span class="card-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-              <path d="M10 3h4M11 3v5.5L6.8 17a4 4 0 0 0 3.6 5.8h3.2a4 4 0 0 0 3.6-5.8L13 8.5V3" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M8 14h8" stroke-linecap="round"/>
-            </svg>
-          </span>
-          <div class="card-title">
-            <h2>pH del agua</h2>
-            <p>PH-7BNC · sonda BNC</p>
-          </div>
-          <span class="dot" data-state="ph" title="estado"></span>
-        </header>
-        <div class="card-value"><span class="value" data-field="ph">--</span><span class="unit">pH</span></div>
-        <p class="card-meta" data-meta="ph">Sin lectura</p>
-        <canvas class="spark" data-spark="ph" height="46" aria-hidden="true"></canvas>
-        <footer class="card-foot">
-          <span>Voltaje <b data-field="phVoltage">--</b> V</span>
-          <span>ADC <b data-field="phRaw">--</b></span>
-        </footer>
-      </article>
+  <div class="views" role="toolbar" aria-label="Vistas del modelo">
+    <button type="button" data-view="iso">Isométrica</button>
+    <button type="button" data-view="front">Frontal</button>
+    <button type="button" data-view="top">Superior</button>
+    <button type="button" id="toggle-aislar">Ver caseta</button>
+    <button type="button" id="toggle-medidas">Ocultar medidas</button>
+  </div>
 
-      <article class="card" data-sensor="turbidity">
-        <header class="card-head">
-          <span class="card-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-              <path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6Z" stroke-linejoin="round"/>
-              <circle cx="12" cy="12" r="2.6"/>
-            </svg>
-          </span>
-          <div class="card-title">
-            <h2>Turbidez</h2>
-            <p>TS-300B · óptico</p>
-          </div>
-          <span class="dot" data-state="turbidity" title="estado"></span>
-        </header>
-        <div class="card-value"><span class="value" data-field="ntu">--</span><span class="unit">NTU</span></div>
-        <p class="card-meta" data-meta="turbidity">Sin lectura</p>
-        <canvas class="spark" data-spark="turbidity" height="46" aria-hidden="true"></canvas>
-        <footer class="card-foot">
-          <span>Claridad <b data-field="clarity">--</b> %</span>
-          <span>Voltaje <b data-field="turbVoltage">--</b> V</span>
-        </footer>
-      </article>
+  <div id="loading">Cargando…</div>
+  <div class="t-toast" id="toast" role="status" aria-live="polite"></div>
+  <noscript><p class="noscript">Esta página necesita JavaScript y WebGL.</p></noscript>
 
-      <article class="card card--system" data-sensor="system">
-        <header class="card-head">
-          <span class="card-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-              <rect x="7" y="7" width="10" height="10" rx="2"/>
-              <path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2" stroke-linecap="round"/>
-            </svg>
-          </span>
-          <div class="card-title">
-            <h2>Sistema</h2>
-            <p>ESP32 DevKit V1 · WiFi</p>
-          </div>
-          <span class="dot" data-state="system" title="estado"></span>
-        </header>
-        <div class="card-value"><span class="value" data-field="sensorsOk">--</span><span class="unit">/ 6 sensores</span></div>
-        <p class="card-meta" data-meta="system">Sin lectura</p>
-        <dl class="kv">
-          <div><dt>IP</dt><dd data-field="ip">--</dd></div>
-          <div><dt>WiFi</dt><dd data-field="rssi">--</dd></div>
-          <div><dt>Encendido</dt><dd data-field="uptime">--</dd></div>
-          <div><dt>RAM libre</dt><dd data-field="heap">--</dd></div>
-        </dl>
-      </article>
-    </section>
-
-    <section class="panel" aria-labelledby="diag-title">
-      <div class="panel-head">
-        <div>
-          <h2 id="diag-title">Diagnóstico y pruebas</h2>
-          <p>Valores crudos y calibración. Disponible solo con el ESP32 conectado.</p>
-        </div>
-        <span class="chip chip--ghost" id="diag-mode">conectando…</span>
-      </div>
-
-      <div class="panel-grid">
-        <div class="panel-block">
-          <h3>Lecturas crudas</h3>
-          <table class="raw-table">
-            <thead><tr><th>Señal</th><th>ADC</th><th>Voltaje</th></tr></thead>
-            <tbody>
-              <tr><td>pH</td><td data-raw="ph">--</td><td data-raw="phV">--</td></tr>
-              <tr><td>Turbidez</td><td data-raw="turb">--</td><td data-raw="turbV">--</td></tr>
-              <tr><td>Ultrasónico</td><td colspan="2" data-raw="distance">--</td></tr>
-              <tr><td>Caudal entrada (pulsos)</td><td colspan="2" data-raw="pulsesIn">--</td></tr>
-              <tr><td>Caudal salida (pulsos)</td><td colspan="2" data-raw="pulsesOut">--</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <form class="panel-block" id="config-form">
-          <h3>Ajustes del tanque</h3>
-          <label>Altura de calibración (sensor a fondo)
-            <input type="number" name="tankHeightCm" min="10" max="1000" step="0.5" />
-          </label>
-          <label>Nivel máximo de operación (cm)
-            <input type="number" name="maxLevelCm" min="5" max="1000" step="0.5" />
-          </label>
-          <label>Offset del sensor (cm)
-            <input type="number" name="sensorOffsetCm" min="-50" max="50" step="0.5" />
-          </label>
-          <div class="row">
-            <button type="submit" class="btn btn--primary">Guardar</button>
-            <button type="button" class="btn btn--ghost" id="reload-config">Recargar</button>
-          </div>
-        </form>
-
-        <div class="panel-block">
-          <h3>Calibración</h3>
-          <div class="btn-grid">
-            <button class="btn btn--wide" data-calibrate="level-empty" disabled>Calibrar tanque vacío</button>
-            <button class="btn" data-calibrate="ph7" disabled>Buffer pH 7</button>
-            <button class="btn" data-calibrate="ph4" disabled>Buffer pH 4</button>
-            <button class="btn" data-calibrate="turbidity-clear" disabled>Agua clara</button>
-            <button class="btn" data-calibrate="turbidity-turbid" disabled>Agua turbia</button>
-            <button class="btn btn--ghost btn--wide" data-action="reset-flow" disabled>Reiniciar acumulados de caudal</button>
-          </div>
-          <p class="hint">Tanque vacío: vacía el tanque y pulsa (mide 2 s hasta el fondo). pH y
-            turbidez: sumerge el sensor en el buffer o en el agua de referencia, espera a que la
-            lectura se estabilice (60 s) y pulsa el botón.</p>
-        </div>
-
-        <div class="panel-block panel-block--log">
-          <h3>Registro</h3>
-          <ul class="log" id="log" aria-live="polite"></ul>
-        </div>
-      </div>
-    </section>
-
-    <footer class="page-foot">
-      <p>Fase 1 · firmware ESP32 + dashboard local. Calibración y pruebas en <code>docs/</code>.</p>
-      <p>API: <a href="./api/telemetry">/api/telemetry</a></p>
-    </footer>
-  </main>
-
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
-  <noscript>
-    <p class="noscript">Este tablero necesita JavaScript para leer los sensores.</p>
-  </noscript>
-
-  <script type="module" src="./js/app.js"></script>
+  <script type="module" src="./js/tablero.js"></script>
 </body>
 </html>

@@ -10,8 +10,6 @@
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { getTelemetry, pollMs } from './api.js';
-import { createSimulator } from './simulador.js';
 
 const D = {
   L: 40,
@@ -31,7 +29,7 @@ const COLORS = {
   edge: 0x8fe3ff,
   water: 0x0e9bbd,
   waterTop: 0x6fe4ff,
-  pvc: 0xdde5ec,
+  pvc: 0x7c8389,   // PVC gris (tubería de agua)
   pvcDark: 0x8d99a5,
   valve: 0xd63b3b,
   steel: 0x9aa7b4,
@@ -155,7 +153,10 @@ const valveBodyMat = new THREE.MeshStandardMaterial({
   metalness: 0.04,
 });
 
-// Palanca roja de las llaves de paso.
+// Estrías de la manija (rojo más oscuro).
+const valveGrooveMat = new THREE.MeshStandardMaterial({ color: 0x9e2424, roughness: 0.5 });
+
+// Manija roja de las llaves de paso.
 const valveMat = new THREE.MeshStandardMaterial({
   color: COLORS.valve,
   roughness: 0.42,
@@ -535,109 +536,92 @@ function bellMouth(pos) {
   fit(rim);
 }
 
-// Llave de paso de PVC (válvula de bola): manguitos, tuercas de unión, cuerpo blanco,
-// bonete, vástago y palanca roja.
+// Llave de paso de PVC de una pieza, tipo "liso" (para pegar): cuerpo blanco con extremos
+// lisos y abultamiento central, cuello corto y manija roja de mariposa (T) con estrías.
+// handleRotY = 0: manija a lo largo del tubo (abierta); Math.PI / 2: cruzada (cerrada).
 function addValve(pos, axis, { len = 5.0, handleRotY = 0 } = {}) {
   const half = len / 2;
   const compact = len < 4.5;
-  const bodyR = compact ? 0.8 : 1.02;
-  const nutR = bodyR * (compact ? 1.24 : 1.2);
-  const nutLen = compact ? 0.42 : 0.75;
-  const socketLen = compact ? 0.42 : 0.9;
+  const endR = compact ? 0.86 : 0.95;     // extremos lisos que encajan sobre el tubo
+  const ballR = compact ? 1.12 : 1.3;     // abultamiento de la esfera interna
+  const wingLen = compact ? 1.7 : 2.1;    // del centro a la punta de cada ala
+  const wingW = compact ? 0.52 : 0.62;    // medio ancho del ala en la punta
 
   const group = new THREE.Group();
   group.position.copy(V(pos));
   group.quaternion.setFromUnitVectors(AXIS.z, axis.clone().normalize());
 
   for (const s of [-1, 1]) {
-    const socketMesh = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.8, 0.8, socketLen, 22, 1, true),
-      pvcMat,
-    );
-    socketMesh.position.z = s * (half - socketLen / 2);
-    socketMesh.rotation.x = Math.PI / 2;
-    group.add(socketMesh);
+    const sleeve = new THREE.Mesh(new THREE.CylinderGeometry(endR, endR, half, 30, 1, true), valveBodyMat);
+    sleeve.position.z = s * (half / 2);
+    sleeve.rotation.x = Math.PI / 2;
+    group.add(sleeve);
 
-    const mouth = new THREE.Mesh(new THREE.RingGeometry(0.63, 0.8, 26), pvcMat);
+    const mouth = new THREE.Mesh(new THREE.RingGeometry(PR * 1.01, endR, 30), valveBodyMat);
     mouth.position.z = s * half;
     mouth.rotation.y = s > 0 ? 0 : Math.PI;
     group.add(mouth);
 
+    const lip = new THREE.Mesh(new THREE.TorusGeometry(endR - 0.03, 0.04, 8, 30), valveBodyMat);
+    lip.position.z = s * (half - 0.02);
+    group.add(lip);
+  }
 
-    const nutZ = s * (half - socketLen - nutLen / 2);
-    const nut = new THREE.Mesh(new THREE.CylinderGeometry(nutR, nutR, nutLen, 28), pvcMat);
-    nut.position.z = nutZ;
-    nut.rotation.x = Math.PI / 2;
-    group.add(nut);
+  const ball = new THREE.Mesh(new THREE.SphereGeometry(ballR, 32, 24), valveBodyMat);
+  ball.scale.set(1, 1, 0.92);
+  group.add(ball);
 
-    for (let i = 0; i < 8; i++) {
-      const a = (i / 8) * Math.PI * 2;
-      const rib = new THREE.Mesh(
-        new THREE.BoxGeometry(0.09, 0.14, nutLen * 0.82),
-        pvcMat,
-      );
-      rib.position.set(Math.cos(a) * nutR * 0.995, Math.sin(a) * nutR * 0.995, nutZ);
-      rib.rotation.z = a;
-      group.add(rib);
+  const neckY = ballR * 0.85;
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.56, 0.7, 26), valveBodyMat);
+  neck.position.y = neckY + 0.3;
+  group.add(neck);
+
+  const handle = new THREE.Group();
+  handle.position.y = neckY + 0.68;
+  handle.rotation.y = handleRotY;
+
+  // Alas en forma de mariposa (vista desde arriba), extruidas hacia arriba.
+  const shape = new THREE.Shape();
+  shape.moveTo(0.42, -0.3);
+  shape.lineTo(wingLen, -wingW);
+  shape.lineTo(wingLen, wingW);
+  shape.lineTo(0.42, 0.3);
+  shape.lineTo(-0.42, 0.3);
+  shape.lineTo(-wingLen, wingW);
+  shape.lineTo(-wingLen, -wingW);
+  shape.lineTo(-0.42, -0.3);
+  shape.closePath();
+  const wingsGeo = new THREE.ExtrudeGeometry(shape, {
+    depth: 0.28,
+    bevelEnabled: true,
+    bevelThickness: 0.05,
+    bevelSize: 0.05,
+    bevelSegments: 2,
+  });
+  wingsGeo.rotateX(-Math.PI / 2);  // del plano XY al plano horizontal
+  wingsGeo.rotateY(Math.PI / 2);   // alas a lo largo del tubo (eje Z local)
+  handle.add(new THREE.Mesh(wingsGeo, valveMat));
+
+  for (const s of [-1, 1]) {
+    // Borde grueso en la punta de cada ala y estrías para el agarre.
+    const skirt = new THREE.Mesh(new THREE.BoxGeometry(wingW * 2, 0.5, 0.18), valveMat);
+    skirt.position.set(0, 0.06, s * (wingLen - 0.04));
+    handle.add(skirt);
+    for (let i = 0; i < 4; i++) {
+      const groove = new THREE.Mesh(new THREE.BoxGeometry(wingW * 1.6, 0.05, 0.06), valveGrooveMat);
+      groove.position.set(0, 0.36, s * (wingLen - 0.26 - i * 0.2));
+      handle.add(groove);
     }
   }
 
-  // Llave de paso clásica de PVC: cuerpo blanco (tambor + abombado) y palanca roja.
-  const body = new THREE.Mesh(new THREE.SphereGeometry(bodyR, 28, 20), valveBodyMat);
-  body.scale.set(1, 1, 0.95);
-  group.add(body);
+  const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.6, 26), valveMat);
+  hub.position.y = 0.12;
+  handle.add(hub);
+  const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.06, 26), valveGrooveMat);
+  cap.position.y = 0.44;
+  handle.add(cap);
 
-  const drum = new THREE.Mesh(
-    new THREE.CylinderGeometry(bodyR * 0.86, bodyR * 0.86, bodyR * 1.9, 28),
-    valveBodyMat,
-  );
-  drum.rotation.x = Math.PI / 2;
-  group.add(drum);
-
-  const bonnet = new THREE.Mesh(new THREE.CylinderGeometry(0.44, 0.52, 0.34, 6), valveBodyMat);
-  bonnet.position.y = bodyR * 0.94;
-  group.add(bonnet);
-
-  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 1.3, 16), valveBodyMat);
-  stem.position.y = bodyR * 0.94 + 0.76;
-  group.add(stem);
-
-  const oring = new THREE.Mesh(new THREE.TorusGeometry(0.27, 0.05, 8, 20), gasketMat);
-  oring.rotation.x = Math.PI / 2;
-  oring.position.y = bodyR * 0.94 + 0.42;
-  group.add(oring);
-
-  const thread = new THREE.Mesh(new THREE.TorusGeometry(0.23, 0.035, 8, 20), nutMat);
-  thread.rotation.x = Math.PI / 2;
-  thread.position.y = bodyR * 0.94 + 1.16;
-  group.add(thread);
-
-  const lever = new THREE.Group();
-  lever.rotation.y = handleRotY;
-  lever.position.y = bodyR * 0.94 + 1.5;
-
-  const bar = new THREE.Mesh(new THREE.BoxGeometry(4.3, 0.24, 0.82), valveMat);
-  bar.position.x = 1.15;
-  lever.add(bar);
-
-  const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.41, 0.41, 0.82, 20), valveMat);
-  tip.rotation.x = Math.PI / 2;
-  tip.position.x = 3.3;
-  lever.add(tip);
-
-  const boss = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.36, 6), valveMat);
-  boss.position.y = 0.04;
-  lever.add(boss);
-
-  const hole = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.3, 12), gasketMat);
-  hole.position.x = 2.85;
-  lever.add(hole);
-
-  const screw = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.28, 10), nutMat);
-  screw.position.y = 0.22;
-  lever.add(screw);
-
-  group.add(lever);
+  group.add(handle);
 
   group.traverse((o) => {
     if (o.isMesh) o.castShadow = true;
@@ -1116,10 +1100,10 @@ function renderLive(t) {
   const fi = t.flowIn ?? {};
   const fo = t.flowOut ?? {};
 
-  setTag(liveTags.level, lv.ok ? `HC-SR04 · ${fmt(lv.distanceCm, 1)} cm al agua` : 'HC-SR04 · sin eco', lv.ok);
-  setTag(liveTags.ph, ph.ok ? `pH ${fmt(ph.value, 2)}` : 'pH · sin señal', ph.ok);
-  setTag(liveTags.turbidity, tb.ok ? `Claridad ${fmt(tb.clarity, 0)} %` : 'Turbidez · sin señal', tb.ok);
-  setTag(liveTags.temperature, tp.ok ? `${fmt(tp.c, 1)} °C` : 'DS18B20 · sin señal', tp.ok);
+  setTag(liveTags.level, lv.ok ? `Sensor de nivel · ${fmt(lv.distanceCm, 1)} cm hasta el agua` : 'Sensor de nivel · sin lectura', lv.ok);
+  setTag(liveTags.ph, ph.ok ? `pH ${fmt(ph.value, 2)}` : 'pH · sin lectura', ph.ok);
+  setTag(liveTags.turbidity, tb.ok ? `Claridad ${fmt(tb.clarity, 0)} %` : 'Claridad · sin lectura', tb.ok);
+  setTag(liveTags.temperature, tp.ok ? `${fmt(tp.c, 1)} °C` : 'Temperatura · sin lectura', tp.ok);
   setTag(liveTags.flowIn, `Entrada ${fmt(fi.ok ? fi.lpm : 0, 1)} L/min`, true);
   setTag(liveTags.flowOut, `Salida ${fmt(fo.ok ? fo.lpm : 0, 1)} L/min`, true);
 
@@ -1162,8 +1146,8 @@ function updateTwin(dt) {
 const projected = new THREE.Vector3();
 
 function updateLabels() {
-  const w = window.innerWidth;
-  const h = window.innerHeight;
+  const w = canvas.clientWidth || window.innerWidth;
+  const h = canvas.clientHeight || window.innerHeight;
   const showDims = medidas.visible;
 
   for (const label of labels) {
@@ -1188,123 +1172,30 @@ function updateLabels() {
 
 /* --------------------------------------------------------------------- UI */
 
+// Botones opcionales de la página (vistas y capas). Los datos llegan con setTelemetry().
 const ui = {
-  pct: document.getElementById('level-pct'),
-  cm: document.getElementById('level-cm'),
-  liters: document.getElementById('level-l'),
-  bar: document.getElementById('level-bar'),
-  slider: document.getElementById('level-slider'),
-  source: document.getElementById('source'),
-  badge: document.getElementById('mode-badge'),
-  casetaBtn: document.getElementById('toggle-caseta'),
   medidasBtn: document.getElementById('toggle-medidas'),
   aislarBtn: document.getElementById('toggle-aislar'),
   loading: document.getElementById('loading'),
-  state: document.getElementById('level-state'),
-  simNote: document.getElementById('sim-note'),
-  simClock: document.getElementById('sim-clock'),
 };
 
-let targetLevel = D.maxLevel * 0.72;
+let targetLevel = D.maxLevel * 0.5;
 let currentLevel = targetLevel;
-let sourceMode = 'auto';
-let hasTelemetry = false;
-let lastTelemetry = null;
 
-function litersFor(level) {
-  return (D.inL * D.inA * level) / 1000;
-}
-
-// Nivel de "lleno" que usa el ESP32 (29 cm, con margen); sin datos, el del plano.
-function fullLevel() {
-  const v = live.data?.level?.maxLevelCm;
-  return typeof v === 'number' && v > 0 ? v : D.maxLevel;
-}
-
-function levelState(cm, full) {
-  if (cm >= OVERFLOW_CM) return ['¡REBALSANDO!', 'is-over'];
-  if (cm >= full) return ['TANQUE LLENO', 'is-full'];
-  if (cm >= full - 5) return ['CASI LLENO', 'is-high'];
-  if (cm <= 2) return ['TANQUE VACÍO', 'is-low'];
-  if (cm <= 5) return ['NIVEL BAJO', 'is-low'];
-  return ['NIVEL NORMAL', ''];
-}
-
-function updateReadout() {
-  const full = fullLevel();
-  const pct = Math.min(100, Math.max(0, (currentLevel / full) * 100));
-  ui.pct.textContent = pct.toFixed(0);
-  ui.cm.textContent = currentLevel.toFixed(1);
-  ui.liters.textContent = litersFor(Math.min(currentLevel, D.inH)).toFixed(1);
-  ui.bar.style.width = `${pct}%`;
-  const [text, cls] = levelState(targetLevel, full);
-  if (ui.state.textContent !== text) ui.state.textContent = text;
-  ui.state.className = `state ${cls}`.trim();
-}
-
-function setBadge(kind) {
-  const map = {
-    esp32: ['is-esp32', lastTelemetry?.source === 'cloud'
-      ? 'EN VIVO · ESP32'
-      : lastTelemetry?.wifi?.ip ? `ESP32 · ${lastTelemetry.wifi.ip}` : 'ESP32'],
-    demo: ['is-demo', 'Manual · nivel de prueba'],
-    sim: ['is-demo', `SIMULACIÓN · ${lastTelemetry?.sim?.clock ?? ''}`.trim()],
-    offline: ['is-demo', 'ESP32 sin conexión'],
-  };
-  const [cls, text] = map[kind] || map.demo;
-  ui.badge.className = `chip ${cls}`;
-  ui.badge.textContent = text;
-}
-
-function setSource(mode) {
-  sourceMode = mode;
-  if (mode === 'demo') {
-    renderLive(null);
-    ui.simNote.hidden = true;
-  }
-  ui.source.value = mode;
-  ui.slider.disabled = mode === 'esp32' && hasTelemetry;
-  if (mode === 'demo') setBadge('demo');
-  if (mode === 'esp32') setBadge(hasTelemetry ? 'esp32' : 'offline');
-  if (mode === 'auto') setBadge(hasTelemetry ? 'esp32' : 'demo');
-}
-
-ui.source.addEventListener('change', (event) => {
-  setSource(event.target.value);
-  if (event.target.value !== 'demo') pollTelemetry();
-});
-
-ui.slider.addEventListener('input', (event) => {
-  const pct = Number(event.target.value);
-  targetLevel = (pct / 100) * fullLevel();
-  if (sourceMode !== 'demo') {
-    sourceMode = 'demo';
-    ui.source.value = 'demo';
-    renderLive(null);
-    ui.simNote.hidden = true;
-  }
-  setBadge('demo');
-});
-
-ui.casetaBtn.addEventListener('click', () => {
-  caseta.visible = !caseta.visible;
-  ui.casetaBtn.textContent = caseta.visible ? 'Ocultar caseta' : 'Mostrar caseta';
-});
-
-ui.medidasBtn.addEventListener('click', () => {
+ui.medidasBtn?.addEventListener('click', () => {
   medidas.visible = !medidas.visible;
   ui.medidasBtn.textContent = medidas.visible ? 'Ocultar medidas' : 'Mostrar medidas';
 });
 
-ui.aislarBtn.addEventListener('click', () => {
+ui.aislarBtn?.addEventListener('click', () => {
   soloCaseta = !soloCaseta;
   reservoir.visible = !soloCaseta;
   waterGroup.visible = !soloCaseta;
   spillLine.visible = !soloCaseta;
   caseta.visible = true;
   medidas.visible = !soloCaseta;
-  ui.medidasBtn.textContent = soloCaseta ? 'Mostrar medidas' : 'Ocultar medidas';
-  ui.aislarBtn.textContent = soloCaseta ? 'Ver conjunto' : 'Aislar caseta';
+  if (ui.medidasBtn) ui.medidasBtn.textContent = soloCaseta ? 'Mostrar medidas' : 'Ocultar medidas';
+  ui.aislarBtn.textContent = soloCaseta ? 'Ver todo' : 'Ver caseta';
   applyLevel(currentLevel);
   goToView(soloCaseta ? 'caseta' : 'iso');
 });
@@ -1319,11 +1210,12 @@ const views = {
 let camAnim = null;
 let currentView = 'iso';
 
+// En pantallas angostas (celular) la cámara se aleja para que entre todo el modelo.
 function fitFactor() {
-  return Math.max(1, 0.75 / camera.aspect);
+  return Math.max(1, 1.1 / camera.aspect);
 }
 
-function goToView(name) {
+export function goToView(name) {
   const view = views[name];
   if (!view) return;
   currentView = name;
@@ -1352,78 +1244,52 @@ controls.addEventListener('start', () => {
 
 canvas.addEventListener('dblclick', () => goToView('iso'));
 
-const simulator = createSimulator();
-
-// Auto: datos reales del ESP32 si responde; si no, la simulación (claramente marcada).
-// ESP32: solo datos reales. Manual: nivel con el deslizador.
-async function pollTelemetry() {
-  if (sourceMode === 'demo') return;
-  let data = null;
-  try {
-    data = await getTelemetry();
-  } catch {
-    data = sourceMode === 'auto' ? simulator.telemetry() : null;
-  }
-  if (sourceMode === 'demo') return;  // se cambió a manual mientras llegaba la respuesta
-
-  try {
-    if (!data) throw new Error('sin ESP32');
-    // Al pasar de simulación a datos reales (o al revés) se muestra el nuevo estado al instante.
-    const kind = data.simulated ? 'sim' : 'real';
-    if (live.kind !== kind) {
-      live.kind = kind;
-      live.started = false;
-    }
-    hasTelemetry = !data.simulated;
-    lastTelemetry = data;
-    ui.simNote.hidden = !data.simulated;
-    if (data.simulated) ui.simClock.textContent = data.sim?.clock ?? '--';
-    renderLive(data);
-    // Altura real del agua (no el %, que se corta en 100 y ocultaría el rebalse).
-    const cm = data?.level?.levelCm;
-    if (data?.level?.ok && typeof cm === 'number' && Number.isFinite(cm)) {
-      targetLevel = Math.min(D.inH, Math.max(0, cm));
-      // Primer dato: se muestra el estado real al instante, sin animar desde el demo.
-      if (!live.started) currentLevel = targetLevel;
-    }
-    if (!live.started) {
-      live.started = true;
-      live.snap = true;
-    }
-    ui.slider.disabled = true;
-    setBadge(data.simulated ? 'sim' : 'esp32');
-  } catch {
-    hasTelemetry = false;
-    ui.simNote.hidden = true;
+/**
+ * Datos del tablero (reales o simulados, ver datos.js). null = sin datos.
+ * El nivel usa la altura real del agua (levelCm), no el %, que se corta en 100 y
+ * ocultaría el rebalse.
+ */
+export function setTelemetry(data) {
+  if (!data) {
     renderLive(null);
-    if (sourceMode === 'esp32') {
-      setBadge('offline');
-    } else {
-      setBadge('demo');
-      ui.slider.disabled = false;
-    }
+    return;
+  }
+  // Al pasar de simulación a datos reales (o al revés) se muestra el nuevo estado al instante.
+  const kind = data.simulated ? 'sim' : 'real';
+  if (live.kind !== kind) {
+    live.kind = kind;
+    live.started = false;
+  }
+  renderLive(data);
+  const cm = data.level?.levelCm;
+  if (data.level?.ok && typeof cm === 'number' && Number.isFinite(cm)) {
+    targetLevel = Math.min(D.inH, Math.max(0, cm));
+    if (!live.started) currentLevel = targetLevel;
+  }
+  if (!live.started) {
+    live.started = true;
+    live.snap = true;
   }
 }
-
-setInterval(pollTelemetry, pollMs(1000));
 
 /* ------------------------------------------------------------------ resize */
 
 function resize() {
-  const w = window.innerWidth;
-  const h = window.innerHeight;
+  // El lienzo puede no ocupar toda la ventana (en el celular va arriba de las tarjetas).
+  const w = canvas.clientWidth || window.innerWidth;
+  const h = canvas.clientHeight || window.innerHeight;
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
 }
 
-let portrait = window.innerWidth < window.innerHeight;
+let portrait = camera.aspect < 1;
 
 window.addEventListener('resize', () => {
   const wasPortrait = portrait;
   resize();
-  portrait = window.innerWidth < window.innerHeight;
+  portrait = camera.aspect < 1;
   if (wasPortrait !== portrait) {
     goToView(currentView);
   }
@@ -1473,15 +1339,10 @@ function animate() {
   controls.update();
   renderer.render(scene, camera);
   updateLabels();
-  updateReadout();
-
-  const sliderPct = String(Math.round(Math.min(100, (targetLevel / fullLevel()) * 100)));
-  if (ui.slider.value !== sliderPct) ui.slider.value = sliderPct;
 
   if (firstFrame) {
     firstFrame = false;
-    ui.loading.classList.add('is-hidden');
-    pollTelemetry();
+    ui.loading?.classList.add('is-hidden');
   }
 }
 

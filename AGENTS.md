@@ -17,16 +17,34 @@ Sistema de monitoreo de un reservorio de agua con ESP32 DevKit V1 (30 pines, USB
 
 Repositorio público: <https://github.com/LuchitoAE/reservorio-agua>
 
+## Web (26/11/2026, pedidos del usuario)
+
+- **`index.html` = tablero unido al modelo 3D**: el gemelo digital a pantalla completa con 6
+  tarjetas flotantes (nivel, agua que entra, agua que sale, temperatura, pH, claridad).
+  `js/tablero.js` pinta las tarjetas; `js/datos.js` es la única fuente de datos (real o
+  simulación); `js/model3d.js` solo dibuja y recibe `setTelemetry()`. En celular: modelo arriba
+  y tarjetas debajo en 2 columnas.
+- **Lenguaje para el público**: sin nombres de sensores, pines, voltajes, "ESP32", IP ni NTU.
+- **`mantenimiento.html`**: lo técnico (estado del ESP32, valores crudos, ajustes del tanque,
+  calibraciones, reinicio de totales). Solo funciona en la red de la maqueta; el enlace no
+  aparece en la web publicada.
+- `modelo.html` redirige al tablero (conserva `#vista`). `app.js` (dashboard viejo) se eliminó.
+- Modelo: tubería de **PVC gris** (`0x7c8389`); llaves de paso como la UyusTools XP112L
+  "liso": cuerpo blanco de una pieza con abultamiento central y **manija roja de mariposa**
+  con estrías; el by-pass se dibuja cerrado (manija cruzada).
+- Vercel publica solo la carpeta `web` (Root Directory); el informe y el firmware quedan solo
+  en el repositorio.
+
 ## Estado actual
 
 | Parte | Estado |
 | --- | --- |
 | Firmware | Compila (PlatformIO 6.2.0). Última versión compilada incluye tanque rectangular. |
 | Placa | Conectada por USB. Tiene el **firmware del proyecto y la web** con las calibraciones de turbidez y pH (25/11/2026). Para los monitores de banco hay que cargar `pruebas/turbidez` o `pruebas/ph`. |
-| LCD | Verificado en 0x27. **Pantalla para el público** (25/11/2026): 4 páginas cada 3 s, sin IP ni datos técnicos: nivel % + litros + estado del tanque; pH (Ácido/Neutro/Alcalino) + temperatura; claridad % + AGUA CLARA/POCO TURBIA/AGUA TURBIA; caudal Entra/Sale. Salta las páginas de sensores que no responden; sin ninguno muestra "RESERVORIO DE AGUA". Subido al ESP32 (25/11/2026). Busca la pantalla al arrancar y luego cada 5 s (se puede conectar en caliente; detecta si se desconecta). **El 25/11/2026 el ESP32 no la detectó en el bus I2C** (revisar cables SDA D21, SCL D22, VCC 5 V, GND). |
+| LCD | **Funciona (26/11/2026)** en 0x27. Pantalla para el público: 4 páginas, **4 s cada una**: nivel % + litros + estado del tanque; pH (Ácido/Neutro/Alcalino) + temperatura; claridad % + AGUA CLARA/POCO TURBIA/AGUA TURBIA; agua que entra/sale. Usa los mismos valores calibrados que la web. Salta las páginas de sensores que no responden. Se vuelve a buscar cada 5 s si se desconecta. |
 | DS18B20 | Verificado: 1 dispositivo en el bus, ~20.5 °C. Desde el 25/11/2026 el firmware lo vuelve a buscar cada 5 s si no está (se puede conectar con la placa encendida). Desconectado en la protoboard actual. |
 | HC-SR04 | Verificado en protoboard y conectado al ESP32 (25/11/2026). Firmware: un disparo cada 70 ms sin bloquear y mediana de 5 ecos; ~1 s sin eco → no conectado. Dashboard consulta cada 0.5 s (animación 0.4 s); `modelo.html` cada 1 s. Sketch de banco en `pruebas/hcsr04/`. Falta montarlo en el tanque. ECHO con **una sola 4.7 kΩ en serie** a D18 (este clon tiene ECHO débil: con divisor a GND no lee). |
-| Turbidez | **Calibrado (25/11/2026)** con `pruebas/turbidez/monitor.py`: agua de caño 2.89 V (100 %), tierra 2.63 V, referencia turbia 2.52 V (0 %). Rango comprimido frente a los 4.2 V del fabricante; NTU escalado (`Ve = V × 4.2 / turbClearV`). Voltaje con `analogReadMilliVolts`; claves NVS `turbC2`/`turbT2`. Tras conectar el pH la lectura quedó en ~0.28 V (raw 0): revisar cables del módulo (V, G, A). |
+| Turbidez | **Recalibrado (26/11/2026)** con el divisor nuevo: agua de caño 2.759 V (100 %), agua con tierra recién batida 2.225 V (0 %); rango 0.53 V (el doble que antes). Lectura estable: cada muestra promedia 16 lecturas del ADC y la claridad/NTU usan la media recortada de ~7 s (`MedianFilter::trimmedMean`); la calibración guarda ese mismo valor (lo que se ve). Valores por defecto en `config.h`; NVS `turbC2`/`turbT2`. Verificado: la LCD marcó AGUA CLARA 100 % en agua de caño. |
 | pH | **Calibrado (25/11/2026)** con `pruebas/ph/monitor.py`, sin buffers: agua de caño pH 7.55 = 2.515 V y limón pH 2.2 = 3.353 V → neutro 2.6015 V, pendiente 0.1565 V/pH (±0.3 pH aprox.). Offset del módulo ajustado (Po ≈ 2.5 V en agua). Firmware con `analogReadMilliVolts`; claves NVS `phN2`/`phS2`. Mejorar con bicarbonato o buffers. |
 | Caudal | Firmware y web listos para **dos** caudalímetros (25/11/2026): entrada D23, salida D26, telemetría `flowIn`/`flowOut`, tarjetas separadas y "Neto" en el dashboard, LCD "Entra/Sale", acumulados en NVS `flowTot`/`flowTotS`. Falta conectarlos y probarlos con agua. |
 | Simulación | **Desde el 25/11/2026 (pedido del usuario, para Vercel):** sin ESP32 la web muestra una simulación (`web/js/simulador.js`) SIEMPRE marcada ("SIMULACIÓN", aviso amarillo); con ESP32, solo datos reales. Día típico de un reservorio rural con manantial: 1 día = 12 min, manantial ~6.6 L/min, consumo con picos 7 h y 19 h, rebalsa al amanecer, baja a ~44 % en la tarde, lluvia 1 de cada 3 días. Determinista por la hora (todos ven lo mismo). Dashboard, gemelo y caso real. En simulación y en la nube la web es de solo lectura. |
@@ -112,9 +130,14 @@ node tools/sync-web.js                    # web -> firmware/data
 0. **Fase 3 (pendiente): publicar en Vercel** con datos reales vía nube: ESP32 → `POST /api/ingest`
    (Vercel, con token) → Supabase (último dato + historial) → `GET /api/telemetry` devuelve el
    mismo JSON + `source: "cloud"` y `ageS`; si `ageS > 20` la web pasa a simulación
-   (`STALE_S` en `web/js/api.js`). El usuario tiene cuentas de Vercel y Supabase. Una web en
-   Vercel (https) no puede leer al ESP32 en la LAN (http) directamente; localStorage no sirve
-   para compartir datos entre visitantes.
+   (`STALE_S` en `web/js/api.js`). El usuario tiene cuentas de Vercel y Supabase. Código listo
+   (CloudSync en el firmware, `docs/supabase.sql`, `web/js/nube.js`); nube apagada hasta tener
+   URL y clave publishable (token del ESP32 ya en `secrets.h`; hash registrado en la guía).
+   **Conexión directa** (sin Supabase): botón "Conectar con el ESP32 de mi casa" en la web
+   publicada; `fetch` con `targetAddressSpace: 'local'` (Chrome/Edge 141+, permiso de red local,
+   solo en el WiFi de la casa); se recuerda en localStorage (`reservorio.esp32Directo`).
+   PR #1 abierto (rama `gemelo-digital-y-nube`): falta que el usuario lo una a `main` e
+   importe el repo en Vercel (Root Directory `web`).
 
 1. Verificar en el dashboard la turbidez con agua de caño (~100 %) y regenerar el informe con la calibración nueva.
 2. Revisar el cableado de turbidez (lee ~0 V desde que se conectó el pH).

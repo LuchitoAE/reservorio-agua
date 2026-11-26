@@ -8,7 +8,7 @@
 #include "sensors/Sensors.h"
 
 namespace {
-constexpr uint32_t kPageMs = 3000;  // tiempo de lectura cómodo para el público
+constexpr uint32_t kPageMs = 4000;  // 4 s por página: tiempo de lectura cómodo para el público
 constexpr uint8_t kPageCount = 4;   // nivel, calidad, claridad, caudal
 constexpr uint32_t kRetryMs = 5000; // sin pantalla: la vuelve a buscar cada 5 s
 

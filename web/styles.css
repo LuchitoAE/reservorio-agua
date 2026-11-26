@@ -98,6 +98,9 @@ main, .topbar { position: relative; z-index: 1; }
 }
 .sim-banner b { color: #fff3c4; }
 
+.direct-row { display: flex; justify-content: flex-end; margin: -8px 0 14px; }
+.direct-row:has(> [hidden]) { display: none; }
+
 @media (max-width: 620px) {
   .sim-banner { flex-direction: column; align-items: flex-start; gap: 8px; }
 }
@@ -470,6 +473,7 @@ main {
 
 .card--system { grid-column: 1 / -1; }  /* 7 tarjetas: Sistema ocupa la última fila */
 .kv { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; margin: 2px 0 0; }
+.kv--wide { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
 .kv div { display: flex; flex-direction: column; gap: 2px; }
 .kv dt { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted-2); }
 .kv dd { margin: 0; font-family: var(--mono); font-size: 0.76rem; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -492,6 +496,14 @@ main {
   gap: 12px;
   margin-bottom: 20px;
 }
+
+/* Mantenimiento: plegado por defecto y oculto en la web pública. */
+.panel--tech[hidden] { display: none; }
+.panel--tech > summary { cursor: pointer; list-style: none; margin-bottom: 0; }
+.panel--tech > summary::-webkit-details-marker { display: none; }
+.panel--tech > summary h2::before { content: '▸ '; color: var(--muted); }
+.panel--tech[open] > summary { margin-bottom: 20px; }
+.panel--tech[open] > summary h2::before { content: '▾ '; }
 
 .panel-head h2 { margin: 0; font-size: 1.02rem; }
 .panel-head p { margin: 4px 0 0; font-size: 0.78rem; color: var(--muted); }

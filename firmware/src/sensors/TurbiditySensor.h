@@ -33,6 +33,10 @@ class TurbiditySensor {
   bool calibrateTurbid();  // guarda el voltaje de referencia de agua turbia (0 %)
 
  private:
+  // Voltaje que se usa para la claridad y los NTU (media recortada de los últimos ~7 s).
+  float filteredVolts() const { return filter_.trimmedMean(); }
+  // Para calibrar: exactamente lo que se está mostrando (o 3 s de lecturas si recién arranca).
+  float steadyVolts();
   float clearV() const;
   float turbidV() const;
 

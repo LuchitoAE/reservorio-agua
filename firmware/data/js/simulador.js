@@ -121,8 +121,8 @@ export function createSimulator(options = {}) {
       // Lluvia: la claridad baja entre las 14 y las 18 h y se recupera de a pocos.
       const rain = rainy(day) ? bump(hour, 16, 1.6) : 0;
       const clarity = Math.max(0, Math.min(100, 98 - 30 * rain + 1.5 * noise(Math.floor(t) + 7)));
-      const voltage = 2.52 + (clarity / 100) * (2.89 - 2.52);
-      const ve = (voltage * 4.2) / 2.89;
+      const voltage = 2.225 + (clarity / 100) * (2.759 - 2.225);
+      const ve = (voltage * 4.2) / 2.759;
       const ntu = Math.max(0, -1120.4 * ve * ve + 5742.3 * ve - 4352.9);
 
       const tempC = 17.4 + 0.9 * Math.sin(((hour - 9) / 24) * 2 * Math.PI) + 0.05 * noise(Math.floor(t / 5));
