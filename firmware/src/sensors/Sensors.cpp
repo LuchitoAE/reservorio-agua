@@ -7,7 +7,8 @@
 void Sensors::begin(ConfigStore* config) {
   config_ = config;
   level_.begin();
-  flow_.begin(config);
+  flowIn_.begin(config, PIN_FLOW_IN, FlowSensor::kIn);
+  flowOut_.begin(config, PIN_FLOW_OUT, FlowSensor::kOut);
   temperature_.begin();
   ph_.begin(config);
   turbidity_.begin(config);
@@ -15,7 +16,8 @@ void Sensors::begin(ConfigStore* config) {
 
 void Sensors::update() {
   level_.update();
-  flow_.update();
+  flowIn_.update();
+  flowOut_.update();
   temperature_.update();
   ph_.update();
   turbidity_.update();
@@ -27,6 +29,7 @@ float Sensors::levelCm() const {
 
   const float height = config_->tankHeightCm();
   const float level = height - level_.distanceCm() - config_->sensorOffsetCm();
+  if (level < cfg::LEVEL_DEADBAND_CM) return 0.0f;  // el ruido no marca 1-3 % en vacío
   return constrain(level, 0.0f, height);
 }
 
@@ -48,7 +51,8 @@ float Sensors::liters() const {
 }
 
 uint8_t Sensors::okCount() const {
-  return static_cast<uint8_t>(level_.ok()) + static_cast<uint8_t>(flow_.ok()) +
+  return static_cast<uint8_t>(level_.ok()) + static_cast<uint8_t>(flowIn_.ok()) +
+         static_cast<uint8_t>(flowOut_.ok()) +
          static_cast<uint8_t>(temperature_.ok()) + static_cast<uint8_t>(ph_.ok()) +
          static_cast<uint8_t>(turbidity_.ok());
 }

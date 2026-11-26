@@ -70,6 +70,38 @@ body::before {
 
 main, .topbar { position: relative; z-index: 1; }
 
+/* ------------------------------------------------------------ simulación - */
+
+.sim-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 18px;
+  padding: 12px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  background: rgba(251, 191, 36, 0.1);
+  color: #ffe6a3;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+.sim-banner[hidden] { display: none; }
+.sim-banner strong {
+  flex: none;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: #fbbf24;
+  color: #1c1400;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  animation: pulse 2.4s infinite;
+}
+.sim-banner b { color: #fff3c4; }
+
+@media (max-width: 620px) {
+  .sim-banner { flex-direction: column; align-items: flex-start; gap: 8px; }
+}
+
 /* ---------------------------------------------------------------- topbar - */
 
 .topbar {
@@ -246,7 +278,7 @@ main {
   height: clamp(0%, var(--level, 0%), 100%);
   background: linear-gradient(180deg, rgba(34, 211, 238, 0.95) 0%, #0e9bb5 45%, #0b5f7d 100%);
   box-shadow: 0 -2px 18px rgba(34, 211, 238, 0.45);
-  transition: height 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: height 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .tank-wave {
@@ -436,6 +468,7 @@ main {
 
 .card-foot b { color: var(--muted); font-weight: 600; font-variant-numeric: tabular-nums; }
 
+.card--system { grid-column: 1 / -1; }  /* 7 tarjetas: Sistema ocupa la última fila */
 .kv { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; margin: 2px 0 0; }
 .kv div { display: flex; flex-direction: column; gap: 2px; }
 .kv dt { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted-2); }
@@ -518,6 +551,7 @@ input[type="number"]:focus { outline: 2px solid rgba(56, 189, 248, 0.45); outlin
 .row { display: flex; gap: 8px; margin-top: 4px; }
 
 .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.btn-grid .btn--wide { grid-column: 1 / -1; }
 
 .btn {
   font: inherit;
@@ -620,6 +654,10 @@ input[type="number"]:focus { outline: 2px solid rgba(56, 189, 248, 0.45); outlin
   .topbar { padding: 12px 16px; }
   .topbar-actions { width: 100%; justify-content: space-between; }
   #last-update { display: none; }
+}
+
+@media (min-width: 621px) {
+  .card--system .kv { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
 @media (max-width: 1000px) {

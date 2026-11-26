@@ -1,0 +1,37 @@
+/* Caso real (escenario.html): se apoya en styles-modelo.css y agrega lo propio. */
+
+.escenario .m-top .chip--link {
+  text-decoration: none;
+  color: var(--text);
+  border-color: var(--line-strong);
+}
+.escenario .m-top .chip--link::before { display: none; }
+
+.escenario .panel { width: 300px; }
+
+.escenario .liters b { color: var(--text); }
+
+.dot--out { background: #f472b6; }
+
+.story { margin: 4px 0 2px; font-size: 0.76rem; line-height: 1.5; color: var(--muted); }
+.story summary {
+  cursor: pointer;
+  margin-bottom: 8px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.story ol { margin: 0 0 10px; padding-left: 18px; display: grid; gap: 6px; }
+.story b { color: var(--text); font-weight: 600; }
+.story p { margin: 0 0 8px; }
+
+.tag--step { border-color: rgba(56, 189, 248, 0.5); color: #e2f4ff; font-weight: 600; }
+.tag--step small { display: block; font-weight: 500; color: var(--muted); font-size: 9.5px; }
+
+@media (max-width: 760px) {
+  .escenario .m-top .chip--link { display: none; }
+  .escenario .panel { width: auto; }
+  .story { display: none; }
+}

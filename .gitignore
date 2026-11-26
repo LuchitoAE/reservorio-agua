@@ -13,3 +13,13 @@ lo-profile/
 
 # Credenciales locales (no subir)
 firmware/include/secrets.h
+
+# Datos locales de la prueba de turbidez (monitor.py)
+pruebas/turbidez/calibracion.json
+pruebas/turbidez/muestras.csv
+pruebas/turbidez/registros/
+
+# Datos locales de la prueba de pH (monitor.py)
+pruebas/ph/calibracion.json
+pruebas/ph/muestras.csv
+pruebas/ph/registros/

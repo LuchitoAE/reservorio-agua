@@ -1,14 +1,14 @@
 # Contexto del proyecto (para agentes)
 
 Este archivo resume el estado y las decisiones del proyecto para que otra sesión o agente
-pueda continuar sin reconstruir el contexto. Actualizado: **24/11/2026**.
+pueda continuar sin reconstruir el contexto. Actualizado: **25/11/2026**.
 
 ## Qué es
 
 Sistema de monitoreo de un reservorio de agua con ESP32 DevKit V1 (30 pines, USB-C):
 
 - Nivel: HC-SR04 (GPIO 19 TRIG / 18 ECHO con divisor).
-- Caudal: YF-S201 (GPIO 23, pull-up 4.7 kΩ).
+- Caudal: 2 × ZJ-S201/YF-S201, entrada GPIO 23 y salida GPIO 26 (4.7 kΩ en serie, pull-up interno).
 - Temperatura: DS18B20 (GPIO 4, pull-up 4.7 kΩ).
 - pH: PH-7BNC (GPIO 34, ADC1, divisor).
 - Turbidez: TS-300B (GPIO 35, ADC1, divisor 4.7k + 4.7k).
@@ -22,25 +22,34 @@ Repositorio público: <https://github.com/LuchitoAE/reservorio-agua>
 | Parte | Estado |
 | --- | --- |
 | Firmware | Compila (PlatformIO 6.2.0). Última versión compilada incluye tanque rectangular. |
-| Placa | Conectada por USB. Tiene cargado el **sketch de prueba del HC-SR04**; falta reflashear el firmware del proyecto. |
-| LCD | Verificado en 0x27 (4 páginas). El firmware nuevo agrega una 5.ª página de estado del nivel. |
-| DS18B20 | Verificado: 1 dispositivo en el bus, ~20.5 °C. |
-| HC-SR04 | Verificado en protoboard: 3/3 ecos, 0 fallos, lectura estable. Sketch de banco en `pruebas/hcsr04/`. Falta montarlo en el tanque. |
-| Turbidez | Módulo TS-300B conectado y en prueba; revisar alimentación 5 V y cable de sonda. |
-| YF-S201 / pH | Aún no conectados. |
-| Dashboard | Verificado en escritorio y móvil. |
-| Modelo 3D | **Aprobado para la fase 1 (24/11/2026).** Trazado y acabado realista (codos, tees, uniones, pasamuros, válvulas de bola). No cambiar salvo pedido explícito. |
+| Placa | Conectada por USB. Tiene el **firmware del proyecto y la web** con las calibraciones de turbidez y pH (25/11/2026). Para los monitores de banco hay que cargar `pruebas/turbidez` o `pruebas/ph`. |
+| LCD | Verificado en 0x27. **Pantalla para el público** (25/11/2026): 4 páginas cada 3 s, sin IP ni datos técnicos: nivel % + litros + estado del tanque; pH (Ácido/Neutro/Alcalino) + temperatura; claridad % + AGUA CLARA/POCO TURBIA/AGUA TURBIA; caudal Entra/Sale. Salta las páginas de sensores que no responden; sin ninguno muestra "RESERVORIO DE AGUA". Subido al ESP32 (25/11/2026). Busca la pantalla al arrancar y luego cada 5 s (se puede conectar en caliente; detecta si se desconecta). **El 25/11/2026 el ESP32 no la detectó en el bus I2C** (revisar cables SDA D21, SCL D22, VCC 5 V, GND). |
+| DS18B20 | Verificado: 1 dispositivo en el bus, ~20.5 °C. Desde el 25/11/2026 el firmware lo vuelve a buscar cada 5 s si no está (se puede conectar con la placa encendida). Desconectado en la protoboard actual. |
+| HC-SR04 | Verificado en protoboard y conectado al ESP32 (25/11/2026). Firmware: un disparo cada 70 ms sin bloquear y mediana de 5 ecos; ~1 s sin eco → no conectado. Dashboard consulta cada 0.5 s (animación 0.4 s); `modelo.html` cada 1 s. Sketch de banco en `pruebas/hcsr04/`. Falta montarlo en el tanque. ECHO con **una sola 4.7 kΩ en serie** a D18 (este clon tiene ECHO débil: con divisor a GND no lee). |
+| Turbidez | **Calibrado (25/11/2026)** con `pruebas/turbidez/monitor.py`: agua de caño 2.89 V (100 %), tierra 2.63 V, referencia turbia 2.52 V (0 %). Rango comprimido frente a los 4.2 V del fabricante; NTU escalado (`Ve = V × 4.2 / turbClearV`). Voltaje con `analogReadMilliVolts`; claves NVS `turbC2`/`turbT2`. Tras conectar el pH la lectura quedó en ~0.28 V (raw 0): revisar cables del módulo (V, G, A). |
+| pH | **Calibrado (25/11/2026)** con `pruebas/ph/monitor.py`, sin buffers: agua de caño pH 7.55 = 2.515 V y limón pH 2.2 = 3.353 V → neutro 2.6015 V, pendiente 0.1565 V/pH (±0.3 pH aprox.). Offset del módulo ajustado (Po ≈ 2.5 V en agua). Firmware con `analogReadMilliVolts`; claves NVS `phN2`/`phS2`. Mejorar con bicarbonato o buffers. |
+| Caudal | Firmware y web listos para **dos** caudalímetros (25/11/2026): entrada D23, salida D26, telemetría `flowIn`/`flowOut`, tarjetas separadas y "Neto" en el dashboard, LCD "Entra/Sale", acumulados en NVS `flowTot`/`flowTotS`. Falta conectarlos y probarlos con agua. |
+| Simulación | **Desde el 25/11/2026 (pedido del usuario, para Vercel):** sin ESP32 la web muestra una simulación (`web/js/simulador.js`) SIEMPRE marcada ("SIMULACIÓN", aviso amarillo); con ESP32, solo datos reales. Día típico de un reservorio rural con manantial: 1 día = 12 min, manantial ~6.6 L/min, consumo con picos 7 h y 19 h, rebalsa al amanecer, baja a ~44 % en la tarde, lluvia 1 de cada 3 días. Determinista por la hora (todos ven lo mismo). Dashboard, gemelo y caso real. En simulación y en la nube la web es de solo lectura. |
+| Caso real | `web/escenario.html` + `js/escenario.js` (25/11/2026): escena 3D ilustrativa de un sistema rural por gravedad con **manantial** (elección del usuario): captación → línea de conducción → reservorio apoyado con caseta y cerco en una loma → aducción → pueblo con red de distribución; quebrada y rebose. Flujo animado con datos reales o simulados, nivel en un corte del reservorio, color por turbidez, luz según la hora. Equivalencia: maqueta al 100 % ≈ reservorio real de 10 m³ (300–400 personas). Vistas `#general`, `#manantial`, `#reservorio`, `#pueblo`. |
+| Dashboard | Verificado en escritorio y móvil. Desde el 25/11/2026 **sin modo demo**: solo datos reales; sensor no conectado (`ok=false`) o ESP32 sin respuesta → valores en 0 e indicador rojo (`web/js/lecturas.js`). El caudal cuenta como conectado solo con caudal > 0. El diagnóstico muestra los valores crudos reales. `modelo.html` conserva su modo demo (nivel manual) por la regla del modelo aprobado. |
+| Modelo 3D | **Aprobado para la fase 1 (24/11/2026).** Trazado y acabado realista (codos, tees, uniones, pasamuros, válvulas de bola). No cambiar salvo pedido explícito. **Gemelo digital (25/11/2026, pedido del usuario):** sin mover piezas, se agregaron los 6 sensores (HC-SR04 a 36 cm con haz y pulsos, sondas de pH/turbidez/DS18B20 en una regleta, caudalímetros ZJ-S201 sobre la subida de entrada y la salida), flujo animado según L/min (entrada, salida y rebose si nivel ≥ 31 cm), chorro de entrada, color del agua según la claridad, etiquetas y panel "Sensores en vivo". El nivel usa `levelCm` (antes el % cortaba en 100). Probado con un ESP32 simulado. **Ajustes (25/11/2026, pedidos del usuario):** llaves de paso de **PVC blanco con palanca roja**; los **caudalímetros van fuera de la caseta**, en los tubos que llegan desde afuera (tuberías extendidas hasta z = −46, soportes de concreto). `modelo.html#caseta` (o `#front`, `#top`) abre en esa vista. Auto = ESP32 o simulación; Manual = deslizador. |
 | Informe DOCX | Generado y validado (35 páginas). |
-| WiFi | `secrets.h` tiene SSID "RESERVORIO" pero no conecta; la placa queda en AP `Reservorio-Setup` (clave `reservorio`, 192.168.4.1). Revisar clave / 2.4 GHz / WPA3. |
+| WiFi | **Conectado** a la red de la casa (2.4 GHz, WPA2) con **IP fija 192.168.2.200** (router/gateway 192.168.2.100; `WIFI_STATIC_IP`, `WIFI_GATEWAY`, `WIFI_SUBNET`, `WIFI_DNS` en `secrets.h`). `http://reservorio.local`. **OTA activo y verificado** (ArduinoOTA, puerto 3232, clave `OTA_PASSWORD` en `secrets.h`): `./tools/ota.sh` y `./tools/ota.sh uploadfs`. Si falla, AP `Reservorio-Setup` (clave `reservorio`, 192.168.4.1). |
 
 ## Tanque (plano Rev. 04)
 
 - Exterior 40.0 × 30.0 × 40.6 cm (plano); medición real 41.0 cm con la base de vidrio; interior
   38.8 × 28.8 × 40.0 cm.
 - Caseta de válvulas 22 × 20 × 26 cm detrás del tanque.
-- Nivel de operación 30.0 cm; rebose físico 31.0 cm; capacidad útil 33.5 L (total 44.7 L).
-- Calibración del nivel: la cara del sensor queda a 36.5 cm del fondo (40 − tapa 2 − sensor 1.5).
-- Firmware: `DEFAULT_TANK_HEIGHT_CM 36.5`, `DEFAULT_MAX_LEVEL_CM 30.0`, volumen rectangular.
+- Medidas reales (usuario, 25/11/2026): tanque 41 cm exterior con base, **40 cm interior**.
+- El tanque llena a 30 cm, pero **"lleno" (100 %) se marca a 29 cm** (1 cm de margen por precisión);
+  rebose físico **31 cm** (`OVERFLOW_LEVEL_CM`, independiente del nivel de lleno).
+- Calibración del nivel: el HC-SR04 ocupa de 36 a 38 cm → su **cara queda a 36 cm** del fondo.
+- **Calibración "tanque vacío" (25/11/2026):** con el tanque vacío el HC-SR04 mide 33.5 cm al
+  fondo (no 36): esa es la altura usada. Botón "Calibrar tanque vacío" en el dashboard
+  (`/api/calibrate` con `level-empty`, mediana de ~2 s). Zona muerta: < 1 cm = 0 % (vacío).
+- Firmware: `DEFAULT_TANK_HEIGHT_CM 33.5`, `DEFAULT_MAX_LEVEL_CM 29`, `OVERFLOW_LEVEL_CM 31`,
+  `LEVEL_DEADBAND_CM 1`, volumen rectangular. También guardado en la NVS del ESP32.
 
 ## Trazado de tuberías aprobado (modelo 3D)
 
@@ -74,6 +83,9 @@ Coordenadas en cm; X positivo a la derecha, Z negativo hacia la caseta/atrás.
   PDF y calcula el índice a dos pasadas. `x2t` de OnlyOffice no funciona en esta máquina.
 - Puerto serie `/dev/ttyUSB0` (CP2102) requiere grupo `uucp`; se puede habilitar con
   `sudo usermod -aG uucp $USER` o, temporalmente, `chmod 666` vía Docker.
+- La PC tiene **ufw** activo: para OTA el ESP32 se conecta de vuelta al puerto TCP 8266
+  (`--host_port=8266` en `[env:ota]`). Regla ya agregada el 25/11/2026
+  (`sudo ufw allow from 192.168.2.200 to any port 8266 proto tcp`); OTA verificado.
 - `firmware/include/secrets.h` está **ignorado por Git**; el repo versiona
   `secrets.example.h`. No subir credenciales.
 
@@ -81,17 +93,30 @@ Coordenadas en cm; X positivo a la derecha, Z negativo hacia la caseta/atrás.
 
 ```bash
 node tools/dev-server.js                  # dashboard + modelo en :5173
-./tools/pio.sh run -d firmware -t upload  # firmware
+./tools/pio.sh run -d firmware -t upload  # firmware por USB
+./tools/ota.sh                            # firmware por WiFi (IP y clave de secrets.h)
+./tools/ota.sh uploadfs                   # web por WiFi (antes: node tools/sync-web.js)
 node tools/sync-web.js                    # web -> firmware/data
 ./tools/pio.sh run -d firmware -t uploadfs
 ./tools/pio.sh device monitor -d firmware -b 115200
 ./tools/pio.sh run -d pruebas/hcsr04 -t upload   # prueba de banco del HC-SR04
+./tools/pio.sh run -d pruebas/turbidez -t upload # prueba de banco de turbidez
+./.venv/bin/python pruebas/turbidez/monitor.py   # monitor de turbidez en consola
+./tools/pio.sh run -d pruebas/ph -t upload       # prueba de banco de pH
+./.venv/bin/python pruebas/ph/monitor.py         # monitor de pH en consola
 ./.venv/bin/python tools/informe/generar.py
 ```
 
 ## Próximos pasos
 
-1. Flashear el firmware y la web del proyecto (la placa tiene el sketch de prueba del HC-SR04).
-2. Corregir la conexión WiFi (clave / 2.4 GHz) o dejarla en AP.
+0. **Fase 3 (pendiente): publicar en Vercel** con datos reales vía nube: ESP32 → `POST /api/ingest`
+   (Vercel, con token) → Supabase (último dato + historial) → `GET /api/telemetry` devuelve el
+   mismo JSON + `source: "cloud"` y `ageS`; si `ageS > 20` la web pasa a simulación
+   (`STALE_S` en `web/js/api.js`). El usuario tiene cuentas de Vercel y Supabase. Una web en
+   Vercel (https) no puede leer al ESP32 en la LAN (http) directamente; localStorage no sirve
+   para compartir datos entre visitantes.
+
+1. Verificar en el dashboard la turbidez con agua de caño (~100 %) y regenerar el informe con la calibración nueva.
+2. Revisar el cableado de turbidez (lee ~0 V desde que se conectó el pH).
 3. Conectar HC-SR04, YF-S201, turbidez y pH; calibrar y completar el plan de pruebas.
 4. Fase 2: Vercel + Supabase e histórico. Fase 3: versión realista del modelo 3D.

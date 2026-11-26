@@ -27,21 +27,21 @@
     </div>
 
     <div class="topbar-actions">
+      <a class="chip chip--ghost chip--link" href="./escenario.html">Caso real</a>
       <a class="chip chip--ghost chip--link" href="./modelo.html">Modelo 3D</a>
-      <label class="select-wrap">
-        <span>Fuente</span>
-        <select id="source-select">
-          <option value="auto">Auto</option>
-          <option value="esp32">ESP32</option>
-          <option value="demo">Demo</option>
-        </select>
-      </label>
       <span id="source-badge" class="chip chip--muted">conectando…</span>
       <span id="last-update" class="chip chip--ghost">—</span>
     </div>
   </header>
 
   <main>
+    <div class="sim-banner" id="sim-banner" role="status" hidden>
+      <strong>SIMULACIÓN</strong>
+      <span>El ESP32 no está conectado: estos datos <b>no son reales</b>. Se muestra un día típico
+        de un reservorio rural alimentado por un manantial (1 día = 12 min). Hora simulada
+        <b id="sim-clock">--</b>. Cuando el ESP32 se conecte, verás sus datos reales.</span>
+    </div>
+
     <section class="hero" aria-label="Resumen del nivel">
       <div class="tank-wrap">
         <div class="tank" role="img" aria-labelledby="tank-label">
@@ -70,6 +70,7 @@
           <span class="pill"><i class="pill-dot" data-state-dot="temperature"></i>Temperatura <b data-field="temperature">--</b></span>
           <span class="pill"><i class="pill-dot" data-state-dot="ph"></i>pH <b data-field="ph">--</b></span>
           <span class="pill"><i class="pill-dot" data-state-dot="turbidity"></i>Turbidez <b data-field="ntu">--</b></span>
+          <span class="pill" title="Caudal de entrada menos caudal de salida">Neto <b data-field="netLpm">--</b> L/min</span>
         </div>
         <p class="hero-hint" id="hero-hint">Esperando la primera lectura…</p>
       </div>
@@ -100,28 +101,51 @@
         </footer>
       </article>
 
-      <article class="card" data-sensor="flow">
+      <article class="card" data-sensor="flowIn">
         <header class="card-head">
           <span class="card-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-              <path d="M3 7h9l4 0" stroke-linecap="round"/>
-              <path d="m13 4 3 3-3 3" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M3 12h13" stroke-linecap="round"/>
-              <path d="M3 17h10" stroke-linecap="round"/>
+              <path d="M3 12h12" stroke-linecap="round"/>
+              <path d="m11 8 4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M19 5v14" stroke-linecap="round"/>
             </svg>
           </span>
           <div class="card-title">
-            <h2>Caudal</h2>
-            <p>YF-S201 · efecto Hall</p>
+            <h2>Caudal de entrada</h2>
+            <p>ZJ-S201 · efecto Hall · D23</p>
           </div>
-          <span class="dot" data-state="flow" title="estado"></span>
+          <span class="dot" data-state="flowIn" title="estado"></span>
         </header>
-        <div class="card-value"><span class="value" data-field="lpm">--</span><span class="unit">L/min</span></div>
-        <p class="card-meta" data-meta="flow">Sin lectura</p>
-        <canvas class="spark" data-spark="flow" height="46" aria-hidden="true"></canvas>
+        <div class="card-value"><span class="value" data-field="lpmIn">--</span><span class="unit">L/min</span></div>
+        <p class="card-meta" data-meta="flowIn">Sin lectura</p>
+        <canvas class="spark" data-spark="flowIn" height="46" aria-hidden="true"></canvas>
         <footer class="card-foot">
-          <span>Acumulado <b data-field="totalL">--</b> L</span>
-          <span>Pulsos <b data-field="pulses">--</b></span>
+          <span>Acumulado <b data-field="totalLIn">--</b> L</span>
+          <span>Pulsos <b data-field="pulsesIn">--</b></span>
+        </footer>
+      </article>
+
+      <article class="card" data-sensor="flowOut">
+        <header class="card-head">
+          <span class="card-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <path d="M5 5v14" stroke-linecap="round"/>
+              <path d="M9 12h12" stroke-linecap="round"/>
+              <path d="m17 8 4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <div class="card-title">
+            <h2>Caudal de salida</h2>
+            <p>ZJ-S201 · efecto Hall · D26</p>
+          </div>
+          <span class="dot" data-state="flowOut" title="estado"></span>
+        </header>
+        <div class="card-value"><span class="value" data-field="lpmOut">--</span><span class="unit">L/min</span></div>
+        <p class="card-meta" data-meta="flowOut">Sin lectura</p>
+        <canvas class="spark" data-spark="flowOut" height="46" aria-hidden="true"></canvas>
+        <footer class="card-foot">
+          <span>Acumulado <b data-field="totalLOut">--</b> L</span>
+          <span>Pulsos <b data-field="pulsesOut">--</b></span>
         </footer>
       </article>
 
@@ -208,7 +232,7 @@
           </div>
           <span class="dot" data-state="system" title="estado"></span>
         </header>
-        <div class="card-value"><span class="value" data-field="sensorsOk">--</span><span class="unit">/ 5 sensores</span></div>
+        <div class="card-value"><span class="value" data-field="sensorsOk">--</span><span class="unit">/ 6 sensores</span></div>
         <p class="card-meta" data-meta="system">Sin lectura</p>
         <dl class="kv">
           <div><dt>IP</dt><dd data-field="ip">--</dd></div>
@@ -225,7 +249,7 @@
           <h2 id="diag-title">Diagnóstico y pruebas</h2>
           <p>Valores crudos y calibración. Disponible solo con el ESP32 conectado.</p>
         </div>
-        <span class="chip chip--ghost" id="diag-mode">modo demo</span>
+        <span class="chip chip--ghost" id="diag-mode">conectando…</span>
       </div>
 
       <div class="panel-grid">
@@ -237,7 +261,8 @@
               <tr><td>pH</td><td data-raw="ph">--</td><td data-raw="phV">--</td></tr>
               <tr><td>Turbidez</td><td data-raw="turb">--</td><td data-raw="turbV">--</td></tr>
               <tr><td>Ultrasónico</td><td colspan="2" data-raw="distance">--</td></tr>
-              <tr><td>Flujo (pulsos)</td><td colspan="2" data-raw="pulses">--</td></tr>
+              <tr><td>Caudal entrada (pulsos)</td><td colspan="2" data-raw="pulsesIn">--</td></tr>
+              <tr><td>Caudal salida (pulsos)</td><td colspan="2" data-raw="pulsesOut">--</td></tr>
             </tbody>
           </table>
         </div>
@@ -262,12 +287,16 @@
         <div class="panel-block">
           <h3>Calibración</h3>
           <div class="btn-grid">
+            <button class="btn btn--wide" data-calibrate="level-empty" disabled>Calibrar tanque vacío</button>
             <button class="btn" data-calibrate="ph7" disabled>Buffer pH 7</button>
             <button class="btn" data-calibrate="ph4" disabled>Buffer pH 4</button>
             <button class="btn" data-calibrate="turbidity-clear" disabled>Agua clara</button>
-            <button class="btn btn--ghost" data-action="reset-flow" disabled>Reiniciar total</button>
+            <button class="btn" data-calibrate="turbidity-turbid" disabled>Agua turbia</button>
+            <button class="btn btn--ghost btn--wide" data-action="reset-flow" disabled>Reiniciar acumulados de caudal</button>
           </div>
-          <p class="hint">Sumerge el sensor en el buffer, espera 60 s y pulsa el botón.</p>
+          <p class="hint">Tanque vacío: vacía el tanque y pulsa (mide 2 s hasta el fondo). pH y
+            turbidez: sumerge el sensor en el buffer o en el agua de referencia, espera a que la
+            lectura se estabilice (60 s) y pulsa el botón.</p>
         </div>
 
         <div class="panel-block panel-block--log">

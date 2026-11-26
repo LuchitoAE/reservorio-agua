@@ -3,13 +3,32 @@
 #include "ConfigStore.h"
 #include "config.h"
 
+namespace {
+constexpr float kFormulaMinV = 2.5f;   // límite inferior de la curva del fabricante
+constexpr float kMaxNtu = 3000.0f;
+
+// Voltaje de la salida A del módulo (antes del divisor).
+float readVolts() {
+  return analogReadMilliVolts(PIN_TURB_ADC) / 1000.0f * cfg::TURBIDITY_DIVIDER;
+}
+
+float averageVolts(uint8_t samples) {
+  float sum = 0;
+  for (uint8_t i = 0; i < samples; i++) {
+    sum += readVolts();
+    delay(20);
+  }
+  return sum / samples;
+}
+}  // namespace
+
 void TurbiditySensor::begin(ConfigStore* config) {
   config_ = config;
   analogReadResolution(12);
   analogSetPinAttenuation(PIN_TURB_ADC, ADC_11db);
   pinMode(PIN_TURB_ADC, INPUT);
   raw_ = analogRead(PIN_TURB_ADC);
-  voltage_ = (static_cast<float>(raw_) / cfg::ADC_MAX_COUNTS) * cfg::ADC_VREF * cfg::TURBIDITY_DIVIDER;
+  voltage_ = readVolts();
   filter_.push(voltage_);
   lastSampleMs_ = millis();
 }
@@ -20,39 +39,58 @@ void TurbiditySensor::update() {
   lastSampleMs_ = now;
 
   raw_ = analogRead(PIN_TURB_ADC);
-  voltage_ = (static_cast<float>(raw_) / cfg::ADC_MAX_COUNTS) * cfg::ADC_VREF * cfg::TURBIDITY_DIVIDER;
+  voltage_ = readVolts();
   filter_.push(voltage_);
   ok_ = raw_ > 20 && raw_ < 4075;
 }
 
+float TurbiditySensor::clearV() const {
+  return config_ != nullptr ? config_->turbClearV() : cfg::DEFAULT_TURB_CLEAR_V;
+}
+
+float TurbiditySensor::turbidV() const {
+  return config_ != nullptr ? config_->turbTurbidV() : cfg::DEFAULT_TURB_TURBID_V;
+}
+
 float TurbiditySensor::ntu() const {
   const float v = filter_.median();
-  if (isnan(v)) return NAN;
-  float value = -1120.4f * v * v + 5742.3f * v - 4352.9f;
-  if (value < 0.0f) value = 0.0f;
-  return value;
+  const float clear = clearV();
+  if (isnan(v) || clear <= 0.0f) return NAN;
+  const float ve = v * cfg::TURB_FORMULA_CLEAR_V / clear;
+  // Debajo de 2.5 V la parábola vuelve a bajar: agua más turbia daría menos NTU.
+  if (ve < kFormulaMinV) return kMaxNtu;
+  const float value = -1120.4f * ve * ve + 5742.3f * ve - 4352.9f;
+  return constrain(value, 0.0f, kMaxNtu);
 }
 
 float TurbiditySensor::clarityPercent() const {
-  if (config_ == nullptr) return NAN;
   const float v = filter_.median();
-  const float reference = config_->turbClearV();
-  if (isnan(v) || reference <= 0.0f) return NAN;
-  float pct = (v / reference) * 100.0f;
+  const float clear = clearV();
+  const float turbid = turbidV();
+  if (isnan(v) || clear <= 0.0f) return NAN;
+  float pct;
+  if (turbid > 0.0f && clear - turbid > 0.02f) {
+    pct = (v - turbid) / (clear - turbid) * 100.0f;
+  } else {
+    pct = v / clear * 100.0f;  // sin referencia turbia válida
+  }
   return constrain(pct, 0.0f, 100.0f);
 }
 
 bool TurbiditySensor::calibrateClear() {
   if (config_ == nullptr) return false;
-  float sum = 0;
-  for (uint8_t i = 0; i < 20; i++) {
-    const int r = analogRead(PIN_TURB_ADC);
-    sum += (static_cast<float>(r) / cfg::ADC_MAX_COUNTS) * cfg::ADC_VREF * cfg::TURBIDITY_DIVIDER;
-    delay(20);
-  }
-  const float v = sum / 20.0f;
+  const float v = averageVolts(20);
   if (v < 0.2f || v > 5.0f) return false;
   config_->setTurbClearV(v);
+  filter_.reset();
+  return true;
+}
+
+bool TurbiditySensor::calibrateTurbid() {
+  if (config_ == nullptr) return false;
+  const float v = averageVolts(20);
+  if (v < 0.2f || v > 5.0f) return false;
+  config_->setTurbTurbidV(v);
   filter_.reset();
   return true;
 }

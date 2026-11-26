@@ -15,9 +15,9 @@ void PhSensor::begin(ConfigStore* config) {
 }
 
 float PhSensor::readVoltage() {
-  // El ADC entrega 0..4095; se convierte al voltaje real en el pin y se
-  // deshace el divisor de tensión si lo hay.
-  return (static_cast<float>(raw_) / cfg::ADC_MAX_COUNTS) * cfg::ADC_VREF * cfg::PH_DIVIDER;
+  // Voltaje del pin con la calibración de fábrica del ADC; se deshace el divisor
+  // para obtener la salida Po del módulo.
+  return analogReadMilliVolts(PIN_PH_ADC) / 1000.0f * cfg::PH_DIVIDER;
 }
 
 void PhSensor::update() {
@@ -51,8 +51,7 @@ float PhSensor::sampleAverage(uint8_t samples) {
   float sum = 0;
   uint8_t used = 0;
   for (uint8_t i = 0; i < samples; i++) {
-    const int r = analogRead(PIN_PH_ADC);
-    sum += (static_cast<float>(r) / cfg::ADC_MAX_COUNTS) * cfg::ADC_VREF * cfg::PH_DIVIDER;
+    sum += readVoltage();
     used++;
     delay(20);
   }

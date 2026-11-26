@@ -12,13 +12,15 @@ El repositorio tiene dos mitades independientes:
 | `tools/`     | Servidor de desarrollo local y sincronización de la web        | PC            |
 | `docs/`      | Cableado, calibración, plan de pruebas y roadmap               | —             |
 
-La misma web funciona en tres escenarios:
+La misma web funciona en dos escenarios:
 
 1. **Desde el propio ESP32** (`http://reservorio.local`) — la placa guarda la web en su
    memoria flash (LittleFS) y expone `/api/telemetry`.
 2. **Local en la PC** (`node tools/dev-server.js`) — servidor estático que hace *proxy* al ESP32.
-3. **Demo / Vercel** — si no hay ESP32 responde, el dashboard entra en **modo Demostración**
-   con datos simulados. Sirve para revisar el diseño y enseñarlo sin hardware.
+
+El dashboard muestra **solo datos reales**: si un sensor no está conectado, o el ESP32 no
+responde, sus valores aparecen en **0** con el indicador en rojo. El caudalímetro solo
+cuenta como conectado mientras circula agua (sin caudal no se puede detectar).
 
 > **Estado:** fase 1 (sensores + web local) y modelo digital 3D **aprobado** en su versión
 > MVP (24/11/2026). La versión realista y la nube quedan para fases posteriores.
@@ -66,8 +68,8 @@ cd Reservorio_Agua
 node tools/dev-server.js      # http://localhost:5173
 ```
 
-Abre el navegador: verás las tarjetas actualizándose. Como no hay placa, entra solo en modo
-Demostración (el selector de fuente está arriba a la derecha).
+Abre el navegador: sin placa, las tarjetas muestran 0 y el aviso "ESP32 sin conexión". Para
+ver los datos de la placa: `ESP32_URL=http://192.168.2.200 node tools/dev-server.js`.
 
 > `package.json` trae atajos (`npm run dev`, `npm run fw:upload`, …) por si tienes npm
 > instalado. Todos los comandos de esta guía funcionan igual con `node` y `./tools/pio.sh`.
@@ -94,6 +96,20 @@ node tools/sync-web.js             # copia web/ -> firmware/data/
 Monitor serie: `.venv/bin/pio device monitor -d firmware -b 115200`
 
 La placa muestra por serie su IP; también responde en `http://reservorio.local` (mDNS).
+Con `WIFI_STATIC_IP` en `secrets.h` usa siempre la misma IP.
+
+### Actualizar por WiFi (sin cable)
+
+Con `OTA_PASSWORD` en `secrets.h`, después de cargar el firmware una vez por USB:
+
+```bash
+./tools/ota.sh              # firmware
+node tools/sync-web.js && ./tools/ota.sh uploadfs   # archivos web
+```
+
+El script toma la IP y la clave de `secrets.h`. El ESP32 se conecta de vuelta a la PC por el
+puerto TCP 8266; si la PC tiene firewall hay que permitirlo, por ejemplo con ufw:
+`sudo ufw allow from 192.168.2.200 to any port 8266 proto tcp`.
 Si no encuentra la red WiFi, crea la red **`Reservorio-Setup`** y publica la web en
 `http://192.168.4.1`.
 
@@ -170,7 +186,7 @@ Reservorio_Agua/
 ├── web/
 │   ├── index.html
 │   ├── styles.css
-│   └── js/{api,mock,charts,app}.js
+│   └── js/{api,lecturas,charts,app}.js
 ├── tools/
 │   ├── dev-server.js · sync-web.js · pio.sh
 │   └── informe/                # generador del informe DOCX

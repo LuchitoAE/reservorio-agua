@@ -4,7 +4,7 @@
  *
  * - Sirve la carpeta web/ en http://localhost:5173
  * - Hace proxy de /api/* al ESP32 (ESP32_URL=http://192.168.1.50)
- * - Si el ESP32 no responde, devuelve 502 y el dashboard entra en modo demo.
+ * - Si el ESP32 no responde, devuelve 502 y el dashboard muestra los valores en 0.
  *
  * Uso:
  *   npm run dev

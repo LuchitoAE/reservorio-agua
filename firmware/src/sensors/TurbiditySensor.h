@@ -6,12 +6,17 @@
 class ConfigStore;
 
 /**
- * Gravity SEN0189 (TS-300B), salida analógica 0..4.5 V.
+ * TS-300B (compatible con Gravity SEN0189), salida analógica de hasta ~4.5 V.
  * OJO: entrega más de 3.3 V, usar divisor (config: TURBIDITY_DIVIDER).
  *
- * NTU según la curva del fabricante (aproximada):
- *   NTU = -1120.4·V² + 5742.3·V - 4352.9
- * Claridad = V / V_agua_clara * 100
+ * El voltaje se lee con analogReadMilliVolts (calibración de fábrica del ADC), igual
+ * que la prueba de banco pruebas/turbidez, para que sus referencias sirvan tal cual.
+ *
+ * Claridad (dos puntos):  (V - V_turbia) / (V_clara - V_turbia) * 100
+ * NTU (estimado): la lectura se escala para que el agua clara propia equivalga a los
+ * 4.2 V de la curva del fabricante y luego se aplica
+ *   NTU = -1120.4·Ve² + 5742.3·Ve - 4352.9,   Ve = V * 4.2 / V_clara
+ * La curva solo vale para Ve entre 2.5 y 4.2 V; debajo se informa el tope de 3000 NTU.
  */
 class TurbiditySensor {
  public:
@@ -24,9 +29,13 @@ class TurbiditySensor {
   int raw() const { return raw_; }
   bool ok() const { return ok_; }
 
-  bool calibrateClear();  // guarda el voltaje de referencia de agua clara
+  bool calibrateClear();   // guarda el voltaje de referencia de agua clara (100 %)
+  bool calibrateTurbid();  // guarda el voltaje de referencia de agua turbia (0 %)
 
  private:
+  float clearV() const;
+  float turbidV() const;
+
   int raw_ = 0;
   float voltage_ = 0;
   ConfigStore* config_ = nullptr;

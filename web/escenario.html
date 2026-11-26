@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#04101b" />
+  <title>Caso real · Reservorio</title>
+  <meta name="description" content="Dónde estaría este reservorio en la vida real: sistema de agua potable rural por gravedad, del manantial al pueblo." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%2338bdf8' d='M16 3C10 11 7 15 7 19a9 9 0 0 0 18 0c0-4-3-8-9-16z'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="./styles-modelo.css" />
+  <link rel="stylesheet" href="./styles-escenario.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three.module.min.js",
+        "three/addons/": "./vendor/addons/"
+      }
+    }
+  </script>
+</head>
+<body class="escenario">
+  <canvas id="scene"></canvas>
+  <div id="labels" aria-hidden="true"></div>
+
+  <header class="m-top">
+    <a class="back" href="./index.html"><span aria-hidden="true">←</span> Dashboard</a>
+    <div class="m-title">
+      <h1>Caso real: agua potable para un pueblo</h1>
+      <p>Sistema rural por gravedad · del manantial al reservorio y del reservorio a las casas</p>
+    </div>
+    <a class="chip chip--link" href="./modelo.html">Gemelo digital</a>
+    <span id="mode-badge" class="chip">conectando…</span>
+  </header>
+
+  <aside class="panel" aria-label="Datos y explicación">
+    <p class="sim-note" id="sim-note" hidden><b>SIMULACIÓN</b> El ESP32 no está conectado: se
+      muestra un día típico, no datos reales. Hora simulada <span id="sim-clock">--</span>.</p>
+
+    <p class="eyebrow">Reservorio (maqueta → real)</p>
+    <p class="level"><span id="pct">--</span><small>%</small></p>
+    <p class="liters"><span id="liters">--</span> L en la maqueta ≈ <b id="real-m3">--</b> m³ en un
+      reservorio real de 10 m³</p>
+    <p class="state" id="state">--</p>
+    <div class="bar"><span id="bar"></span></div>
+
+    <ul class="live">
+      <li data-live="flowIn"><i></i><span>Llega del manantial</span><b>--</b></li>
+      <li data-live="flowOut"><i></i><span>Sale al pueblo</span><b>--</b></li>
+      <li data-live="net"><i></i><span>Balance</span><b>--</b></li>
+      <li data-live="turbidity"><i></i><span>Claridad del agua</span><b>--</b></li>
+      <li data-live="ph"><i></i><span>pH</span><b>--</b></li>
+      <li data-live="temperature"><i></i><span>Temperatura</span><b>--</b></li>
+    </ul>
+
+    <div class="btn-row">
+      <button type="button" data-view="general">General</button>
+      <button type="button" data-view="manantial">Manantial</button>
+    </div>
+    <div class="btn-row">
+      <button type="button" data-view="reservorio">Reservorio</button>
+      <button type="button" data-view="pueblo">Pueblo</button>
+    </div>
+
+    <details class="story" open>
+      <summary>¿Cómo funciona?</summary>
+      <ol>
+        <li><b>Manantial y captación.</b> El agua brota del cerro y se protege en una caja de
+          concreto (cámara de captación) para que no se contamine.</li>
+        <li><b>Línea de conducción.</b> Una tubería enterrada la baja <b>por gravedad</b>, sin
+          bombas. Aquí va el <b>caudalímetro de entrada</b>.</li>
+        <li><b>Reservorio apoyado.</b> Guarda el agua y se clora. Está en una loma
+          <b>más alta que el pueblo</b> para que el agua llegue sola a las casas.</li>
+        <li><b>Caseta de válvulas.</b> Entrada, salida, by-pass, limpia y rebose: las mismas
+          tuberías de la maqueta. El <b>caudalímetro de salida</b> mide lo que va al pueblo.</li>
+        <li><b>Línea de aducción y red.</b> Lleva el agua a las piletas de cada casa.</li>
+      </ol>
+      <p>De noche casi nadie usa agua: el reservorio se llena y el exceso sale por el
+        <b>rebose</b>. En la mañana y en la tarde el pueblo consume más de lo que llega y el
+        nivel baja. Un reservorio de ~10 m³ alcanza para unas 300–400 personas: guarda
+        aproximadamente un tercio del agua que el pueblo usa en un día.</p>
+      <p class="hint">Ilustración sin escala. Los sensores de la maqueta (nivel, caudal,
+        turbidez, pH y temperatura) son los que usaría un operador de la JASS para vigilar el
+        sistema a distancia.</p>
+    </details>
+  </aside>
+
+  <div class="legend">
+    <span><i class="dot dot--flow"></i>Agua que llega</span>
+    <span><i class="dot dot--out"></i>Agua al pueblo</span>
+    <span><i class="dot dot--water"></i>Quebrada</span>
+  </div>
+
+  <div id="loading">Cargando escenario…</div>
+  <noscript><p class="noscript">Esta página necesita JavaScript y WebGL.</p></noscript>
+
+  <script type="module" src="./js/escenario.js"></script>
+</body>
+</html>

@@ -25,23 +25,37 @@
       <span aria-hidden="true">←</span> Dashboard
     </a>
     <div class="m-title">
-      <h1>Modelo digital del reservorio</h1>
+      <h1>Gemelo digital del reservorio</h1>
       <p>Vidrio 6 mm · 40 × 30 × 40.6 cm · caseta 22 × 20 × 26 cm</p>
     </div>
+    <a class="chip chip--case" href="./escenario.html">Caso real</a>
     <span id="mode-badge" class="chip">demo</span>
   </header>
 
   <aside class="panel" aria-label="Controles del modelo">
+    <p class="sim-note" id="sim-note" hidden><b>SIMULACIÓN</b> El ESP32 no está conectado: datos
+      de un día típico, no reales. Hora simulada <span id="sim-clock">--</span>.</p>
     <p class="eyebrow">Nivel de agua</p>
     <p class="level"><span id="level-pct">--</span><small>%</small></p>
     <p class="liters"><span id="level-cm">--</span> cm · <span id="level-l">--</span> L</p>
+    <p class="state" id="level-state">--</p>
     <div class="bar"><span id="level-bar"></span></div>
+
+    <p class="eyebrow">Sensores en vivo</p>
+    <ul class="live">
+      <li data-live="temperature"><i></i><span>Temperatura</span><b>--</b></li>
+      <li data-live="ph"><i></i><span>pH</span><b>--</b></li>
+      <li data-live="turbidity"><i></i><span>Claridad</span><b>--</b></li>
+      <li data-live="flowIn"><i></i><span>Entrada</span><b>--</b></li>
+      <li data-live="flowOut"><i></i><span>Salida</span><b>--</b></li>
+      <li data-live="net"><i></i><span>Neto</span><b>--</b></li>
+    </ul>
 
     <label class="field">Fuente de datos
       <select id="source">
-        <option value="auto">Auto</option>
-        <option value="demo">Demo</option>
-        <option value="esp32">ESP32</option>
+        <option value="auto">Auto (ESP32 o simulación)</option>
+        <option value="esp32">Solo ESP32</option>
+        <option value="demo">Manual (nivel de prueba)</option>
       </select>
     </label>
 
@@ -70,6 +84,8 @@
     <span><i class="dot dot--water"></i>Agua</span>
     <span><i class="dot dot--pvc"></i>PVC Ø 1/2"</span>
     <span><i class="dot dot--valve"></i>Válvulas</span>
+    <span><i class="dot dot--sensor"></i>Sensores</span>
+    <span><i class="dot dot--flow"></i>Flujo en vivo</span>
   </div>
 
   <div id="loading">Cargando modelo…</div>
