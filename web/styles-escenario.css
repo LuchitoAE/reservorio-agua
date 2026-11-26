@@ -112,6 +112,7 @@
 .paso-nav button:not(:disabled):hover { filter: brightness(1.06); }
 .dots { order: -1; width: 100%; display: flex; justify-content: center; gap: 6px; margin-bottom: 2px; }
 .paso-nav .dots button {
+  flex: none;  /* styles-modelo.css estira todos los botones */
   width: 9px;
   height: 9px;
   padding: 0;

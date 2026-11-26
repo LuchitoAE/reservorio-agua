@@ -1,40 +1,20 @@
-# Generador del informe
+# Documentos Word del proyecto
 
-Este directorio construye `Informe-Reservorio-Agua.docx` a partir del contenido en
-`contenido.py` y de las imágenes en `docs/img/`.
+Genera, sin código en el contenido:
 
-## Requisitos
-
-```bash
-./.venv/bin/pip install -r tools/informe/requirements.txt
-```
-
-También necesita un conversor de DOCX a PDF para calcular las páginas del índice:
-
-- LibreOffice (`soffice` o el flatpak `org.libreoffice.LibreOffice`), o
-- OnlyOffice `x2t` en `/opt/onlyoffice/desktopeditors/converter/x2t`.
-
-Si no hay conversor, el documento se genera igual, pero el índice queda sin números de página.
-
-## Generar
+- `Informe-Reservorio-Agua.docx` — reporte de lo que se hizo.
+- `docs/Conexion-de-sensores.docx` — conexión de los sensores, cable por cable.
 
 ```bash
-./.venv/bin/python tools/informe/generar.py
+./.venv/bin/python tools/informe/diagramas.py   # SVG de conexiones y arquitectura (si cambian)
+./.venv/bin/python tools/informe/generar.py     # los dos .docx
 ```
 
-El resultado se guarda en la raíz como `Informe-Reservorio-Agua.docx`. El script hace dos
-pasadas: la primera mide la paginación real y la segunda escribe el índice con los números
-correctos. Al final imprime la ruta de un PDF de control.
+- `estilo.py`: formato común (portada, títulos, tablas, recuadros, figuras).
+- `generar.py`: el texto de los dos documentos.
+- `diagramas.py`: diagramas en SVG; los PNG se obtienen con un navegador sin ventana
+  (por ejemplo `brave --headless=new --screenshot=... file://.../conexiones.svg`).
+- Las capturas de la web están en `docs/img/captura-*.png`.
 
-## Editar el contenido
-
-- `contenido.py` — lista de bloques: títulos, párrafos, listas, tablas, imágenes, código y avisos.
-- `formato.py` — estilos, portada, tablas, figuras y encabezado/pie.
-- `generar.py` — armado, índice y verificación.
-
-Los tipos de bloque disponibles son `h1`, `h2`, `h3`, `p`, `lista`, `numeros`, `checklist`,
-`tabla`, `imagen`, `codigo`, `callout` y `parte`. Las tablas y figuras se numeran
-automáticamente.
-
-Si cambias las capturas del dashboard, reemplaza los archivos de `docs/img/` y vuelve a
-generar. Las imágenes se renderizan desde los SVG que están en la misma carpeta.
+Para revisar el resultado como PDF:
+`flatpak run org.libreoffice.LibreOffice --headless --convert-to pdf Informe-Reservorio-Agua.docx`.

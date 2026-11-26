@@ -3,6 +3,15 @@
 
 :root { --cardw: clamp(262px, 22vw, 330px); }
 
+/* Fondo gris medio neutro (igual que la niebla y el piso de la escena 3D). */
+html:has(body.tablero),
+body.tablero {
+  background:
+    radial-gradient(1100px 760px at 50% 12%, #a9afb4, rgba(169, 175, 180, 0) 65%),
+    linear-gradient(170deg, #9ca2a8 0%, #91979d 55%, #868c92 100%);
+}
+.tablero .t-top { background: linear-gradient(180deg, rgba(226, 230, 234, 0.95), rgba(226, 230, 234, 0)); }
+
 .tablero .stage { position: fixed; inset: 0; }
 .tablero #scene { position: absolute; inset: 0; width: 100%; height: 100%; }
 .tablero #labels { position: absolute; inset: 0; overflow: hidden; }
