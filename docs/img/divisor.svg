@@ -30,7 +30,7 @@
   <text x="708" y="196" font-size="12.5" fill="#0891b2" font-family="Arial, Helvetica, sans-serif">Con R1 = R2 → Vout = Vin / 2</text>
   <text x="708" y="228" font-size="11.5" fill="#64748b" font-family="Arial, Helvetica, sans-serif">Para el firmware: factor = Vin / Vout</text>
 
-  <text x="90" y="392" font-size="12" fill="#475569" font-family="Arial, Helvetica, sans-serif">HC-SR04 ECHO: 5 V → 2.5 V   ·   SEN0189 AO: 4.5 V → 2.25 V   ·   pH Po: 3.8 V → 1.9 V</text>
+  <text x="90" y="392" font-size="12" fill="#475569" font-family="Arial, Helvetica, sans-serif">Se usa en: turbidez TS-300B (A: hasta ~4.5 V → 2.25 V)   ·   pH PH-7BNC (Po: hasta ~3.8 V → 1.9 V)</text>
   <defs>
     <marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
       <path d="M0,0 L0,6 L9,3 z" fill="#0891b2"/>

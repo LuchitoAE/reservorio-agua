@@ -34,7 +34,7 @@ const COLORS = {
   pvcDark: 0x8d99a5,
   valve: 0xd63b3b,
   steel: 0x9aa7b4,
-  base: 0xb4c0cb,
+  base: 0xc6ccd2,   // losa de apoyo, algo más clara que el piso
   dim: 0x1e4e79,
 };
 
@@ -50,7 +50,7 @@ renderer.toneMappingExposure = 1.05;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
 const scene = new THREE.Scene();
-scene.fog = new THREE.Fog(0xe6edf3, 220, 460);  // mismo tono que el fondo de la página
+scene.fog = new THREE.Fog(0x91979d, 240, 480);  // mismo gris medio que el fondo de la página
 
 const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 1000);
 camera.position.set(74, 54, 94);
@@ -190,14 +190,14 @@ world.add(base);
 
 const ground = new THREE.Mesh(
   new THREE.PlaneGeometry(400, 400),
-  new THREE.MeshStandardMaterial({ color: 0xdfe7ee, roughness: 1 }),
+  new THREE.MeshStandardMaterial({ color: 0x6e747a, roughness: 1 }),
 );
 ground.rotation.x = -Math.PI / 2;
 ground.position.y = -1.02;
 ground.receiveShadow = true;
 world.add(ground);
 
-const grid = new THREE.GridHelper(180, 36, 0xa9b9c7, 0xc8d4de);
+const grid = new THREE.GridHelper(180, 36, 0x5f676f, 0x6a7178);
 grid.position.y = -1.0;
 grid.material.transparent = true;
 grid.material.opacity = 0.6;
@@ -633,8 +633,7 @@ function addValve(pos, axis, { len = 5.0, handleRotY = 0 } = {}) {
 
 /* --- Entrada: acometida, paso directo, válvula, subida y codo al tanque --- */
 
-leg([3, 5.5, -35], [3, 5.5, -33.5], { s0: false, s1: false });
-bore([3, 5.5, -35], AXIS.z.clone().negate());
+leg([3, 5.5, -41], [3, 5.5, -33.5], { s0: false, s1: false });  // sale 6 cm de la caseta
 tee([3, 5.5, -32], AXIS.z, AXIS.x.clone().negate());
 leg([3, 5.5, -30.5], [3, 5.5, -28.5], { s0: false, s1: false });
 addValve([3, 5.5, -26], AXIS.z);
@@ -699,8 +698,7 @@ bulkhead(-7, 5.5);
 leg([-7, 5.5, -16.2], [-7, 5.5, -23.5], { s0: false, s1: false });
 addValve([-7, 5.5, -26], AXIS.z);
 leg([-7, 5.5, -28.5], [-7, 5.5, -30.5], { s0: false, s1: false });
-leg([-7, 5.5, -33.5], [-7, 5.5, -35], { s0: false, s1: false });
-bore([-7, 5.5, -35], AXIS.z.clone().negate());
+leg([-7, 5.5, -33.5], [-7, 5.5, -41], { s0: false, s1: false });  // sale 6 cm de la caseta
 
 /* --- Limpia: fondo, pasamuros, válvula cerca del tanque y tee --- */
 
@@ -709,8 +707,9 @@ bulkhead(8, 1.5);
 addValve([8, 1.5, -18.2], AXIS.z, { len: 3.6 });
 leg([8, 1.5, -20.0], [8, 1.5, -22.0], { s0: false, s1: false });
 tee([8, 1.5, -23.5], AXIS.z, AXIS.y);
-leg([8, 1.5, -25.0], [8, 1.5, -35], { s0: false, s1: false });
-bore([8, 1.5, -35], AXIS.z.clone().negate());
+leg([8, 1.5, -25.0], [8, 1.5, -41.2], { s0: false, s1: false });
+elbow([8, 1.5, -43], AXIS.z.clone().negate(), AXIS.y.clone().negate(), 1.8, { s1: 0.6 });
+bore([8, -0.9, -43], AXIS.y.clone().negate());  // descarga hacia el sumidero
 
 /* --- Rebose: campana a 31, sin válvula, baja por la línea de limpia --- */
 
@@ -722,6 +721,154 @@ bulkhead(8, 20);
 leg([8, 20, -16.2], [8, 20, -21.7], { s0: false, s1: false });
 elbow([8, 20, -23.5], AXIS.z.clone().negate(), AXIS.y.clone().negate());
 leg([8, 18.2, -23.5], [8, 3.0, -23.5], { s0: false, s1: false });
+
+/* ----------------------------------- alrededores: balde, mangueras y sumidero */
+// Completa la maqueta: el agua llega desde un balde elevado (por gravedad, como un
+// manantial), sale hacia un balde de recolección y la limpia (con el rebose) cae a un
+// sumidero en el piso. Los tubos salen ~6 cm de la caja de tubos y ahí va la manguera.
+
+const hoseMat = new THREE.MeshStandardMaterial({ color: 0x2f8a46, roughness: 0.45, metalness: 0.02 });
+const clampMat = new THREE.MeshStandardMaterial({ color: 0xc8cdd2, roughness: 0.3, metalness: 0.8 });
+const woodMat = new THREE.MeshStandardMaterial({ color: 0x9a6a40, roughness: 0.8 });
+const darkMat = new THREE.MeshStandardMaterial({ color: 0x2a2f35, roughness: 0.6, metalness: 0.4 });
+const HOSE_R = 0.62;
+
+// Adaptador de manguera al final de un tubo: rosca, espiga y abrazadera. Devuelve la
+// punta de la espiga (donde empieza la manguera).
+function hoseBarb(pos, dir) {
+  const d = dir.clone().normalize();
+  const p = V(pos);
+  const adapter = new THREE.Mesh(new THREE.CylinderGeometry(0.86, 0.86, 1.0, 22), pvcMat);
+  adapter.position.copy(p).addScaledVector(d, 0.5);
+  orient(adapter, d);
+  fit(adapter);
+  const barb = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.6, 1.5, 18), pvcDarkMat);
+  barb.position.copy(p).addScaledVector(d, 1.75);
+  orient(barb, d);
+  fit(barb);
+  const clamp = new THREE.Mesh(new THREE.TorusGeometry(HOSE_R + 0.08, 0.11, 8, 22), clampMat);
+  clamp.position.copy(p).addScaledVector(d, 2.6);
+  clamp.quaternion.setFromUnitVectors(AXIS.z, d);
+  fit(clamp);
+  return p.clone().addScaledVector(d, 2.0);
+}
+
+function hose(points) {
+  const curve = new THREE.CatmullRomCurve3(points.map((q) => (q.isVector3 ? q : V(q))), false, 'centripetal');
+  fit(new THREE.Mesh(new THREE.TubeGeometry(curve, Math.ceil(curve.getLength() * 2), HOSE_R, 12, false), hoseMat));
+  return curve;
+}
+
+// Balde de plástico abierto (paredes, fondo, borde y asa) con agua hasta `fill` (0-1).
+function bucket(x, y, z, { rTop = 13, rBottom = 11, h = 28, color = 0x1d63b8, fill = 0.7 } = {}) {
+  const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.55, side: THREE.DoubleSide });
+  const g = new THREE.Group();
+  g.position.set(x, y, z);
+  const wallMesh = new THREE.Mesh(new THREE.CylinderGeometry(rTop, rBottom, h, 40, 1, true), mat);
+  wallMesh.position.y = h / 2;
+  g.add(wallMesh);
+  const bottom = new THREE.Mesh(new THREE.CircleGeometry(rBottom, 40), mat);
+  bottom.rotation.x = -Math.PI / 2;
+  bottom.position.y = 0.05;
+  g.add(bottom);
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(rTop, 0.35, 8, 48), mat);
+  rim.rotation.x = Math.PI / 2;
+  rim.position.y = h;
+  g.add(rim);
+  const handle = new THREE.Mesh(new THREE.TorusGeometry(rTop - 0.4, 0.12, 6, 40, Math.PI), clampMat);
+  handle.position.y = h - 0.5;
+  handle.rotation.y = Math.PI / 2;
+  g.add(handle);
+  const wh = Math.max(0.3, h * fill);
+  const rW = rBottom + (rTop - rBottom) * fill - 0.3;
+  const waterBody = new THREE.Mesh(
+    new THREE.CylinderGeometry(rW, rBottom - 0.3, wh, 40),
+    new THREE.MeshPhysicalMaterial({ color: 0x2b97c4, roughness: 0.1, transparent: true, opacity: 0.85 }),
+  );
+  waterBody.position.y = wh / 2 + 0.1;
+  g.add(waterBody);
+  g.traverse((o) => {
+    if (o.isMesh) {
+      o.castShadow = true;
+      o.receiveShadow = true;
+    }
+  });
+  pipes.add(g);
+  return { group: g, topY: y + h, waterY: y + wh };
+}
+
+// --- Entrada: balde elevado sobre un banquito, con su llavecita y la manguera.
+const STOOL = { x: 24, z: -58, top: 40, size: 24 };  // el fondo del balde queda sobre la entrada (36 cm)
+{
+  const top = new THREE.Mesh(new THREE.BoxGeometry(STOOL.size, 2, STOOL.size), woodMat);
+  top.position.set(STOOL.x, STOOL.top - 1, STOOL.z);
+  fit(top);
+  const k = STOOL.size / 2 - 1.5;
+  for (const dx of [-k, k]) {
+    for (const dz of [-k, k]) {
+      const legMesh = new THREE.Mesh(new THREE.BoxGeometry(2, STOOL.top - 3, 2), woodMat);
+      legMesh.position.set(STOOL.x + dx, (STOOL.top - 3) / 2 - 1, STOOL.z + dz);
+      fit(legMesh);
+    }
+  }
+}
+const inBucket = bucket(STOOL.x, STOOL.top, STOOL.z, { rTop: 10.5, rBottom: 8.5, h: 21, color: 0x1d63b8, fill: 0.72 });
+const inBarb = hoseBarb([3, 5.5, -41], AXIS.z.clone().negate());
+// Llavecita del balde, cerca del fondo, mirando hacia la maqueta.
+const spigotDir = new THREE.Vector3(3 - STOOL.x, 0, -41 - STOOL.z).normalize();
+const spigotBase = new THREE.Vector3(STOOL.x, STOOL.top + 3, STOOL.z).addScaledVector(spigotDir, 8.9);
+{
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 2.4, 16), pvcMat);
+  body.position.copy(spigotBase).addScaledVector(spigotDir, 1.2);
+  orient(body, spigotDir);
+  fit(body);
+  const lever = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.35, 2.4), valveMat);
+  lever.position.copy(spigotBase).addScaledVector(spigotDir, 1.2).add(new THREE.Vector3(0, 0.9, 0));
+  lever.quaternion.setFromUnitVectors(AXIS.z, spigotDir);
+  fit(lever);
+}
+const spigotEnd = spigotBase.clone().addScaledVector(spigotDir, 2.6);
+const hoseInCurve = hose([
+  spigotEnd,
+  spigotEnd.clone().addScaledVector(spigotDir, 3).add(new THREE.Vector3(0, -6, 0)),
+  [11, 20, -49],
+  [5, 9, -43.5],
+  inBarb,
+]);
+
+// --- Salida: manguera desde el tubo de salida hasta un balde de recolección en el piso.
+const OUT_BUCKET = { x: -24, z: -52 };
+const outBucket = bucket(OUT_BUCKET.x, -1, OUT_BUCKET.z, { rTop: 12, rBottom: 10, h: 24, color: 0xe2e5e9, fill: 0.3 });
+const outBarb = hoseBarb([-7, 5.5, -41], AXIS.z.clone().negate());
+const hoseOutEnd = new THREE.Vector3(-16, 19, OUT_BUCKET.z);
+const hoseOutCurve = hose([
+  outBarb,
+  [-8, 2.5, -45.5],
+  [-10.2, 1, -50],
+  [-11, 10, -52],
+  [-11.4, 23.5, -52],
+  [-13, 26.2, -52],
+  [-15.2, 24.6, -52],
+  hoseOutEnd,
+]);
+
+// --- Limpia y rebose: el agua cae por el codo a un sumidero (rejilla) en el piso.
+{
+  const hole = new THREE.Mesh(new THREE.BoxGeometry(8, 0.1, 8), new THREE.MeshStandardMaterial({ color: 0x111418, roughness: 1 }));
+  hole.position.set(8, -0.99, -43);
+  fit(hole);
+  // Marco: un cuadrado con el centro abierto (4 lados).
+  for (const [dx, dz, w, d] of [[0, -4.4, 9.6, 0.8], [0, 4.4, 9.6, 0.8], [-4.4, 0, 0.8, 9.6], [4.4, 0, 0.8, 9.6]]) {
+    const side = new THREE.Mesh(new THREE.BoxGeometry(w, 0.3, d), darkMat);
+    side.position.set(8 + dx, -0.88, -43 + dz);
+    fit(side);
+  }
+  for (let i = -3; i <= 3; i++) {
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.25, 8), darkMat);
+    bar.position.set(8 + i * 1.1, -0.9, -43);
+    fit(bar);
+  }
+}
 
 /* ------------------------------------------------------------- dimensiones */
 
@@ -773,8 +920,9 @@ addLabel('Rebose · 31 cm', [9.5, 32.7, -7], 'tag--water', { tankOnly: true });
 addLabel('Salida del tanque · 5.5 cm', [-7, 8, -12.6], 'tag--water tag--secondary', { tankOnly: true });
 addLabel('Limpia · 1.5 cm', [8, 3.8, -12], 'tag--water tag--secondary', { tankOnly: true });
 addLabel('Paso directo', [-2, 9.5, -32], 'tag--valve', { casetaOnly: true });
-addLabel('Entrada de agua', [4.5, 2.2, -34], 'tag--secondary', { casetaOnly: true });
-addLabel('Salida a la población', [-8.5, 2.2, -34], 'tag--secondary', { casetaOnly: true });
+addLabel('Balde de entrada (agua que llega)', [STOOL.x, inBucket.topY + 4, STOOL.z], 'tag--secondary', { backOnly: true });
+addLabel('Balde de salida (agua que va al pueblo)', [OUT_BUCKET.x, outBucket.topY + 4, OUT_BUCKET.z], 'tag--secondary', { backOnly: true });
+addLabel('Sumidero (limpia y rebose)', [8, 4, -47], 'tag--secondary', { backOnly: true });
 addLabel('Limpia', [9.2, 3.2, -18], 'tag--secondary', { casetaOnly: true });
 addLabel('Desfogue automático (sin válvula)', [9, 15, -23.5], 'tag--water tag--secondary', { casetaOnly: true });
 addLabel('40.0 cm', [0, -0.6, 20.4], 'tag--dim');
@@ -853,14 +1001,30 @@ function stepFlow(f, lpm, dt, maxOpacity = 0.45) {
 }
 
 const flowIn = flowLine(
-  flowPath([[3, 5.5, -35], [3, 5.5, -19], [3, 36, -19], [3, 36, -12], [3, 35, -12]], [1.8, 1.8, 0.45]),
+  flowPath([[3, 5.5, -41], [3, 5.5, -19], [3, 36, -19], [3, 36, -12], [3, 35, -12]], [1.8, 1.8, 0.45]),
   0xa78bfa,
 );
-const flowOut = flowLine(flowPath([[-7, 5.5, -14], [-7, 5.5, -35]]), 0xf472b6);
+const flowOut = flowLine(flowPath([[-7, 5.5, -14], [-7, 5.5, -41]]), 0xf472b6);
 const flowOverflow = flowLine(
-  flowPath([[8, 29.7, -7], [8, 20, -7], [8, 20, -23.5], [8, 1.5, -23.5], [8, 1.5, -35]], [1.8, 1.8, 0.6]),
+  flowPath([[8, 29.7, -7], [8, 20, -7], [8, 20, -23.5], [8, 1.5, -23.5], [8, 1.5, -43], [8, -0.9, -43]], [1.8, 1.8, 0.6, 1.8]),
   0x38bdf8,
 );
+const hoseInFlow = flowLine(hoseInCurve, 0xa78bfa, HOSE_R * 1.05);
+const hoseOutFlow = flowLine(hoseOutCurve, 0xf472b6, HOSE_R * 1.05);
+
+// Chorro que cae de la manguera dentro del balde de salida.
+const bucketJetTex = stripeTexture();
+const bucketJetMat = new THREE.MeshBasicMaterial({ color: 0xbfe9ff, map: bucketJetTex, transparent: true, opacity: 0, depthWrite: false });
+const bucketJetLen = Math.max(1, hoseOutEnd.y - outBucket.waterY);
+const bucketJet = new THREE.Mesh(
+  new THREE.TubeGeometry(new THREE.LineCurve3(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, -bucketJetLen, 0)), 6, 0.28, 10),
+  bucketJetMat,
+);
+bucketJet.position.copy(hoseOutEnd);
+bucketJet.renderOrder = 4;
+bucketJetTex.repeat.set(bucketJetLen / FLOW_PERIOD, 1);
+world.add(bucketJet);
+const bucketJetFlow = { mesh: bucketJet, mat: bucketJetMat, tex: bucketJetTex, speed: 6 };
 
 // Chorro de entrada: cae desde la boca (35 cm) hasta la superficie del agua.
 const jetTex = stripeTexture();
@@ -914,6 +1078,9 @@ function updateTwin(dt) {
 
   stepFlow(flowIn, lpmIn, dt);
   stepFlow(flowOut, lpmOut, dt);
+  stepFlow(hoseInFlow, lpmIn, dt);
+  stepFlow(hoseOutFlow, lpmOut, dt);
+  stepFlow(bucketJetFlow, lpmOut > 0.02 ? Math.max(lpmOut, 3) : 0, dt, 0.55);
   stepFlow(flowOverflow, t && currentLevel >= OVERFLOW_CM ? 3 : 0, dt, 0.4);
 
   // Chorro: largo hasta el agua y franjas a la misma escala.
@@ -939,6 +1106,7 @@ function updateLabels() {
   for (const label of labels) {
     const hidden =
       label.off ||
+      (label.backOnly && camera.position.z > -15) ||  // detrás de la caseta: solo vista desde atrás
       (label.dim && !showDims) ||
       (label.tankOnly && soloCaseta) ||
       (label.casetaOnly && !soloCaseta);
@@ -990,7 +1158,7 @@ const views = {
   iso: { pos: [74, 54, 94], target: [0, 19, 2] },
   front: { pos: [0, 22, 112], target: [0, 20, 2] },
   top: { pos: [0.1, 140, 2.1], target: [0, 0, 2] },
-  caseta: { pos: [48, 40, -92], target: [0, 12, cZ] },
+  caseta: { pos: [6, 104, -178], target: [0, 16, -44] },  // desde atrás y arriba: caseta, mangueras y baldes
 };
 
 let camAnim = null;

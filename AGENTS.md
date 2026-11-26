@@ -52,6 +52,13 @@ Repositorio público: <https://github.com/LuchitoAE/reservorio-agua>
 - **Flujo de agua sutil y lento** (tablero y caso real): brillo suave pegado al tubo, opacidad
   ~0.45 y 1.5–12 cm/s, en lugar del "tubo de color" rápido.
 - **Tarjetas más grandes** (`--cardw` 262–330 px, números ~2.6 rem, gráfica 54 px).
+- **Maqueta completa y fondo gris medio (26/11/2026):** los tubos de entrada y salida salen 6 cm de
+  la caseta (z = −41) con adaptador, espiga y abrazadera; **balde azul elevado** sobre un banquito
+  (fondo a 40 cm, sobre la entrada de 36 cm) con llavecita y **manguera verde** por gravedad;
+  manguera de salida a un **balde blanco de recolección** en el piso (chorro cuando sale agua); la
+  limpia baja con un codo a un **sumidero** con rejilla (ahí cae el rebose). Flujo animado también
+  en las mangueras. Etiquetas de estos elementos solo con la cámara detrás (`backOnly`). Vista
+  "Ver caseta" desde atrás y arriba. Fondo y piso gris medio (`styles-tablero.css`, `model3d.js`).
 - **Caso real mejorado:** tema claro, cabecera sólida, noche azulada (no a oscuras), datos en
   cuadritos (reservorio %, m³ reales, llega/sale, balance) y **recorrido guiado de 6 pasos**
   (general, manantial, conducción, reservorio, caseta, pueblo) que mueve la cámara, resalta la
@@ -73,7 +80,7 @@ Repositorio público: <https://github.com/LuchitoAE/reservorio-agua>
 | Caso real | `web/escenario.html` + `js/escenario.js` (25/11/2026): escena 3D ilustrativa de un sistema rural por gravedad con **manantial** (elección del usuario): captación → línea de conducción → reservorio apoyado con caseta y cerco en una loma → aducción → pueblo con red de distribución; quebrada y rebose. Flujo animado con datos reales o simulados, nivel en un corte del reservorio, color por turbidez, luz según la hora. Equivalencia: maqueta al 100 % ≈ reservorio real de 10 m³ (300–400 personas). Vistas `#general`, `#manantial`, `#reservorio`, `#pueblo`. |
 | Dashboard | Verificado en escritorio y móvil. Desde el 25/11/2026 **sin modo demo**: solo datos reales; sensor no conectado (`ok=false`) o ESP32 sin respuesta → valores en 0 e indicador rojo (`web/js/lecturas.js`). El caudal cuenta como conectado solo con caudal > 0. El diagnóstico muestra los valores crudos reales. `modelo.html` conserva su modo demo (nivel manual) por la regla del modelo aprobado. |
 | Modelo 3D | **Aprobado para la fase 1 (24/11/2026).** Trazado y acabado realista (codos, tees, uniones, pasamuros, válvulas de bola). No cambiar salvo pedido explícito. **Gemelo digital (25/11/2026, pedido del usuario):** sin mover piezas, se agregaron los 6 sensores (HC-SR04 a 36 cm con haz y pulsos, sondas de pH/turbidez/DS18B20 en una regleta, caudalímetros ZJ-S201 sobre la subida de entrada y la salida), flujo animado según L/min (entrada, salida y rebose si nivel ≥ 31 cm), chorro de entrada, color del agua según la claridad, etiquetas y panel "Sensores en vivo". El nivel usa `levelCm` (antes el % cortaba en 100). Probado con un ESP32 simulado. **Ajustes (25/11/2026, pedidos del usuario):** llaves de paso de **PVC blanco con palanca roja**; los **caudalímetros van fuera de la caseta**, en los tubos que llegan desde afuera (tuberías extendidas hasta z = −46, soportes de concreto). `modelo.html#caseta` (o `#front`, `#top`) abre en esa vista. Auto = ESP32 o simulación; Manual = deslizador. |
-| Informe DOCX | Generado y validado (35 páginas). |
+| Documentos | **26/11/2026 (pedido del usuario):** se borraron los 8 `.md` de `docs/` y la copia `Informe-Reservorio-Aguagvvgh.docx`. Quedan dos Word **sin código**: `Informe-Reservorio-Agua.docx` (reporte, 13 páginas: sensores, calibración, web, caso real, enlace en tiempo real, alimentación, pruebas y pendientes) y `docs/Conexion-de-sensores.docx` (9 páginas, cable por cable). Se generan con `tools/informe/generar.py` (+ `estilo.py`, `diagramas.py`); capturas en `docs/img/captura-*.png`. |
 | WiFi | **Conectado** a la red de la casa (2.4 GHz, WPA2) con **IP fija 192.168.2.200** (router/gateway 192.168.2.100; `WIFI_STATIC_IP`, `WIFI_GATEWAY`, `WIFI_SUBNET`, `WIFI_DNS` en `secrets.h`). `http://reservorio.local`. **OTA activo y verificado** (ArduinoOTA, puerto 3232, clave `OTA_PASSWORD` en `secrets.h`): `./tools/ota.sh` y `./tools/ota.sh uploadfs`. Si falla, AP `Reservorio-Setup` (clave `reservorio`, 192.168.4.1). |
 
 ## Tanque (plano Rev. 04)
@@ -119,8 +126,10 @@ Coordenadas en cm; X positivo a la derecha, Z negativo hacia la caseta/atrás.
 
 - Linux (Arch). **No hay npm**; usar `node` y `./tools/pio.sh`.
 - `.venv/` contiene PlatformIO, `python-docx` y Pillow.
-- Informe: `./.venv/bin/python tools/informe/generar.py`. Usa LibreOffice (flatpak) para el
-  PDF y calcula el índice a dos pasadas. `x2t` de OnlyOffice no funciona en esta máquina.
+- Documentos Word: `./.venv/bin/python tools/informe/generar.py` (python-docx). Para revisar como
+  PDF: `flatpak run --filesystem=/tmp --filesystem=home org.libreoffice.LibreOffice --headless
+  --convert-to pdf ...` (el comando dentro del flatpak no se llama `soffice`). La consola es
+  **zsh**: no separa palabras de variables; para varios comandos con `brave` usar un script bash.
 - Puerto serie `/dev/ttyUSB0` (CP2102) requiere grupo `uucp`; se puede habilitar con
   `sudo usermod -aG uucp $USER` o, temporalmente, `chmod 666` vía Docker.
 - La PC tiene **ufw** activo: para OTA el ESP32 se conecta de vuelta al puerto TCP 8266
@@ -158,10 +167,7 @@ node tools/sync-web.js                    # web -> firmware/data
    **Conexión directa** (sin Supabase): botón "Conectar con el ESP32 de mi casa" en la web
    publicada; `fetch` con `targetAddressSpace: 'local'` (Chrome/Edge 141+, permiso de red local,
    solo en el WiFi de la casa); se recuerda en localStorage (`reservorio.esp32Directo`).
-   PR #1 abierto (rama `gemelo-digital-y-nube`): falta que el usuario lo una a `main` e
-   importe el repo en Vercel (Root Directory `web`).
-
-1. Verificar en el dashboard la turbidez con agua de caño (~100 %) y regenerar el informe con la calibración nueva.
-2. Revisar el cableado de turbidez (lee ~0 V desde que se conectó el pH).
-3. Conectar HC-SR04, YF-S201, turbidez y pH; calibrar y completar el plan de pruebas.
-4. Fase 2: Vercel + Supabase e histórico. Fase 3: versión realista del modelo 3D.
+   Publicado en Vercel (`vercel.json` en la raíz: `outputDirectory: web`, `cleanUrls`).
+1. Activar Supabase (pasos en el informe; `docs/supabase.sql`) para ver datos reales desde cualquier lugar.
+2. Verificar los caudalímetros con 1 litro (~450 pulsos) y calibrar el pH con buffers 4 y 7.
+3. Montar los sensores en la maqueta definitiva (nivel a 36 cm, mirando al agua).
