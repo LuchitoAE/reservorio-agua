@@ -257,7 +257,9 @@ void WebUI::handleNotFound() {
     return;
   }
 
-  if (!serveFile(path)) {
+  // Direcciones sin extensión (como en Vercel): /escenario -> /escenario.html
+  const bool noExtension = path.lastIndexOf('.') < path.lastIndexOf('/') || path.lastIndexOf('.') < 0;
+  if (!serveFile(path) && !(noExtension && serveFile(path + ".html"))) {
     server_.send(404, "text/plain", "404: " + path);
   }
 }

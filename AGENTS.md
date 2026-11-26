@@ -34,6 +34,15 @@ Repositorio público: <https://github.com/LuchitoAE/reservorio-agua>
   con estrías; el by-pass se dibuja cerrado (manija cruzada).
 - Vercel publica solo la carpeta `web` (Root Directory); el informe y el firmware quedan solo
   en el repositorio.
+- Publicado en <https://reservorio-agua-web.vercel.app/> (proyecto de Vercel conectado a `main`).
+  Vercel usa **direcciones sin `.html`** (`/escenario`, `/mantenimiento`; `web/vercel.json` con
+  `cleanUrls: true`). Los enlaces de la web van sin `.html`; el ESP32 y `tools/dev-server.js`
+  sirven `/escenario` como `escenario.html`.
+- **Modelo 3D sin sensores (26/11/2026, pedido del usuario):** se quitaron el sensor de nivel,
+  su haz, las sondas, la regleta, los caudalímetros y sus etiquetas (los valores están en las
+  tarjetas). Quedan el flujo animado, el chorro, el rebose y el color del agua. Las tuberías
+  vuelven a terminar en la pared de la caseta (z = −35). El "Caso real" conserva sus
+  caudalímetros ilustrativos.
 
 ## Estado actual
 

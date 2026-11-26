@@ -633,6 +633,7 @@ function addValve(pos, axis, { len = 5.0, handleRotY = 0 } = {}) {
 /* --- Entrada: acometida, paso directo, válvula, subida y codo al tanque --- */
 
 leg([3, 5.5, -35], [3, 5.5, -33.5], { s0: false, s1: false });
+bore([3, 5.5, -35], AXIS.z.clone().negate());
 tee([3, 5.5, -32], AXIS.z, AXIS.x.clone().negate());
 leg([3, 5.5, -30.5], [3, 5.5, -28.5], { s0: false, s1: false });
 addValve([3, 5.5, -26], AXIS.z);
@@ -698,6 +699,7 @@ leg([-7, 5.5, -16.2], [-7, 5.5, -23.5], { s0: false, s1: false });
 addValve([-7, 5.5, -26], AXIS.z);
 leg([-7, 5.5, -28.5], [-7, 5.5, -30.5], { s0: false, s1: false });
 leg([-7, 5.5, -33.5], [-7, 5.5, -35], { s0: false, s1: false });
+bore([-7, 5.5, -35], AXIS.z.clone().negate());
 
 /* --- Limpia: fondo, pasamuros, válvula cerca del tanque y tee --- */
 
@@ -770,146 +772,25 @@ addLabel('Rebose · 31 cm', [9.5, 32.7, -7], 'tag--water', { tankOnly: true });
 addLabel('Salida del tanque · 5.5 cm', [-7, 8, -12.6], 'tag--water tag--secondary', { tankOnly: true });
 addLabel('Limpia · 1.5 cm', [8, 3.8, -12], 'tag--water tag--secondary', { tankOnly: true });
 addLabel('Paso directo', [-2, 9.5, -32], 'tag--valve', { casetaOnly: true });
-addLabel('Entrada de agua (del manantial)', [4.5, 2.2, -45], 'tag--secondary', { casetaOnly: true });
-addLabel('Salida a la población', [-8.5, 2.2, -45], 'tag--secondary', { casetaOnly: true });
+addLabel('Entrada de agua', [4.5, 2.2, -34], 'tag--secondary', { casetaOnly: true });
+addLabel('Salida a la población', [-8.5, 2.2, -34], 'tag--secondary', { casetaOnly: true });
 addLabel('Limpia', [9.2, 3.2, -18], 'tag--secondary', { casetaOnly: true });
 addLabel('Desfogue automático (sin válvula)', [9, 15, -23.5], 'tag--water tag--secondary', { casetaOnly: true });
 addLabel('40.0 cm', [0, -0.6, 20.4], 'tag--dim');
 addLabel('30.0 cm', [25.6, -0.6, 0], 'tag--dim');
 
-/* ----------------------------------------------------------- gemelo digital */
-// Los 6 sensores dibujados en su lugar y animados con los datos reales del ESP32:
-// haz del ultrasónico hasta el agua, flujo en las tuberías de entrada/salida (y el
-// rebose si el tanque rebalsa), chorro de entrada, color del agua según la turbidez
-// y etiquetas con los valores en vivo. No mueve ninguna pieza del modelo aprobado.
+/* ------------------------------------------------------ datos en el modelo */
+// El modelo no dibuja los sensores (sus valores están en las tarjetas del tablero): solo
+// muestra el agua con los datos reales o simulados. Flujo animado en las tuberías de
+// entrada y salida según los L/min (y en el rebose si el nivel llega a 31 cm), chorro de
+// entrada y color del agua según la claridad.
 
-const SENSOR_FACE_Y = wall + 36;     // cara del HC-SR04: 36 cm sobre el fondo interior (ocupa 36–38 cm)
-const PROBE_Z = 6;                   // fila de sondas, lejos de tuberías y rebose
-const BAR_Y = D.H + 0.55;            // regleta de aluminio apoyada sobre el marco
-const BAR_BOTTOM = BAR_Y - 0.25;
-const OVERFLOW_CM = 31;              // rebose físico
+const OVERFLOW_CM = 31;  // rebose físico
 
-const tankSensors = new THREE.Group();
-world.add(tankSensors);
+// Chorro y salpicadura van dentro del tanque: se ocultan con "Ver caseta".
+const tankFx = new THREE.Group();
+world.add(tankFx);
 
-const darkPlasticMat = new THREE.MeshStandardMaterial({ color: 0x1a2129, roughness: 0.55, metalness: 0.05 });
-const pcbMat = new THREE.MeshStandardMaterial({ color: 0x1f5fbf, roughness: 0.6, metalness: 0.1 });
-const meshMat = new THREE.MeshStandardMaterial({ color: 0xc3ccd6, roughness: 0.38, metalness: 0.75 });
-const cableMat = new THREE.MeshStandardMaterial({ color: 0x0e141a, roughness: 0.85 });
-const clearPlasticMat = new THREE.MeshPhysicalMaterial({
-  color: 0xe6f8ff,
-  roughness: 0.05,
-  transparent: true,
-  opacity: 0.42,
-  depthWrite: false,
-});
-
-function part(geometry, material, x, y, z, parent = tankSensors) {
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.position.set(x, y, z);
-  mesh.castShadow = true;
-  parent.add(mesh);
-  return mesh;
-}
-
-function cable(x, fromY) {
-  const len = BAR_BOTTOM - fromY;
-  part(new THREE.CylinderGeometry(0.17, 0.17, len, 10), cableMat, x, fromY + len / 2, PROBE_Z);
-}
-
-// Regleta de soporte de los sensores, apoyada sobre el marco del tanque.
-part(new THREE.BoxGeometry(D.L + 1.2, 0.5, 2.4), rimMat, 0, BAR_Y, PROBE_Z);
-
-// HC-SR04 mirando hacia abajo: placa, dos transductores con malla y soporte.
-{
-  const pcbY = SENSOR_FACE_Y + 1.28;
-  part(new THREE.BoxGeometry(4.5, 0.16, 2.0), pcbMat, 0, pcbY, PROBE_Z);
-  part(new THREE.BoxGeometry(1.0, 0.3, 0.45), meshMat, 0, pcbY + 0.22, PROBE_Z);    // cristal
-  part(new THREE.BoxGeometry(1.4, BAR_BOTTOM - pcbY, 0.3), rimMat, 0, (BAR_BOTTOM + pcbY) / 2, PROBE_Z - 0.6);
-  for (const x of [-1.3, 1.3]) {
-    part(new THREE.CylinderGeometry(0.8, 0.8, 1.2, 26), meshMat, x, SENSOR_FACE_Y + 0.6, PROBE_Z);
-    const face = part(new THREE.CircleGeometry(0.68, 26), darkPlasticMat, x, SENSOR_FACE_Y - 0.01, PROBE_Z);
-    face.rotation.x = Math.PI / 2;
-  }
-}
-
-// Sonda de pH (PH-7BNC): cuerpo, protector abierto y bulbo de vidrio.
-const PH_X = -13;
-part(new THREE.CylinderGeometry(0.6, 0.6, 11, 22), darkPlasticMat, PH_X, 11.8, PROBE_Z);
-part(new THREE.CylinderGeometry(0.64, 0.64, 1.3, 22, 1, true), darkPlasticMat, PH_X, 5.7, PROBE_Z);
-part(new THREE.SphereGeometry(0.42, 20, 14), clearPlasticMat, PH_X, 5.45, PROBE_Z);
-part(new THREE.CylinderGeometry(0.42, 0.6, 1.0, 20), darkPlasticMat, PH_X, 17.8, PROBE_Z);
-cable(PH_X, 18.3);
-
-// Turbidez (TS-300B): cuerpo y las dos patas transparentes del camino óptico.
-const TURB_X = -6.5;
-part(new THREE.CylinderGeometry(1.3, 1.3, 3.2, 28), darkPlasticMat, TURB_X, 7.6, PROBE_Z);
-for (const dx of [-0.75, 0.75]) {
-  part(new THREE.BoxGeometry(0.8, 1.7, 2.0), clearPlasticMat, TURB_X + dx, 5.15, PROBE_Z);
-}
-part(new THREE.CylinderGeometry(0.5, 0.5, 0.8, 16), darkPlasticMat, TURB_X, 9.6, PROBE_Z);
-cable(TURB_X, 10);
-
-// Temperatura (DS18B20 sumergible): vaina de acero y termocontraíble.
-const TEMP_X = 13;
-part(new THREE.CylinderGeometry(0.3, 0.3, 5, 16), meshMat, TEMP_X, 7, PROBE_Z);
-part(new THREE.SphereGeometry(0.3, 14, 10), meshMat, TEMP_X, 4.5, PROBE_Z);
-part(new THREE.CylinderGeometry(0.34, 0.34, 1.3, 16), cableMat, TEMP_X, 10.1, PROBE_Z);
-cable(TEMP_X, 10.7);
-
-// Caudalímetros ZJ-S201 sobre las tuberías existentes (no se mueve ningún tubo).
-function addFlowMeter(pos, axis, housingDir) {
-  const g = new THREE.Group();
-  g.position.copy(V(pos));
-  g.quaternion.setFromUnitVectors(AXIS.y, axis.clone().normalize());
-
-  part(new THREE.CylinderGeometry(1.25, 1.25, 4.0, 30), darkPlasticMat, 0, 0, 0, g);
-  for (const s of [-1, 1]) {
-    part(new THREE.CylinderGeometry(0.95, 0.95, 1.1, 24), darkPlasticMat, 0, s * 2.55, 0, g);
-    for (let i = 0; i < 3; i++) {
-      const ring = part(new THREE.TorusGeometry(0.95, 0.05, 6, 24), darkPlasticMat, 0, s * (2.2 + i * 0.32), 0, g);
-      ring.rotation.x = Math.PI / 2;
-    }
-  }
-  // Caja del sensor Hall con sus tres cables (rojo, negro, amarillo).
-  const h = housingDir.clone().normalize();
-  const housing = part(new THREE.BoxGeometry(2.0, 2.0, 2.0), darkPlasticMat, 0, 0, 0, g);
-  housing.position.copy(h.clone().multiplyScalar(1.6));
-  housing.scale.set(Math.abs(h.x) > 0.5 ? 0.8 : 1, 1, Math.abs(h.z) > 0.5 ? 0.8 : 1);
-  [0xd63b3b, 0x111111, 0xf2c230].forEach((color, i) => {
-    const wire = part(
-      new THREE.CylinderGeometry(0.11, 0.11, 1.4, 8),
-      new THREE.MeshStandardMaterial({ color, roughness: 0.6 }),
-      0, 0, 0, g,
-    );
-    wire.position.copy(h.clone().multiplyScalar(3.2)).add(new THREE.Vector3(0, (i - 1) * 0.28, 0));
-    wire.quaternion.setFromUnitVectors(AXIS.y, h);
-  });
-  // Flecha en relieve: sentido del agua.
-  const side = new THREE.Vector3(1, 0, 0);
-  part(new THREE.CylinderGeometry(0.09, 0.09, 1.6, 8), pvcMat, side.x * 1.27, -0.3, 0, g);
-  part(new THREE.ConeGeometry(0.32, 0.7, 14), pvcMat, side.x * 1.27, 0.85, 0, g);
-
-  pipes.add(g);
-  return g;
-}
-
-// Fuera de la caseta, en los tubos que llegan desde afuera (como en la maqueta real):
-// el de entrada mide lo que llega del manantial; el de salida, lo que va al pueblo.
-const OUT_Z = -46;      // extremo exterior de las tuberías
-const METER_Z = -40.5;  // centro de los caudalímetros
-for (const x of [3, -7]) {
-  leg([x, 5.5, -35], [x, 5.5, OUT_Z], { s0: false, s1: false });
-  bore([x, 5.5, OUT_Z], AXIS.z.clone().negate());
-  // Soporte de concreto bajo el caudalímetro.
-  const pedestal = new THREE.Mesh(new THREE.BoxGeometry(2.2, 5.25, 2.2), baseMat);
-  pedestal.position.set(x, 1.625, METER_Z);  // del piso (-1) hasta debajo del caudalímetro
-  fit(pedestal);
-}
-addFlowMeter([3, 5.5, METER_Z], AXIS.z, new THREE.Vector3(0, 1, 0).applyAxisAngle(AXIS.x, -Math.PI / 2));
-addFlowMeter([-7, 5.5, METER_Z], AXIS.z.clone().negate(), new THREE.Vector3(0, 0, 1));
-
-// Flujo animado: franjas que avanzan sobre la tubería según los L/min reales.
 const FLOW_PERIOD = 2.4; // cm entre franjas
 
 function stripeTexture() {
@@ -970,10 +851,10 @@ function stepFlow(f, lpm, dt, maxOpacity = 0.92) {
 }
 
 const flowIn = flowLine(
-  flowPath([[3, 5.5, OUT_Z], [3, 5.5, -19], [3, 36, -19], [3, 36, -12], [3, 35, -12]], [1.8, 1.8, 0.45]),
+  flowPath([[3, 5.5, -35], [3, 5.5, -19], [3, 36, -19], [3, 36, -12], [3, 35, -12]], [1.8, 1.8, 0.45]),
   0xa78bfa,
 );
-const flowOut = flowLine(flowPath([[-7, 5.5, -14], [-7, 5.5, OUT_Z]]), 0xf472b6);
+const flowOut = flowLine(flowPath([[-7, 5.5, -14], [-7, 5.5, -35]]), 0xf472b6);
 const flowOverflow = flowLine(
   flowPath([[8, 29.7, -7], [8, 20, -7], [8, 20, -23.5], [8, 1.5, -23.5], [8, 1.5, -35]], [1.8, 1.8, 0.6]),
   0x38bdf8,
@@ -988,54 +869,28 @@ const jet = new THREE.Mesh(
 );
 jet.position.set(3, 35, -12);
 jet.renderOrder = 4;
-tankSensors.add(jet);
+tankFx.add(jet);
 const jetFlow = { mesh: jet, mat: jetMat, tex: jetTex, speed: 20 };
 
 const splashMat = new THREE.MeshBasicMaterial({ color: 0xd9f6ff, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false });
 const splash = new THREE.Mesh(new THREE.RingGeometry(0.45, 0.62, 32), splashMat);
 splash.rotation.x = -Math.PI / 2;
 splash.renderOrder = 5;
-tankSensors.add(splash);
-
-// Haz del HC-SR04 (15°) y pulsos que bajan hasta el agua.
-const BEAM_TAN = Math.tan(THREE.MathUtils.degToRad(7.5));
-const beamMat = new THREE.MeshBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.07, side: THREE.DoubleSide, depthWrite: false });
-const beam = new THREE.Mesh(new THREE.BufferGeometry(), beamMat);
-beam.renderOrder = 5;
-tankSensors.add(beam);
-let beamLen = -1;
-
-const pulses = [0, 1, 2].map((i) => {
-  const mat = new THREE.MeshBasicMaterial({ color: 0x9be7ff, transparent: true, opacity: 0, depthWrite: false });
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(1, 0.045, 6, 48), mat);
-  ring.rotation.x = Math.PI / 2;
-  ring.renderOrder = 5;
-  tankSensors.add(ring);
-  return { ring, mat, phase: i / 3 };
-});
-
-function updateBeam(surfaceY, dt) {
-  const len = Math.max(0.5, SENSOR_FACE_Y - surfaceY);
-  if (Math.abs(len - beamLen) > 0.15) {
-    beamLen = len;
-    beam.geometry.dispose();
-    beam.geometry = new THREE.CylinderGeometry(1.5, 1.5 + BEAM_TAN * len, len, 32, 1, true);
-    beam.position.set(0, SENSOR_FACE_Y - len / 2, PROBE_Z);
-  }
-  for (const p of pulses) {
-    p.phase = (p.phase + dt / 1.6) % 1;
-    const d = p.phase * beamLen;
-    const r = 1.5 + BEAM_TAN * d;
-    p.ring.position.set(0, SENSOR_FACE_Y - d, PROBE_Z);
-    p.ring.scale.set(r, r, 1);
-    p.mat.opacity = 0.55 * (1 - p.phase);
-  }
-}
+tankFx.add(splash);
 
 // Color del agua: de celeste (100 % de claridad) a marrón (0 %).
 const WATER_CLEAR = { body: new THREE.Color(0x07566e), top: new THREE.Color(0x5fd8f5), glow: new THREE.Color(0x0a4b60) };
 const WATER_TURBID = { body: new THREE.Color(0x5b4426), top: new THREE.Color(0xa07f52), glow: new THREE.Color(0x2a1d0c) };
 let turbidMix = 0;
+
+// started/snap: con el primer dato (o al pasar de simulación a real) el agua toma su
+// nivel y color al instante, sin animar desde el valor anterior.
+const live = { data: null, started: false, snap: false, kind: null };
+
+function renderLive(t) {
+  live.data = t;
+  if (!t) live.started = false;
+}
 
 function updateWaterColor(dt) {
   const clarity = live.data?.turbidity?.ok ? live.data.turbidity.clarity : 100;
@@ -1048,78 +903,8 @@ function updateWaterColor(dt) {
   waterMat.opacity = 0.66 + 0.24 * turbidMix;
 }
 
-// Etiquetas con valores en vivo (se ocultan sin datos del ESP32).
-function liveLabel(position, cls, flags = {}) {
-  addLabel('', position, `tag--live ${cls}`.trim(), { ...flags, off: true });
-  return labels[labels.length - 1];
-}
-
-const liveTags = {
-  level: liveLabel([0, 44.2, PROBE_Z], '', { tankOnly: true }),
-  ph: liveLabel([PH_X - 1, 21.5, PROBE_Z + 1], '', { tankOnly: true }),
-  turbidity: liveLabel([TURB_X, 12.4, PROBE_Z + 1.5], '', { tankOnly: true }),
-  temperature: liveLabel([TEMP_X + 1, 12.6, PROBE_Z + 1], '', { tankOnly: true }),
-  flowIn: liveLabel([5.5, 11, METER_Z], 'tag--flow'),
-  flowOut: liveLabel([-9.5, 11, METER_Z], 'tag--flow'),
-};
-
-const live = { data: null };
-const fmt = (v, d) => (typeof v === 'number' && Number.isFinite(v)
-  ? v.toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d })
-  : '--');
-
-const liveRows = Object.fromEntries(
-  [...document.querySelectorAll('[data-live]')].map((li) => [li.dataset.live, li]),
-);
-
-function setRow(key, text, state) {
-  const li = liveRows[key];
-  if (!li) return;
-  li.querySelector('b').textContent = text;
-  li.className = state ? `is-${state}` : '';
-}
-
-function setTag(tag, text, ok) {
-  tag.off = false;
-  if (tag.el.textContent !== text) tag.el.textContent = text;
-  tag.el.classList.toggle('is-bad', !ok);
-}
-
-function renderLive(t) {
-  live.data = t;
-  if (!t) {
-    live.started = false;  // al volver los datos se vuelve a mostrar el estado real al instante
-    Object.values(liveTags).forEach((tag) => (tag.off = true));
-    Object.keys(liveRows).forEach((key) => setRow(key, '--', ''));
-    return;
-  }
-  const lv = t.level ?? {};
-  const tp = t.temperature ?? {};
-  const ph = t.ph ?? {};
-  const tb = t.turbidity ?? {};
-  const fi = t.flowIn ?? {};
-  const fo = t.flowOut ?? {};
-
-  setTag(liveTags.level, lv.ok ? `Sensor de nivel · ${fmt(lv.distanceCm, 1)} cm hasta el agua` : 'Sensor de nivel · sin lectura', lv.ok);
-  setTag(liveTags.ph, ph.ok ? `pH ${fmt(ph.value, 2)}` : 'pH · sin lectura', ph.ok);
-  setTag(liveTags.turbidity, tb.ok ? `Claridad ${fmt(tb.clarity, 0)} %` : 'Claridad · sin lectura', tb.ok);
-  setTag(liveTags.temperature, tp.ok ? `${fmt(tp.c, 1)} °C` : 'Temperatura · sin lectura', tp.ok);
-  setTag(liveTags.flowIn, `Entrada ${fmt(fi.ok ? fi.lpm : 0, 1)} L/min`, true);
-  setTag(liveTags.flowOut, `Salida ${fmt(fo.ok ? fo.lpm : 0, 1)} L/min`, true);
-
-  setRow('temperature', tp.ok ? `${fmt(tp.c, 1)} °C` : 'sin señal', tp.ok ? 'ok' : 'bad');
-  setRow('ph', ph.ok ? fmt(ph.value, 2) : 'sin señal', ph.ok ? 'ok' : 'bad');
-  setRow('turbidity', tb.ok ? `${fmt(tb.clarity, 0)} %` : 'sin señal', tb.ok ? 'ok' : 'bad');
-  const lpmIn = fi.ok ? fi.lpm : 0;
-  const lpmOut = fo.ok ? fo.lpm : 0;
-  setRow('flowIn', `${fmt(lpmIn, 2)} L/min`, lpmIn > 0.02 ? 'flow' : '');
-  setRow('flowOut', `${fmt(lpmOut, 2)} L/min`, lpmOut > 0.02 ? 'flow' : '');
-  const net = lpmIn - lpmOut;
-  setRow('net', `${net > 0.005 ? '+' : ''}${fmt(net, 2)} L/min`, '');
-}
-
 function updateTwin(dt) {
-  tankSensors.visible = !soloCaseta;
+  tankFx.visible = !soloCaseta;
   const t = live.data;
   const lpmIn = t?.flowIn?.ok ? t.flowIn.lpm : 0;
   const lpmOut = t?.flowOut?.ok ? t.flowOut.lpm : 0;
@@ -1139,7 +924,6 @@ function updateTwin(dt) {
   splash.scale.set(s, s, 1);
   splashMat.opacity = jetMat.opacity * 0.8 * (1 - ((clock.elapsedTime * 1.4) % 1));
 
-  updateBeam(surfaceY, dt);
   updateWaterColor(dt);
 }
 
