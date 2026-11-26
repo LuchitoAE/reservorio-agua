@@ -112,9 +112,14 @@ node tools/sync-web.js                    # web -> firmware/data
 0. **Fase 3 (pendiente): publicar en Vercel** con datos reales vía nube: ESP32 → `POST /api/ingest`
    (Vercel, con token) → Supabase (último dato + historial) → `GET /api/telemetry` devuelve el
    mismo JSON + `source: "cloud"` y `ageS`; si `ageS > 20` la web pasa a simulación
-   (`STALE_S` en `web/js/api.js`). El usuario tiene cuentas de Vercel y Supabase. Una web en
-   Vercel (https) no puede leer al ESP32 en la LAN (http) directamente; localStorage no sirve
-   para compartir datos entre visitantes.
+   (`STALE_S` en `web/js/api.js`). El usuario tiene cuentas de Vercel y Supabase. Código listo
+   (CloudSync en el firmware, `docs/supabase.sql`, `web/js/nube.js`); nube apagada hasta tener
+   URL y clave publishable (token del ESP32 ya en `secrets.h`; hash registrado en la guía).
+   **Conexión directa** (sin Supabase): botón "Conectar con el ESP32 de mi casa" en la web
+   publicada; `fetch` con `targetAddressSpace: 'local'` (Chrome/Edge 141+, permiso de red local,
+   solo en el WiFi de la casa); se recuerda en localStorage (`reservorio.esp32Directo`).
+   PR #1 abierto (rama `gemelo-digital-y-nube`): falta que el usuario lo una a `main` e
+   importe el repo en Vercel (Root Directory `web`).
 
 1. Verificar en el dashboard la turbidez con agua de caño (~100 %) y regenerar el informe con la calibración nueva.
 2. Revisar el cableado de turbidez (lee ~0 V desde que se conectó el pH).

@@ -1116,10 +1116,10 @@ function renderLive(t) {
   const fi = t.flowIn ?? {};
   const fo = t.flowOut ?? {};
 
-  setTag(liveTags.level, lv.ok ? `HC-SR04 · ${fmt(lv.distanceCm, 1)} cm al agua` : 'HC-SR04 · sin eco', lv.ok);
-  setTag(liveTags.ph, ph.ok ? `pH ${fmt(ph.value, 2)}` : 'pH · sin señal', ph.ok);
-  setTag(liveTags.turbidity, tb.ok ? `Claridad ${fmt(tb.clarity, 0)} %` : 'Turbidez · sin señal', tb.ok);
-  setTag(liveTags.temperature, tp.ok ? `${fmt(tp.c, 1)} °C` : 'DS18B20 · sin señal', tp.ok);
+  setTag(liveTags.level, lv.ok ? `Sensor de nivel · ${fmt(lv.distanceCm, 1)} cm hasta el agua` : 'Sensor de nivel · sin lectura', lv.ok);
+  setTag(liveTags.ph, ph.ok ? `pH ${fmt(ph.value, 2)}` : 'pH · sin lectura', ph.ok);
+  setTag(liveTags.turbidity, tb.ok ? `Claridad ${fmt(tb.clarity, 0)} %` : 'Claridad · sin lectura', tb.ok);
+  setTag(liveTags.temperature, tp.ok ? `${fmt(tp.c, 1)} °C` : 'Temperatura · sin lectura', tp.ok);
   setTag(liveTags.flowIn, `Entrada ${fmt(fi.ok ? fi.lpm : 0, 1)} L/min`, true);
   setTag(liveTags.flowOut, `Salida ${fmt(fo.ok ? fo.lpm : 0, 1)} L/min`, true);
 
@@ -1244,12 +1244,10 @@ function updateReadout() {
 
 function setBadge(kind) {
   const map = {
-    esp32: ['is-esp32', lastTelemetry?.source === 'cloud'
-      ? 'EN VIVO · ESP32'
-      : lastTelemetry?.wifi?.ip ? `ESP32 · ${lastTelemetry.wifi.ip}` : 'ESP32'],
+    esp32: ['is-esp32', 'En vivo'],
     demo: ['is-demo', 'Manual · nivel de prueba'],
-    sim: ['is-demo', `SIMULACIÓN · ${lastTelemetry?.sim?.clock ?? ''}`.trim()],
-    offline: ['is-demo', 'ESP32 sin conexión'],
+    sim: ['is-demo', `Simulación · ${lastTelemetry?.sim?.clock ?? ''}`.trim()],
+    offline: ['is-demo', 'Sin conexión'],
   };
   const [cls, text] = map[kind] || map.demo;
   ui.badge.className = `chip ${cls}`;

@@ -1,4 +1,16 @@
-import { DEFAULT_CONFIG, getConfig, getTelemetry, isCloud, pollMs, postAction, saveConfig } from './api.js';
+import {
+  DEFAULT_CONFIG,
+  cloudHost,
+  directEnabled,
+  directTelemetry,
+  getConfig,
+  getTelemetry,
+  isCloud,
+  pollMs,
+  postAction,
+  saveConfig,
+  setDirect,
+} from './api.js';
 import { Sparkline } from './charts.js';
 import { FLOW_KEYS, SENSOR_KEYS, lecturas } from './lecturas.js';
 import { createSimulator } from './simulador.js';
@@ -81,6 +93,31 @@ function levelState(levelCm, maxLevel, overflow = 31) {
   return { text: 'NIVEL NORMAL', cls: '' };
 }
 
+function temperatureText(c) {
+  if (c < 10) return 'Agua muy fría';
+  if (c <= 25) return 'Temperatura normal';
+  return 'Agua tibia';
+}
+
+function phText(ph) {
+  if (ph < 6.5) return 'Agua ácida (menos de 6,5)';
+  if (ph > 8.5) return 'Agua alcalina (más de 8,5)';
+  return 'Neutra: dentro de lo normal';
+}
+
+function clarityText(percent) {
+  if (percent >= 80) return 'Agua clara';
+  if (percent >= 40) return 'Un poco turbia';
+  return 'Agua turbia';
+}
+
+function signalText(rssi) {
+  if (!isNum(rssi) || rssi === 0) return '--';
+  if (rssi >= -60) return 'Buena';
+  if (rssi >= -72) return 'Regular';
+  return 'Débil';
+}
+
 function timeAgo(ms) {
   const seconds = Math.max(0, Math.round((Date.now() - ms) / 1000));
   if (seconds < 2) return 'ahora';
@@ -103,7 +140,7 @@ function setStateDot(name, ok) {
     }
     el.classList.toggle('is-ok', !!ok);
     el.classList.toggle('is-bad', !ok);
-    if (el.dataset.state) el.title = ok ? 'lectura correcta' : 'no conectado';
+    if (el.dataset.state) el.title = ok ? 'funcionando' : 'sin lectura';
   });
 }
 
@@ -147,14 +184,12 @@ function render(t) {
   // Un caudalímetro sin agua circulando no se puede detectar: se aclara en vez de
   // contarlo como falla.
   const idleFlows = FLOW_KEYS.filter((key) => !v.flowing[key]).length;
-  const ip = connected ? (t.wifi?.ip ?? '--') : '--';
-  const rssi = connected && t.wifi?.rssi ? `${t.wifi.rssi} dBm` : '--';
 
   setField('percent', fmt(v.percent, 0));
   setField('levelCm', fmt(v.levelCm, 1));
   setField('liters', fmt(v.liters, 0));
   setField('distance', fmt(v.distance, 1));
-  setField('tankHeight', fmt(v.tankHeight, 1));
+  setField('maxLevel', fmt(v.maxLevel, 0));
 
   [['In', v.flowIn], ['Out', v.flowOut]].forEach(([suffix, flow]) => {
     setField(`lpm${suffix}`, fmt(flow.lpm, 2));
@@ -172,11 +207,14 @@ function render(t) {
   setField('clarity', fmt(v.clarity, 0));
   setField('turbVoltage', fmt(v.turbVoltage, 2));
 
-  setField('ip', ip);
-  setField('rssi', rssi);
+  // Estado del sistema: los caudalímetros cuentan como funcionando si la maqueta los
+  // reporta, aunque no pase agua (sin agua no envían señal y no se pueden comprobar).
+  const sensorsWorking = showing ? SENSOR_KEYS.filter((key) => v.ok[key]).length : 0;
+  setField('conexion', connected ? 'En vivo' : simulated ? 'Simulación' : 'Sin conexión');
+  setField('senal', connected ? signalText(t.wifi?.rssi) : '--');
   setField('uptime', connected ? formatUptime(t.uptime) : '--');
-  setField('heap', connected && isNum(t.system?.heap) ? `${Math.round(t.system.heap / 1024)} KB` : '--');
-  setField('sensorsOk', String(v.sensorsOk));
+  setField('ultima', connected && state.lastOkAt ? timeAgo(state.lastOkAt) : '--');
+  setField('sensorsOk', String(sensorsWorking));
 
   const water = $('[data-tank-water]');
   if (water) water.style.setProperty('--level', `${Math.min(100, Math.max(0, v.percent))}%`);
@@ -190,7 +228,7 @@ function render(t) {
   setStateDot('system', simulated ? null : connected);
 
   // Textos secundarios
-  const sinEsp32 = simulated ? 'Simulación' : 'ESP32 sin conexión';
+  const sinEsp32 = simulated ? 'Simulación' : 'Sin conexión con la maqueta';
   const levelMeta = $('[data-meta="level"]');
   const levelInfo = levelState(v.levelCm, v.maxLevel, v.overflow);
   levelMeta.className = `card-meta ${v.ok.level ? levelInfo.cls : ''}`.trim();
@@ -198,35 +236,35 @@ function render(t) {
     ? sinEsp32
     : v.ok.level
       ? `${levelInfo.text} · ${fmt(v.levelCm, 1)} cm de ${fmt(v.maxLevel, 1)} cm`
-      : 'No conectado: el HC-SR04 no devuelve eco';
+      : 'Sin lectura del sensor de nivel';
   $('[data-meta="flowIn"]').textContent = !showing
     ? sinEsp32
     : v.flowing.flowIn
       ? simulated ? 'Llega agua del manantial' : 'Entrando agua al tanque'
-      : 'Sin caudal (válvula cerrada o sin sensor)';
+      : 'Ahora no está entrando agua';
   $('[data-meta="flowOut"]').textContent = !showing
     ? sinEsp32
     : v.flowing.flowOut
-      ? simulated ? 'Consumo del pueblo' : 'Saliendo agua del tanque'
-      : 'Sin caudal (válvula cerrada o sin sensor)';
+      ? simulated ? 'El pueblo está usando agua' : 'Saliendo agua del tanque'
+      : 'Ahora no está saliendo agua';
   $('[data-meta="temperature"]').textContent = !showing
     ? sinEsp32
     : v.ok.temperature
-      ? 'Sonda OneWire en línea'
-      : 'No conectado: el DS18B20 no responde';
+      ? temperatureText(v.temperature)
+      : 'Sin lectura del sensor de temperatura';
   $('[data-meta="ph"]').textContent = !showing
     ? sinEsp32
     : v.ok.ph
-      ? 'Electrodo en línea'
-      : 'No conectado o sin señal válida';
+      ? phText(v.ph)
+      : 'Sin lectura del sensor de pH';
   $('[data-meta="turbidity"]').textContent = !showing
     ? sinEsp32
     : v.ok.turbidity
-      ? `${fmt(v.clarity, 0)} % de claridad`
-      : 'No conectado o sin señal válida';
+      ? clarityText(v.clarity)
+      : 'Sin lectura del sensor de claridad';
   $('[data-meta="system"]').textContent = connected
-    ? `${ip} · ${rssi}${idleFlows ? ' · caudalímetros en reposo no se cuentan' : ''}`
-    : sinEsp32;
+    ? sensorsWorking === SENSOR_KEYS.length ? 'Todo funcionando' : 'Hay sensores sin lectura'
+    : simulated ? 'Mostrando una simulación' : 'Sin conexión con la maqueta';
 
   // Sparklines
   sparks.level.push(v.percent);
@@ -234,7 +272,7 @@ function render(t) {
   sparks.flowOut.push(v.flowOut.lpm);
   sparks.temperature.push(v.temperature);
   sparks.ph.push(v.ph);
-  sparks.turbidity.push(v.ntu);
+  sparks.turbidity.push(v.clarity);
 
   // Tabla cruda (diagnóstico): lo que lee el ESP32, aunque el sensor no esté conectado
   $('[data-raw="ph"]').textContent = isNum(v.raw.phRaw) ? Math.round(v.raw.phRaw) : '--';
@@ -249,19 +287,17 @@ function render(t) {
   });
 
   // Pista del hero
-  const idleText = idleFlows === 0
-    ? ''
-    : ` · ${idleFlows === 2 ? 'los 2 caudalímetros' : '1 caudalímetro'} sin agua circulando`;
+  const idleText = idleFlows === 0 ? '' : ' · ahora no pasa agua por las tuberías';
   const tendencia = v.netLpm > 0.05
     ? 'el tanque se está llenando'
     : v.netLpm < -0.05
       ? 'el pueblo consume más de lo que entra'
       : 'entrada y salida equilibradas';
   $('#hero-hint').textContent = connected
-    ? `${state.cloud ? 'ESP32 en vivo por internet' : `ESP32 en ${ip}`} · ${v.sensorsOk}/${SENSOR_KEYS.length} sensores con lectura${idleText}`
+    ? `Datos en vivo · ${sensorsWorking} de ${SENSOR_KEYS.length} sensores funcionando${idleText}`
     : simulated
-      ? `SIMULACIÓN · hora simulada ${t.sim?.clock ?? '--'}${t.sim?.raining ? ' · lloviendo' : ''} · ${tendencia}`
-      : 'ESP32 sin conexión: los valores se muestran en 0 hasta que responda.';
+      ? `Simulación · hora ${t.sim?.clock ?? '--'}${t.sim?.raining ? ' · está lloviendo' : ''} · ${tendencia}`
+      : 'Sin conexión con la maqueta: los valores se muestran en 0 hasta que responda.';
 
   // Aviso de simulación (visible siempre que los datos no sean reales).
   $('#sim-banner').hidden = !simulated;
@@ -287,11 +323,11 @@ function labelFor(key) {
   return (
     {
       level: 'Nivel',
-      flowIn: 'Caudal de entrada',
-      flowOut: 'Caudal de salida',
+      flowIn: 'Agua que entra',
+      flowOut: 'Agua que sale',
       temperature: 'Temperatura',
       ph: 'pH',
-      turbidity: 'Turbidez',
+      turbidity: 'Claridad',
     }[key] || key
   );
 }
@@ -311,16 +347,22 @@ function updateConnectionUI() {
   $$('[data-calibrate]').forEach((btn) => (btn.disabled = !canControl));
   $$('[data-action="reset-flow"]').forEach((btn) => (btn.disabled = !canControl));
   $$('#config-form button, #config-form input').forEach((el) => (el.disabled = !canControl));
-  $('#diag-mode').textContent = connected
-    ? state.cloud ? 'En vivo por internet · solo lectura' : 'ESP32 conectado'
-    : state.simulated ? 'Simulación · solo lectura' : 'ESP32 sin conexión';
+  // Botón de conexión directa: solo en la web publicada.
+  const directBtn = $('#direct-btn');
+  directBtn.hidden = !cloudHost;
+  directBtn.textContent = directEnabled()
+    ? 'Desconectar de la maqueta'
+    : 'Conectar con la maqueta (mismo WiFi)';
+  // El panel de mantenimiento es para el técnico: no aparece en la web pública.
+  $('#tech-panel').hidden = cloudHost;
+  $('#diag-mode').textContent = canControl ? 'Maqueta conectada' : 'No disponible ahora';
 
   if (connected) {
-    setBadge('ok', state.cloud ? 'EN VIVO · ESP32' : `ESP32 · ${state.lastTelemetry?.wifi?.ip ?? 'conectado'}`);
+    setBadge('ok', 'En vivo');
   } else if (state.simulated) {
-    setBadge('warn', 'SIMULACIÓN · ESP32 sin conexión');
+    setBadge('warn', 'Simulación');
   } else {
-    setBadge('bad', 'ESP32 sin conexión');
+    setBadge('bad', 'Sin conexión');
   }
 
   const last = $('#last-update');
@@ -353,6 +395,7 @@ function fillConfigForm(config) {
 async function tick() {
   if (state.busy) return;
   state.busy = true;
+  clearTimeout(state.timer);  // un solo ciclo de consultas aunque se llame a mano
 
   const started = performance.now();
 
@@ -365,13 +408,13 @@ async function tick() {
         if (state.simulated) clearSparks();  // no mezclar la simulación con datos reales
         state.connected = true;
         state.simulated = false;
-        logEvent(state.cloud ? 'ESP32 en vivo por internet: datos reales' : 'ESP32 conectado: datos reales', 'ok');
+        logEvent('Maqueta conectada: datos reales', 'ok');
         if (!state.cloud) setTimeout(refreshConfig, 0);
       }
       state.lastOkAt = Date.now();
     } catch (error) {
       if (state.connected || state.previous.connected === null) {
-        logEvent('Sin respuesta del ESP32: se muestra una SIMULACIÓN', 'warn');
+        logEvent('La maqueta no responde: se muestra una simulación', 'warn');
         clearSparks();
       }
       state.connected = false;
@@ -387,7 +430,7 @@ async function tick() {
   } finally {
     state.busy = false;
     const elapsed = performance.now() - started;
-    setTimeout(tick, Math.max(250, POLL_MS - elapsed));
+    state.timer = setTimeout(tick, Math.max(250, POLL_MS - elapsed));
   }
 }
 
@@ -407,7 +450,7 @@ function toast(message, kind = '') {
 
 async function handleCalibration(sensor) {
   if (!state.connected) {
-    toast('La calibración necesita el ESP32 conectado', 'bad');
+    toast('Para calibrar, la maqueta tiene que estar conectada', 'bad');
     return;
   }
   if (
@@ -439,9 +482,29 @@ async function handleCalibration(sensor) {
   }
 }
 
+async function handleDirect() {
+  if (directEnabled()) {
+    setDirect(false);
+    toast('Desconectado de la maqueta en este navegador');
+    logEvent('Conexión directa con la maqueta desactivada');
+    updateConnectionUI();
+    return;
+  }
+  toast('Conectando con la maqueta… si el navegador lo pide, pulsa "Permitir"');
+  try {
+    await directTelemetry(8000);  // el aviso de permiso de Chrome sale aquí
+    setDirect(true);
+    toast('Conectado con la maqueta: datos reales', 'ok');
+    logEvent('Conexión directa con la maqueta activada (se recuerda en este navegador)', 'ok');
+    tick();
+  } catch {
+    toast('No se pudo. Conéctate al mismo WiFi de la maqueta, usa Chrome o Edge y pulsa "Permitir".', 'bad');
+  }
+}
+
 async function handleResetFlow() {
   if (!state.connected) {
-    toast('Reiniciar el total necesita el ESP32 conectado', 'bad');
+    toast('Para reiniciar los totales, la maqueta tiene que estar conectada', 'bad');
     return;
   }
   try {
@@ -468,7 +531,7 @@ async function handleConfigSubmit(event) {
   }
 
   if (!state.connected) {
-    toast('No se puede guardar: el ESP32 no responde', 'bad');
+    toast('No se puede guardar: la maqueta no responde', 'bad');
     return;
   }
 
@@ -476,7 +539,7 @@ async function handleConfigSubmit(event) {
     const config = await saveConfig(payload);
     storeConfig(config);
     fillConfigForm(config);
-    toast('Ajustes guardados en el ESP32', 'ok');
+    toast('Ajustes guardados en la maqueta', 'ok');
     logEvent('Altura del tanque actualizada', 'ok');
   } catch (error) {
     toast(`No se pudo guardar: ${error.message}`, 'bad');
@@ -493,6 +556,7 @@ function bindEvents() {
   $$('[data-action="reset-flow"]').forEach((btn) => {
     btn.addEventListener('click', handleResetFlow);
   });
+  $('#direct-btn').addEventListener('click', handleDirect);
 
   $('#config-form').addEventListener('submit', handleConfigSubmit);
   $('#reload-config').addEventListener('click', () => {

@@ -579,7 +579,7 @@ function render(t) {
   ui.simNote.hidden = !sim;
   if (sim) ui.simClock.textContent = t.sim?.clock ?? '--';
   ui.badge.className = `chip ${sim ? 'is-demo' : 'is-esp32'}`;
-  ui.badge.textContent = sim ? `SIMULACIÓN · ${t.sim?.clock ?? ''}` : t.source === 'cloud' ? 'EN VIVO · ESP32' : `ESP32 · ${t.wifi?.ip ?? ''}`;
+  ui.badge.textContent = sim ? `Simulación · ${t.sim?.clock ?? ''}` : 'En vivo';
 
   const lv = t.level ?? {};
   const full = typeof lv.maxLevelCm === 'number' ? lv.maxLevelCm : 29;

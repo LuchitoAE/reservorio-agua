@@ -3,7 +3,28 @@
 La web del reservorio se puede ver desde internet. Si el ESP32 está enviando datos se ven
 **en vivo**; si no, se muestra una **simulación** claramente marcada.
 
-## Cómo funciona
+## Tres formas de ver la web publicada
+
+| Forma | Quién ve datos reales | Necesita |
+| --- | --- | --- |
+| Solo Vercel | Nadie: siempre **simulación** | Importar el repo en Vercel |
+| **Conexión directa** | Quien esté en el **WiFi de la casa**, con Chrome o Edge | Pulsar "Conectar con el ESP32 de mi casa" y **Permitir** el acceso a la red local |
+| Vercel + Supabase | **Cualquiera**, desde cualquier lugar | Supabase (pasos de abajo) |
+
+### Conexión directa (sin Supabase)
+
+- Botón **"Conectar con el ESP32 de mi casa"** (dashboard publicado, debajo del aviso de
+  simulación). Chrome muestra un aviso de *acceso a la red local*: pulsa **Permitir**.
+- La página lee `http://192.168.2.200/api/telemetry` (dirección en `web/js/nube.js`, campo
+  `esp32`) con `fetch(..., { targetAddressSpace: 'local' })`: así Chrome (141+) permite el
+  `http://` desde la página `https://` si el usuario da permiso.
+- El navegador recuerda la elección en **localStorage**: el dashboard, el gemelo y el caso real
+  se conectan solos. Si el ESP32 no responde (fuera de casa), reintenta cada 30 s y mientras
+  tanto usa Supabase (si está configurada) o la simulación.
+- Firefox y Safari no lo permiten. Fuera del WiFi de la casa es imposible: `192.168.2.200`
+  solo existe dentro de esa red.
+
+## Cómo funciona con Supabase
 
 ```
 ESP32 ──(HTTPS cada 5 s, con su token secreto)──► Supabase: función ingest()
@@ -12,8 +33,9 @@ ESP32 ──(HTTPS cada 5 s, con su token secreto)──► Supabase: función i
 Página en Vercel ◄──(función ultimo(), solo lectura)─┘
 ```
 
-- Una página en Vercel (`https://`) **no puede** leer al ESP32 de la casa (`http://192.168.x.x`):
-  el navegador lo bloquea. Por eso el ESP32 sube sus datos a Supabase.
+- Desde fuera de la casa nadie puede llegar al ESP32 (`192.168.x.x` es una dirección privada),
+  y sin el permiso de red local el navegador bloquea el `http://` desde una página `https://`.
+  Por eso, para verlo desde cualquier lugar, el ESP32 sube sus datos a Supabase.
 - `localStorage` no sirve para esto: guarda datos solo en el navegador de cada persona.
 - Si el último dato tiene más de 20 s (`STALE_S` en `web/js/api.js`), la web pasa a
   simulación.

@@ -47,6 +47,49 @@ export const cloudHost = (() => {
   return location.protocol !== 'file:' && !PRIVATE_HOST.test(location.hostname);
 })();
 
+// Conexión directa al ESP32 desde la web publicada (solo en el WiFi de la casa, Chrome/Edge).
+// La elección se guarda en localStorage: la usan el dashboard, el gemelo y el caso real.
+const DIRECT_KEY = 'reservorio.esp32Directo';
+let directRetryAt = 0;  // si falla, se reintenta cada 30 s (sin frenar la página)
+
+export function directEnabled() {
+  try {
+    return localStorage.getItem(DIRECT_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function setDirect(on) {
+  try {
+    if (on) localStorage.setItem(DIRECT_KEY, '1');
+    else localStorage.removeItem(DIRECT_KEY);
+  } catch {
+    // sin almacenamiento local: vale solo mientras la página esté abierta
+  }
+  directRetryAt = 0;
+}
+
+export async function directTelemetry(timeoutMs = 2500) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    // targetAddressSpace: 'local' le dice a Chrome que es un aparato de la red de la casa:
+    // pide permiso al usuario y permite el http:// desde una página https://.
+    const res = await fetch(`${NUBE.esp32.replace(/\/$/, '')}/api/telemetry`, {
+      cache: 'no-store',
+      signal: controller.signal,
+      targetAddressSpace: 'local',
+    });
+    if (!res.ok) throw new Error(`ESP32 HTTP ${res.status}`);
+    const data = await res.json();
+    data.source = 'directo';
+    return data;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function cloudTelemetry(timeoutMs = 6000) {
   if (!NUBE.url || !NUBE.key) throw new Error('nube sin configurar');
   const headers = { apikey: NUBE.key, 'Content-Type': 'application/json' };
@@ -97,8 +140,19 @@ async function request(path, options = {}, timeoutMs = 2500) {
 // más viejo que esto, el ESP32 se considera desconectado y la web pasa a simulación.
 export const STALE_S = 20;
 
+async function publishedTelemetry() {
+  if (NUBE.esp32 && directEnabled() && Date.now() >= directRetryAt) {
+    try {
+      return await directTelemetry();
+    } catch {
+      directRetryAt = Date.now() + 30000;
+    }
+  }
+  return cloudTelemetry();
+}
+
 export async function getTelemetry() {
-  const data = cloudHost ? await cloudTelemetry() : await request('/api/telemetry');
+  const data = cloudHost ? await publishedTelemetry() : await request('/api/telemetry');
   if (!data || typeof data !== 'object' || !data.level) throw new Error('sin datos del ESP32');
   if (data.offline || (typeof data.ageS === 'number' && data.ageS > STALE_S)) {
     throw new Error('ESP32 sin conexión');
@@ -106,8 +160,9 @@ export async function getTelemetry() {
   return data;
 }
 
-// En la nube la web es de solo lectura: calibrar y cambiar ajustes solo en la red local.
-export const isCloud = (t) => t?.source === 'cloud';
+// En la web publicada es de solo lectura (nube o conexión directa): calibrar y cambiar
+// ajustes solo desde la página del propio ESP32 (http://192.168.2.200).
+export const isCloud = (t) => t?.source === 'cloud' || t?.source === 'directo';
 
 // Cada cuánto pedir datos: el ESP32 local responde rápido; la nube se actualiza cada 5 s.
 export const pollMs = (localMs) => (cloudHost ? Math.max(localMs, 2500) : localMs);

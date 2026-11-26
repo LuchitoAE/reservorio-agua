@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#061320" />
   <title>Reservorio de Agua · Monitoreo</title>
-  <meta name="description" content="Tablero de monitoreo del reservorio: nivel, caudal, temperatura, pH y turbidez." />
+  <meta name="description" content="Monitoreo en tiempo real de un reservorio de agua: nivel, agua que entra y sale, temperatura, pH y claridad." />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%2338bdf8' d='M16 3C10 11 7 15 7 19a9 9 0 0 0 18 0c0-4-3-8-9-16z'/%3E%3C/svg%3E" />
   <link rel="stylesheet" href="./styles.css" />
 </head>
@@ -22,7 +22,7 @@
       </span>
       <div>
         <h1>Reservorio de Agua</h1>
-        <p>Monitoreo en tiempo real · ESP32</p>
+        <p>Monitoreo en tiempo real</p>
       </div>
     </div>
 
@@ -37,9 +37,13 @@
   <main>
     <div class="sim-banner" id="sim-banner" role="status" hidden>
       <strong>SIMULACIÓN</strong>
-      <span>El ESP32 no está conectado: estos datos <b>no son reales</b>. Se muestra un día típico
-        de un reservorio rural alimentado por un manantial (1 día = 12 min). Hora simulada
-        <b id="sim-clock">--</b>. Cuando el ESP32 se conecte, verás sus datos reales.</span>
+      <span>La maqueta no está conectada: estos datos <b>no son reales</b>. Se muestra un día
+        típico de un reservorio que lleva agua de un manantial a un pueblo (1 día = 12 minutos).
+        Hora simulada <b id="sim-clock">--</b>. Cuando la maqueta se conecte, verás los datos
+        reales.</span>
+    </div>
+    <div class="direct-row">
+      <button type="button" class="btn btn--ghost" id="direct-btn" hidden>Conectar con la maqueta (mismo WiFi)</button>
     </div>
 
     <section class="hero" aria-label="Resumen del nivel">
@@ -62,15 +66,15 @@
           <span data-field="percent">--</span><small>%</small>
         </p>
         <p class="hero-sub">
-          <span data-field="liters">--</span> L estimados
+          <span data-field="liters">--</span> litros
           <span class="sep">·</span>
-          <span data-field="levelCm">--</span> cm
+          <span data-field="levelCm">--</span> cm de agua
         </p>
         <div class="hero-pills">
           <span class="pill"><i class="pill-dot" data-state-dot="temperature"></i>Temperatura <b data-field="temperature">--</b></span>
           <span class="pill"><i class="pill-dot" data-state-dot="ph"></i>pH <b data-field="ph">--</b></span>
-          <span class="pill"><i class="pill-dot" data-state-dot="turbidity"></i>Turbidez <b data-field="ntu">--</b></span>
-          <span class="pill" title="Caudal de entrada menos caudal de salida">Neto <b data-field="netLpm">--</b> L/min</span>
+          <span class="pill"><i class="pill-dot" data-state-dot="turbidity"></i>Claridad <b data-field="clarity">--</b> %</span>
+          <span class="pill" title="Agua que entra menos agua que sale">Balance <b data-field="netLpm">--</b> L/min</span>
         </div>
         <p class="hero-hint" id="hero-hint">Esperando la primera lectura…</p>
       </div>
@@ -88,7 +92,7 @@
           </span>
           <div class="card-title">
             <h2>Nivel de agua</h2>
-            <p>HC-SR04 · ultrasónico</p>
+            <p>Cuánta agua hay en el tanque</p>
           </div>
           <span class="dot" data-state="level" title="estado"></span>
         </header>
@@ -96,8 +100,8 @@
         <p class="card-meta" data-meta="level">Sin lectura</p>
         <canvas class="spark" data-spark="level" height="46" aria-hidden="true"></canvas>
         <footer class="card-foot">
-          <span>Distancia <b data-field="distance">--</b> cm</span>
-          <span>Calibración <b data-field="tankHeight">--</b> cm</span>
+          <span>Agua <b data-field="levelCm">--</b> cm</span>
+          <span>Lleno a <b data-field="maxLevel">--</b> cm</span>
         </footer>
       </article>
 
@@ -111,8 +115,8 @@
             </svg>
           </span>
           <div class="card-title">
-            <h2>Caudal de entrada</h2>
-            <p>ZJ-S201 · efecto Hall · D23</p>
+            <h2>Agua que entra</h2>
+            <p>Llega al tanque desde el manantial</p>
           </div>
           <span class="dot" data-state="flowIn" title="estado"></span>
         </header>
@@ -120,8 +124,8 @@
         <p class="card-meta" data-meta="flowIn">Sin lectura</p>
         <canvas class="spark" data-spark="flowIn" height="46" aria-hidden="true"></canvas>
         <footer class="card-foot">
-          <span>Acumulado <b data-field="totalLIn">--</b> L</span>
-          <span>Pulsos <b data-field="pulsesIn">--</b></span>
+          <span>Total <b data-field="totalLIn">--</b> litros</span>
+          <span>litros por minuto</span>
         </footer>
       </article>
 
@@ -135,8 +139,8 @@
             </svg>
           </span>
           <div class="card-title">
-            <h2>Caudal de salida</h2>
-            <p>ZJ-S201 · efecto Hall · D26</p>
+            <h2>Agua que sale</h2>
+            <p>Va del tanque hacia el pueblo</p>
           </div>
           <span class="dot" data-state="flowOut" title="estado"></span>
         </header>
@@ -144,8 +148,8 @@
         <p class="card-meta" data-meta="flowOut">Sin lectura</p>
         <canvas class="spark" data-spark="flowOut" height="46" aria-hidden="true"></canvas>
         <footer class="card-foot">
-          <span>Acumulado <b data-field="totalLOut">--</b> L</span>
-          <span>Pulsos <b data-field="pulsesOut">--</b></span>
+          <span>Total <b data-field="totalLOut">--</b> litros</span>
+          <span>litros por minuto</span>
         </footer>
       </article>
 
@@ -159,7 +163,7 @@
           </span>
           <div class="card-title">
             <h2>Temperatura</h2>
-            <p>DS18B20 · 1-Wire</p>
+            <p>Del agua del tanque</p>
           </div>
           <span class="dot" data-state="temperature" title="estado"></span>
         </header>
@@ -167,8 +171,8 @@
         <p class="card-meta" data-meta="temperature">Sin lectura</p>
         <canvas class="spark" data-spark="temperature" height="46" aria-hidden="true"></canvas>
         <footer class="card-foot">
-          <span>Resolución <b>0.06 °C</b></span>
-          <span>Conversión <b>12 bit</b></span>
+          <span>Normal</span>
+          <span><b>10 a 25 °C</b></span>
         </footer>
       </article>
 
@@ -182,7 +186,7 @@
           </span>
           <div class="card-title">
             <h2>pH del agua</h2>
-            <p>PH-7BNC · sonda BNC</p>
+            <p>Qué tan ácida o alcalina es</p>
           </div>
           <span class="dot" data-state="ph" title="estado"></span>
         </header>
@@ -190,8 +194,8 @@
         <p class="card-meta" data-meta="ph">Sin lectura</p>
         <canvas class="spark" data-spark="ph" height="46" aria-hidden="true"></canvas>
         <footer class="card-foot">
-          <span>Voltaje <b data-field="phVoltage">--</b> V</span>
-          <span>ADC <b data-field="phRaw">--</b></span>
+          <span>Normal</span>
+          <span><b>6,5 a 8,5</b></span>
         </footer>
       </article>
 
@@ -204,17 +208,17 @@
             </svg>
           </span>
           <div class="card-title">
-            <h2>Turbidez</h2>
-            <p>TS-300B · óptico</p>
+            <h2>Claridad del agua</h2>
+            <p>Qué tan limpia se ve el agua</p>
           </div>
           <span class="dot" data-state="turbidity" title="estado"></span>
         </header>
-        <div class="card-value"><span class="value" data-field="ntu">--</span><span class="unit">NTU</span></div>
+        <div class="card-value"><span class="value" data-field="clarity">--</span><span class="unit">%</span></div>
         <p class="card-meta" data-meta="turbidity">Sin lectura</p>
         <canvas class="spark" data-spark="turbidity" height="46" aria-hidden="true"></canvas>
         <footer class="card-foot">
-          <span>Claridad <b data-field="clarity">--</b> %</span>
-          <span>Voltaje <b data-field="turbVoltage">--</b> V</span>
+          <span>100 % = agua limpia</span>
+          <span>0 % = muy turbia</span>
         </footer>
       </article>
 
@@ -227,30 +231,30 @@
             </svg>
           </span>
           <div class="card-title">
-            <h2>Sistema</h2>
-            <p>ESP32 DevKit V1 · WiFi</p>
+            <h2>Estado del sistema</h2>
+            <p>Sensores y conexión</p>
           </div>
           <span class="dot" data-state="system" title="estado"></span>
         </header>
-        <div class="card-value"><span class="value" data-field="sensorsOk">--</span><span class="unit">/ 6 sensores</span></div>
+        <div class="card-value"><span class="value" data-field="sensorsOk">--</span><span class="unit">de 6 sensores funcionando</span></div>
         <p class="card-meta" data-meta="system">Sin lectura</p>
         <dl class="kv">
-          <div><dt>IP</dt><dd data-field="ip">--</dd></div>
-          <div><dt>WiFi</dt><dd data-field="rssi">--</dd></div>
-          <div><dt>Encendido</dt><dd data-field="uptime">--</dd></div>
-          <div><dt>RAM libre</dt><dd data-field="heap">--</dd></div>
+          <div><dt>Datos</dt><dd data-field="conexion">--</dd></div>
+          <div><dt>Señal WiFi</dt><dd data-field="senal">--</dd></div>
+          <div><dt>Funcionando hace</dt><dd data-field="uptime">--</dd></div>
+          <div><dt>Última lectura</dt><dd data-field="ultima">--</dd></div>
         </dl>
       </article>
     </section>
 
-    <section class="panel" aria-labelledby="diag-title">
-      <div class="panel-head">
+    <details class="panel panel--tech" id="tech-panel" aria-labelledby="diag-title">
+      <summary class="panel-head">
         <div>
-          <h2 id="diag-title">Diagnóstico y pruebas</h2>
-          <p>Valores crudos y calibración. Disponible solo con el ESP32 conectado.</p>
+          <h2 id="diag-title">Mantenimiento</h2>
+          <p>Calibración y valores técnicos de los sensores. Solo desde el WiFi de la maqueta.</p>
         </div>
         <span class="chip chip--ghost" id="diag-mode">conectando…</span>
-      </div>
+      </summary>
 
       <div class="panel-grid">
         <div class="panel-block">
@@ -304,11 +308,11 @@
           <ul class="log" id="log" aria-live="polite"></ul>
         </div>
       </div>
-    </section>
+    </details>
 
     <footer class="page-foot">
-      <p>Fase 1 · firmware ESP32 + dashboard local. Calibración y pruebas en <code>docs/</code>.</p>
-      <p>API: <a href="./api/telemetry">/api/telemetry</a></p>
+      <p>Maqueta de un reservorio de agua rural · monitoreo en tiempo real.</p>
+      <p><a href="./escenario.html">Caso real</a> · <a href="./modelo.html">Modelo 3D</a></p>
     </footer>
   </main>
 
