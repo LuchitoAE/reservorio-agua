@@ -8,7 +8,7 @@ class Sensors;
 /**
  * LCD 1602 con backpack I2C, pensada para el público: solo datos relevantes y en
  * palabras simples (nivel, estado del tanque, calidad del agua y caudal). Rota las
- * páginas cada 3 s y salta las de sensores que no responden (nunca muestra "--").
+ * páginas cada 4 s y salta las de sensores que no responden (nunca muestra "--").
  * Detecta la dirección (0x27, 0x3F o 0x20) al arrancar y, si no está, la vuelve a
  * buscar cada 5 s; sin pantalla el firmware sigue funcionando normalmente.
  */

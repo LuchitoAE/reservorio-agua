@@ -19,8 +19,8 @@ export const DEFAULT_CONFIG = {
   flowPulsesPerLiter: 450,
   phNeutralV: 2.6015,
   phSlopeV: 0.1565,
-  turbClearV: 2.89,
-  turbTurbidV: 2.52,
+  turbClearV: 2.759,
+  turbTurbidV: 2.225,
   flowTotalInL: 0,
   flowTotalOutL: 0,
 };

@@ -57,10 +57,10 @@ constexpr float DEFAULT_FLOW_PPL        = 450.0f;  // pulsos por litro (YF-S201)
 // agua de caño pH 7.55 = 2.515 V y limón pH 2.2 = 3.353 V. Precisión aprox. ±0.3 pH.
 constexpr float DEFAULT_PH_NEUTRAL_V    = 2.6015f; // voltaje en pH 7
 constexpr float DEFAULT_PH_SLOPE_V      = 0.1565f; // V por unidad de pH (157 mV/pH)
-// Turbidez: referencias medidas el 25/11/2026 con pruebas/turbidez/monitor.py
-// (TS-300B alimentado desde VIN; voltaje de la salida A, antes del divisor).
-constexpr float DEFAULT_TURB_CLEAR_V    = 2.89f;   // agua de caño  -> 100 % de claridad
-constexpr float DEFAULT_TURB_TURBID_V   = 2.52f;   // agua con tierra -> 0 % de claridad
+// Turbidez: recalibrada el 26/11/2026 desde la web (divisor nuevo y lectura promediada:
+// 16 lecturas del ADC + media recortada de ~7 s). Voltaje de la salida A, antes del divisor.
+constexpr float DEFAULT_TURB_CLEAR_V    = 2.759f;  // agua de caño  -> 100 % de claridad
+constexpr float DEFAULT_TURB_TURBID_V   = 2.225f;  // agua con tierra -> 0 % de claridad
 constexpr float TURB_FORMULA_CLEAR_V    = 4.20f;   // agua clara en la curva NTU del fabricante
 
 constexpr uint32_t LEVEL_INTERVAL_MS  = 70;     // un disparo del HC-SR04 (mínimo 60 ms entre disparos)
