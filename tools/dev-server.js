@@ -59,6 +59,10 @@ function serveStatic(req, res) {
 
   if (pathname.endsWith('/')) pathname += 'index.html';
   if (pathname === '/') pathname = '/index.html';
+  // Direcciones sin extensión (como en Vercel): /escenario -> /escenario.html
+  if (!path.extname(pathname) && fs.existsSync(path.join(ROOT, `${pathname}.html`))) {
+    pathname += '.html';
+  }
 
   const filePath = path.join(ROOT, pathname);
   if (!filePath.startsWith(ROOT)) return send(res, 400, 'ruta invalida');
