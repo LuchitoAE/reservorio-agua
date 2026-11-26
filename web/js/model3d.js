@@ -803,12 +803,24 @@ const STOOL = { x: 24, z: -58, top: 40, size: 24 };  // el fondo del balde queda
   const top = new THREE.Mesh(new THREE.BoxGeometry(STOOL.size, 2, STOOL.size), woodMat);
   top.position.set(STOOL.x, STOOL.top - 1, STOOL.z);
   fit(top);
+  // Patas desde el piso (y = -1) hasta debajo del tablero, con faldón y travesaños.
   const k = STOOL.size / 2 - 1.5;
+  const altoPata = STOOL.top - 2 + 1;
   for (const dx of [-k, k]) {
     for (const dz of [-k, k]) {
-      const legMesh = new THREE.Mesh(new THREE.BoxGeometry(2, STOOL.top - 3, 2), woodMat);
-      legMesh.position.set(STOOL.x + dx, (STOOL.top - 3) / 2 - 1, STOOL.z + dz);
+      const legMesh = new THREE.Mesh(new THREE.BoxGeometry(2, altoPata, 2), woodMat);
+      legMesh.position.set(STOOL.x + dx, -1 + altoPata / 2, STOOL.z + dz);
       fit(legMesh);
+    }
+  }
+  for (const [y, alto] of [[STOOL.top - 3.5, 3], [10, 1.4]]) {  // faldón bajo el tablero y travesaño bajo
+    for (const s of [-k, k]) {
+      const a = new THREE.Mesh(new THREE.BoxGeometry(2 * k, alto, 1.2), woodMat);
+      a.position.set(STOOL.x, y, STOOL.z + s);
+      fit(a);
+      const b = new THREE.Mesh(new THREE.BoxGeometry(1.2, alto, 2 * k), woodMat);
+      b.position.set(STOOL.x + s, y, STOOL.z);
+      fit(b);
     }
   }
 }
@@ -830,10 +842,12 @@ const spigotBase = new THREE.Vector3(STOOL.x, STOOL.top + 3, STOOL.z).addScaledV
 const spigotEnd = spigotBase.clone().addScaledVector(spigotDir, 2.6);
 const hoseInCurve = hose([
   spigotEnd,
-  spigotEnd.clone().addScaledVector(spigotDir, 3).add(new THREE.Vector3(0, -6, 0)),
-  [11, 20, -49],
-  [5, 9, -43.5],
-  inBarb,
+  spigotEnd.clone().addScaledVector(spigotDir, 4.5).add(new THREE.Vector3(0, 0.2, 0)),  // fuera del tablero
+  [9.6, 36, -47.2],
+  [8, 24, -48],
+  [5.5, 12, -48.5],
+  [3.3, 6.3, -46.6],
+  inBarb,  // entra recta a la espiga
 ]);
 
 // --- Salida: manguera desde el tubo de salida hasta un balde de recolección en el piso.
@@ -845,10 +859,10 @@ const hoseOutCurve = hose([
   outBarb,
   [-8, 2.5, -45.5],
   [-10.2, 1, -50],
-  [-11, 10, -52],
-  [-11.4, 23.5, -52],
-  [-13, 26.2, -52],
-  [-15.2, 24.6, -52],
+  [-10.6, 10, -52],
+  [-10.6, 23.6, -52],
+  [-12, 26.4, -52],
+  [-14.6, 25.2, -52],
   hoseOutEnd,
 ]);
 

@@ -70,13 +70,37 @@ export function setDirect(on) {
   directRetryAt = 0;
 }
 
+// Dirección de la maqueta para la conexión directa: la de la casa (nube.js) o la que el
+// usuario escribió al verla en la LCD (en otra red, la maqueta recibe otra dirección).
+const IP_KEY = 'reservorio.esp32Ip';
+
+export function esp32Base() {
+  try {
+    const ip = localStorage.getItem(IP_KEY);
+    if (ip) return `http://${ip}`;
+  } catch {
+    // sin almacenamiento local: se usa la dirección de la casa
+  }
+  return NUBE.esp32;
+}
+
+export function setEsp32Ip(ip) {
+  try {
+    if (ip) localStorage.setItem(IP_KEY, ip);
+    else localStorage.removeItem(IP_KEY);
+  } catch {
+    // sin almacenamiento local
+  }
+  directRetryAt = 0;
+}
+
 export async function directTelemetry(timeoutMs = 2500) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     // targetAddressSpace: 'local' le dice a Chrome que es un aparato de la red de la casa:
     // pide permiso al usuario y permite el http:// desde una página https://.
-    const res = await fetch(`${NUBE.esp32.replace(/\/$/, '')}/api/telemetry`, {
+    const res = await fetch(`${esp32Base().replace(/\/$/, '')}/api/telemetry`, {
       cache: 'no-store',
       signal: controller.signal,
       targetAddressSpace: 'local',
@@ -141,7 +165,7 @@ async function request(path, options = {}, timeoutMs = 2500) {
 export const STALE_S = 20;
 
 async function publishedTelemetry() {
-  if (NUBE.esp32 && directEnabled() && Date.now() >= directRetryAt) {
+  if (esp32Base() && directEnabled() && Date.now() >= directRetryAt) {
     try {
       return await directTelemetry();
     } catch {

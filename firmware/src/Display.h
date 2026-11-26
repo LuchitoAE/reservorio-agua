@@ -16,6 +16,8 @@ class Display {
  public:
   void begin();
   void update(const Sensors& sensors, const ConfigStore& config);
+  // Mensaje de 2 líneas por unos segundos (por ejemplo, la red y la dirección al conectarse).
+  void mensaje(const String& linea1, const String& linea2, uint32_t ms);
 
  private:
   uint8_t scanAddress(bool fullScan) const;
@@ -30,5 +32,8 @@ class Display {
   uint8_t page_ = 0;
   uint32_t lastChangeMs_ = 0;
   uint32_t lastProbeMs_ = 0;
+  String mensaje_[2];
+  uint32_t mensajeHasta_ = 0;
+  bool mensajePendiente_ = false;
   bool ready_ = false;
 };

@@ -43,6 +43,19 @@ Repositorio público: <https://github.com/LuchitoAE/reservorio-agua>
   tarjetas). Quedan el flujo animado, el chorro, el rebose y el color del agua. Las tuberías
   vuelven a terminar en la pared de la caseta (z = −35). El "Caso real" conserva sus
   caudalímetros ilustrativos.
+- **WiFi en cualquier red (26/11/2026):** módulo `firmware/src/Redes.*`. Redes conocidas = casa
+  (`secrets.h`) + hasta 3 guardadas en NVS (`w0s/w0p`…) desde la página `/wifi`
+  (`GET/POST /api/wifi`, `POST /api/wifi/olvidar`). Al arrancar escanea y elige la conocida con mejor
+  señal; **IP fija solo en la red de la casa**, DHCP en las demás (`WiFi.persistent(false)`). Sin red
+  conocida abre el AP «Reservorio-Setup» con **portal cautivo** (DNS a 192.168.4.1, rutas de
+  detección de Android/Apple/Windows → `/wifi`); reintenta cada 20 s (no si hay alguien en el AP) y
+  cierra el AP tras 60 s con WiFi. La LCD muestra «WiFi <red> / <IP>» al conectarse y, sin red, las
+  páginas «Reservorio-Setup / Clave reservorio» y «Abre en celular: 192.168.4.1/wifi». En la web
+  publicada, «Conectar con la maqueta» pide la IP de la LCD si no la encuentra
+  (`reservorio.esp32Ip` en localStorage). Probado: red inexistente → AP → vuelve a la casa.
+- **Banquito y mangueras (26/11/2026):** patas hasta el tablero con faldón y travesaños; la manguera de
+  entrada sale fuera del banquito antes de bajar y entra recta a la espiga; la de salida pasa por
+  fuera del borde del balde.
 - **Tablero con tema claro (26/11/2026, pedido del usuario):** fondo y piso claros, tarjetas
   blancas con letras oscuras, etiquetas 3D blancas con texto oscuro, medidas y bordes del vidrio
   en azul oscuro, agua azul (`styles-tablero.css`, colores en `model3d.js`). Se agregó la

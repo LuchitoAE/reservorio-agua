@@ -103,7 +103,9 @@ def reporte():
         '**Filtrado del ruido**: se descartan los picos y se promedian las lecturas, para que los valores no salten.',
         '**Cálculos**: altura del agua, porcentaje de llenado, litros, caudal en L/min y litros acumulados.',
         '**Memoria**: las calibraciones y los totales se guardan en la placa y no se pierden al apagarla.',
-        '**WiFi**: se conecta a la red de la casa con una dirección fija (192.168.2.200) y publica su propia página web.',
+        '**WiFi**: se conecta a la red conocida con mejor señal (la de la casa u otras guardadas). En la casa usa la '
+        'dirección fija 192.168.2.200; en otra red, la que esa red le asigne. Si no encuentra ninguna, abre su propia '
+        'red «Reservorio-Setup» para configurarla desde el celular.',
         '**Pantalla LCD**: muestra la información en palabras simples, una página cada 4 segundos.',
         '**Actualización inalámbrica**: los cambios al programa se pueden cargar por WiFi, sin cable.',
         '**Nube (opcional)**: quedó programado el envío de datos a internet cada 5 segundos, protegido con una clave secreta.',
@@ -152,6 +154,9 @@ def reporte():
         ['4 · Caudal', 'Entra   3,2 L/min', 'Sale   0,0 L/min'],
     ], [3.0, 5.4, 8.0])
     texto(doc, 'Si un sensor no responde, su página se salta, para que el público nunca vea valores vacíos.', color=GRIS)
+    texto(doc, '**Mensajes de WiFi:** al conectarse, la pantalla muestra unos segundos la red y la dirección (por '
+               'ejemplo «WiFi luis / 192.168.2.200»). Si no hay red conocida, alterna «Reservorio-Setup · Clave '
+               'reservorio» y «Abre en celular: 192.168.4.1/wifi».')
 
     # 7 -----------------------------------------------------------------------
     titulo(doc, '7. Página web y gemelo digital (maqueta 3D)')
@@ -214,6 +219,8 @@ def reporte():
         ['En el mismo WiFi, con el enlace público', WEB,
          'Pulsa «**Conectar con la maqueta (mismo WiFi)**» y en Chrome o Edge «**Permitir**»: datos en vivo '
          '(solo lectura). El navegador lo recuerda.'],
+        ['En otra red WiFi (por ejemplo, el hotspot del celular)', 'La dirección que muestra la LCD',
+         'Datos **en vivo**. En el enlace público, el botón «Conectar con la maqueta» pide esa dirección.'],
         ['En cualquier otro lugar', WEB,
          'La **simulación** (marcada). Para ver datos reales desde cualquier lugar falta activar la nube (sección 12).'],
     ], [3.6, 5.0, 7.8])
@@ -222,6 +229,26 @@ def reporte():
         'a ella. Para verla desde cualquier lugar, el ESP32 debe enviar sus datos a internet (la nube Supabase), '
         'y la página los lee de ahí. Esa parte ya está programada y solo falta crear el proyecto en la nube.',
     ], 'info')
+    titulo(doc, '9.1 Si llevas la maqueta a otro lugar (otra red WiFi)', 2)
+    texto(doc, 'La dirección 192.168.2.200 solo vale en la red de la casa. En otro lugar, lo más simple es usar el '
+               '**hotspot (Zona WiFi) del celular**: el nombre y la clave de la red son los que elegiste en la '
+               'configuración de la Zona WiFi. Elige la banda de **2,4 GHz** (en iPhone: «Maximizar compatibilidad»), '
+               'porque el ESP32 no se conecta a redes de 5 GHz.')
+    vinetas(doc, [
+        'Enciende la maqueta. Si no conoce ninguna red cercana, a los pocos segundos abre su propia red '
+        '**«Reservorio-Setup»** (clave **reservorio**); la pantalla LCD lo indica.',
+        'Conecta el celular a «Reservorio-Setup». Se abre sola la página **Configurar WiFi** (si no, abre '
+        '**192.168.4.1/wifi**).',
+        'Toca la red del hotspot, escribe su clave y pulsa **Guardar y conectar**.',
+        'La maqueta se conecta y la **LCD muestra la red y la dirección nueva** (por ejemplo 192.168.43.57).',
+        'Conecta el celular o la laptop a esa misma red y abre esa dirección en el navegador.',
+        'La próxima vez se conecta sola: guarda hasta **3 redes** además de la de la casa.',
+    ], numerada=True)
+    recuadro(doc, 'Redes que no sirven', [
+        'Las redes de colegios o empresas que piden usuario y contraseña o una página de ingreso: el ESP32 no '
+        'puede completar esos pasos. En esos lugares usa el hotspot del celular.',
+        'Las redes de 5 GHz.',
+    ], 'aviso')
     texto(doc, '**Publicación:** la página está en Vercel, que publica automáticamente cada cambio aprobado en el '
                'repositorio de GitHub. El informe y el programa del ESP32 se guardan en el repositorio, pero no se '
                'publican en la página.')
@@ -262,6 +289,8 @@ def reporte():
         ['Página publicada (Vercel)', '**Correcto**: simulación marcada y conexión directa desde el mismo WiFi.'],
         ['Calibraciones tras apagar y encender', '**Correcto**: se conservan.'],
         ['Actualización del programa por WiFi', '**Correcto**.'],
+        ['Red WiFi desconocida', '**Correcto**: abre «Reservorio-Setup» con la página para elegir el WiFi y vuelve '
+         'sola a la red de la casa (192.168.2.200) cuando la encuentra.'],
     ], [6.4, 10.0])
 
     # 12 ----------------------------------------------------------------------

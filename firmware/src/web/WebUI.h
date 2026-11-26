@@ -24,6 +24,10 @@ class WebUI {
   void handleReset();
   void handleCalibrate();
   void handleReboot();
+  void handleWifiStatus();
+  void handleWifiSave();
+  void handleWifiForget();
+  void redirectToPortal();
   void handleNotFound();
   void handleOptions();
 

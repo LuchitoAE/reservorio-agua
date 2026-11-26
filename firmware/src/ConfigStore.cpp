@@ -45,6 +45,15 @@ void ConfigStore::begin() {
     if (isnan(flowTotalL_[i]) || flowTotalL_[i] < 0) flowTotalL_[i] = 0;
   }
 
+  wifiCount_ = 0;
+  for (uint8_t i = 0; i < kMaxWifi; ++i) {
+    const String ks = "w" + String(i) + "s";
+    if (!prefs.isKey(ks.c_str())) break;
+    wifiSsid_[wifiCount_] = prefs.getString(ks.c_str(), "");
+    wifiPass_[wifiCount_] = prefs.getString(("w" + String(i) + "p").c_str(), "");
+    if (!wifiSsid_[wifiCount_].isEmpty()) wifiCount_++;
+  }
+
   // Saneamiento por si la NVS quedó corrupta.
   if (tankHeightCm_ < 10 || tankHeightCm_ > 1000) tankHeightCm_ = cfg::DEFAULT_TANK_HEIGHT_CM;
   if (maxLevelCm_ < 5 || maxLevelCm_ > tankHeightCm_) maxLevelCm_ = min(cfg::DEFAULT_MAX_LEVEL_CM, tankHeightCm_);
@@ -134,4 +143,45 @@ void ConfigStore::resetToDefaults() {
   prefs.putFloat(kTurbClear, turbClearV_);
   prefs.putFloat(kTurbTurbid, turbTurbidV_);
   prefs.putFloat(kFlowPpl, flowPpl_);
+}
+
+void ConfigStore::persistWifi() {
+  for (uint8_t i = 0; i < kMaxWifi; ++i) {
+    const String ks = "w" + String(i) + "s";
+    const String kp = "w" + String(i) + "p";
+    if (i < wifiCount_) {
+      prefs.putString(ks.c_str(), wifiSsid_[i]);
+      prefs.putString(kp.c_str(), wifiPass_[i]);
+    } else {
+      if (prefs.isKey(ks.c_str())) prefs.remove(ks.c_str());
+      if (prefs.isKey(kp.c_str())) prefs.remove(kp.c_str());
+    }
+  }
+}
+
+void ConfigStore::saveWifi(const String& ssid, const String& pass) {
+  forgetWifi(ssid);  // si ya estaba, se mueve al principio con la clave nueva
+  const uint8_t n = wifiCount_ < kMaxWifi ? wifiCount_ + 1 : kMaxWifi;
+  for (int i = n - 1; i > 0; --i) {
+    wifiSsid_[i] = wifiSsid_[i - 1];
+    wifiPass_[i] = wifiPass_[i - 1];
+  }
+  wifiSsid_[0] = ssid;
+  wifiPass_[0] = pass;
+  wifiCount_ = n;
+  persistWifi();
+}
+
+bool ConfigStore::forgetWifi(const String& ssid) {
+  for (uint8_t i = 0; i < wifiCount_; ++i) {
+    if (wifiSsid_[i] != ssid) continue;
+    for (uint8_t j = i; j + 1 < wifiCount_; ++j) {
+      wifiSsid_[j] = wifiSsid_[j + 1];
+      wifiPass_[j] = wifiPass_[j + 1];
+    }
+    wifiCount_--;
+    persistWifi();
+    return true;
+  }
+  return false;
 }
