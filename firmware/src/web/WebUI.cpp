@@ -39,8 +39,10 @@ String fullConfigJson(const ConfigStore& config) {
   doc["phNeutralV"] = config.phNeutralV();
   doc["phSlopeV"] = config.phSlopeV();
   doc["turbClearV"] = config.turbClearV();
+  doc["turbTurbidV"] = config.turbTurbidV();
   doc["flowPulsesPerLiter"] = config.flowPulsesPerLiter();
-  doc["flowTotalL"] = config.flowTotalL();
+  doc["flowTotalInL"] = config.flowTotalL(FlowSensor::kIn);
+  doc["flowTotalOutL"] = config.flowTotalL(FlowSensor::kOut);
   String out;
   serializeJson(doc, out);
   return out;
@@ -155,8 +157,10 @@ void WebUI::handleReset() {
   deserializeJson(doc, server_.arg("plain"));
   const String what = doc["what"] | "";
 
-  if (what == "flow" && sensors_ != nullptr) {
-    sensors_->flow().resetTotal();
+  if (sensors_ != nullptr && (what == "flow" || what == "flowIn" || what == "flowOut")) {
+    // "flow" reinicia los dos acumulados; "flowIn"/"flowOut" solo uno.
+    if (what != "flowOut") sensors_->flowIn().resetTotal();
+    if (what != "flowIn") sensors_->flowOut().resetTotal();
   } else {
     addCorsHeaders();
     server_.send(400, "application/json", "{\"error\":\"que reiniciar?\"}");
@@ -194,6 +198,13 @@ void WebUI::handleCalibrate() {
     ok = sensors_->ph().calibrateSecondPoint(10.0f);
   } else if (sensor == "turbidity-clear") {
     ok = sensors_->turbidity().calibrateClear();
+  } else if (sensor == "turbidity-turbid") {
+    ok = sensors_->turbidity().calibrateTurbid();
+  } else if (sensor == "level-empty") {
+    // Tanque vacío: la distancia medida hasta el fondo pasa a ser la altura de calibración.
+    const float d = sensors_->level().measureSteady();
+    ok = !isnan(d) && d >= 10.0f && d <= cfg::MAX_VALID_DISTANCE_CM;
+    if (ok) config_->setTank(d, config_->sensorOffsetCm());
   } else {
     addCorsHeaders();
     server_.send(400, "application/json", "{\"error\":\"sensor desconocido\"}");
@@ -206,6 +217,8 @@ void WebUI::handleCalibrate() {
   out["phNeutralV"] = config_->phNeutralV();
   out["phSlopeV"] = config_->phSlopeV();
   out["turbClearV"] = config_->turbClearV();
+  out["turbTurbidV"] = config_->turbTurbidV();
+  out["tankHeightCm"] = config_->tankHeightCm();
   if (!ok) out["error"] = "lectura fuera de rango, revisa el sensor";
 
   String body;

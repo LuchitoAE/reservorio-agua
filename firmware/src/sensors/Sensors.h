@@ -15,13 +15,15 @@ class Sensors {
   void update();
 
   Ultrasonic& level() { return level_; }
-  FlowSensor& flow() { return flow_; }
+  FlowSensor& flowIn() { return flowIn_; }    // caudalímetro de entrada
+  FlowSensor& flowOut() { return flowOut_; }  // caudalímetro de salida
   TemperatureSensor& temperature() { return temperature_; }
   PhSensor& ph() { return ph_; }
   TurbiditySensor& turbidity() { return turbidity_; }
 
   const Ultrasonic& level() const { return level_; }
-  const FlowSensor& flow() const { return flow_; }
+  const FlowSensor& flowIn() const { return flowIn_; }
+  const FlowSensor& flowOut() const { return flowOut_; }
   const TemperatureSensor& temperature() const { return temperature_; }
   const PhSensor& ph() const { return ph_; }
   const TurbiditySensor& turbidity() const { return turbidity_; }
@@ -35,7 +37,8 @@ class Sensors {
  private:
   ConfigStore* config_ = nullptr;
   Ultrasonic level_;
-  FlowSensor flow_;
+  FlowSensor flowIn_;
+  FlowSensor flowOut_;
   TemperatureSensor temperature_;
   PhSensor ph_;
   TurbiditySensor turbidity_;

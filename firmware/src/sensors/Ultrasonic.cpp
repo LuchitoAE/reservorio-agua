@@ -1,11 +1,13 @@
 #include "sensors/Ultrasonic.h"
 
+#include <algorithm>
+
 #include "config.h"
 
 namespace {
 constexpr uint32_t kPulseTimeoutUs = 25000;  // ~4 m de alcance
-constexpr uint32_t kSampleGapMs = 60;        // ciclo minimo recomendado por el datasheet
 constexpr float kSoundCmPerUs = 0.0343f;     // 343 m/s a 20 °C
+constexpr uint8_t kFailsForNoEcho = 15;      // ~1 s seguido sin eco -> sensor no conectado
 }  // namespace
 
 void Ultrasonic::begin() {
@@ -29,24 +31,32 @@ float Ultrasonic::measureOnce() {
   return cm;
 }
 
+// Un disparo cada LEVEL_INTERVAL_MS (70 ms) sin bloquear el resto del programa;
+// la distancia es la mediana de los últimos 5 ecos (~0.35 s), que descarta lecturas
+// sueltas malas y responde rápido a los cambios de nivel.
+float Ultrasonic::measureSteady() {
+  float samples[25];
+  uint8_t n = 0;
+  const uint32_t start = millis();
+  while (n < 25 && millis() - start < 2500) {
+    const float d = measureOnce();
+    if (!isnan(d)) samples[n++] = d;
+    delay(70);  // el HC-SR04 necesita ~60 ms entre disparos
+  }
+  if (n < 10) return NAN;
+  std::sort(samples, samples + n);
+  return samples[n / 2];
+}
+
 void Ultrasonic::update() {
   const uint32_t now = millis();
   if (now - lastSampleMs_ < cfg::LEVEL_INTERVAL_MS) return;
   lastSampleMs_ = now;
 
-  uint8_t valid = 0;
-  for (uint8_t i = 0; i < 3; i++) {
-    const float cm = measureOnce();
-    if (!isnan(cm)) {
-      filter_.push(cm);
-      valid++;
-    }
-    delay(kSampleGapMs);
-  }
-
-  if (valid == 0) {
+  const float cm = measureOnce();
+  if (isnan(cm)) {
     if (failStreak_ < 255) failStreak_++;
-    if (failStreak_ >= 3) {
+    if (failStreak_ >= kFailsForNoEcho) {
       ok_ = false;
       distanceCm_ = NAN;
       filter_.reset();
@@ -55,6 +65,7 @@ void Ultrasonic::update() {
   }
 
   failStreak_ = 0;
+  filter_.push(cm);
   distanceCm_ = filter_.median();
   ok_ = !isnan(distanceCm_);
   lastReadMs_ = now;

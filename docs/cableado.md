@@ -14,21 +14,22 @@
   32                │                      │ 16
   33                │                      │ 17
   25                │                      │ 5
-  26                │                      │ 18 ── HC-SR04 ECHO (divisor)
+  26 ── Caudal SALIDA│                      │ 18 ── HC-SR04 ECHO (4.7k en serie)
   27                │                      │ 19 ── HC-SR04 TRIG
   14                │                      │ 21 ── LCD SDA
   12                │                      │ 3
   13                │                      │ 1
   GND               │                      │ 22 ── LCD SCL
-  VIN (5V USB)      │                      │ 23 ── YF-S201 señal
+  VIN (5V USB)      │                      │ 23 ── Caudal ENTRADA
                     └──────────────────────┘
 ```
 
 | Función | GPIO | Notas |
 | --- | --- | --- |
 | HC-SR04 TRIG | 19 | Salida 3.3 V, el sensor acepta 3.3 V en TRIG |
-| HC-SR04 ECHO | 18 | **Divisor 5 V → ~3 V** |
-| YF-S201 señal | 23 | Entrada con interrupción; requiere pull-up (usar 4.7 kΩ a 3.3 V) |
+| HC-SR04 ECHO | 18 | Resistencia de 4.7 kΩ **en serie** (ECHO → 4.7k → D18). Con este clon un divisor a GND deja de leer |
+| Caudal **entrada** (amarillo) | 23 | Amarillo → 4.7 kΩ en serie → D23. Pull-up interno del ESP32 |
+| Caudal **salida** (amarillo) | 26 | Amarillo → 4.7 kΩ en serie → D26. Pull-up interno del ESP32 |
 | DS18B20 DATA | 4 | Pull-up 4.7 kΩ a **3.3 V** |
 | pH (Po) | 34 | ADC1, solo entrada. **Máx 3.3 V** |
 | Turbidez (A) | 35 | ADC1, solo entrada. **Máx 3.3 V** |
@@ -43,7 +44,7 @@
 | Módulo | Voltaje | Consumo aprox. |
 | --- | --- | --- |
 | HC-SR04 | 5 V | 15 mA |
-| YF-S201 | 5–24 V (5 V sirve) | 15 mA |
+| ZJ-S201 / YF-S201 (×2) | 5–24 V (5 V sirve) | 15 mA c/u |
 | DS18B20 | 3.0–5.5 V | 1.5 mA |
 | Módulo pH | 5 V (ver nota) | 10 mA |
 | TS-300B turbidez | 5 V | 40 mA (máx) |
@@ -109,12 +110,21 @@ El módulo entrega entre 0 y ~3.8 V según el pH (≈2.5 V en pH 7). Alimentado 
 - Ojo con la condensación: el sensor no es sumergible. Usa un tubo guía o montura
   elevada y sella la electrónica.
 
-### YF-S201 — caudal
+### ZJ-S201 / YF-S201 — caudal de entrada y de salida
 
-- Instálalo en la tubería de entrada (o salida) respetando la flecha de flujo.
-- 450 pulsos = 1 litro (`FLOW_PULSES_PER_LITER`).
-- La señal es de colector abierto: **pull-up 4.7 kΩ a 3.3 V** y luego al GPIO 23.
-- Evita tirones de cable largos sin apantallar; usa el cable flat solo para tramos cortos.
+- Hay dos: **entrada** en D23 y **salida** en D26. La web los muestra en dos tarjetas
+  (y el "Neto" = entrada − salida); la LCD, en la página "Entra / Sale".
+- Cables: **rojo → VIN (5 V)**, **negro → GND**, **amarillo → resistencia 4.7 kΩ → D23 / D26**.
+- La salida del sensor puede llegar a 5 V: la resistencia en serie limita la corriente
+  (< 0.3 mA) y el ESP32 usa su pull-up interno. **No** pongas un pull-up externo a 3.3 V
+  junto con la resistencia en serie: el nivel bajo quedaría en ~1.6 V y no contaría pulsos.
+- Instálalo respetando la **flecha** del cuerpo (sentido del agua).
+- F = 7.5 × Q (L/min) → **450 pulsos = 1 litro** (`DEFAULT_FLOW_PPL`). Rango 1–30 L/min:
+  por debajo de ~1 L/min la turbina no gira.
+- El firmware ignora flancos a menos de 1 ms (ruido) y guarda cada acumulado en la memoria
+  cada 30 s si cambió. "Reiniciar acumulados de caudal" en la web pone ambos en 0.
+- Sin agua circulando no hay pulsos: el indicador queda gris (no se puede saber si está
+  conectado) y pasa a verde mientras mide caudal.
 
 ### DS18B20 — temperatura
 
@@ -135,9 +145,11 @@ El módulo entrega entre 0 y ~3.8 V según el pH (≈2.5 V en pH 7). Alimentado 
 - Sensor óptico: la suciedad en el lente falsea la lectura. Límpialo cada tanto.
 - No lo sumerjas más allá de la marca; la electrónica va fuera del agua.
 - Módulo de 4 pines (`V`, `D`, `G`, `A`); la sonda va al conector numerado `4 3 2 1`.
-- Salida aproximada: agua clara 4.1–4.5 V, agua turbia baja hasta ~2.5 V (alimentado a 5 V).
+- Salida según el fabricante: agua clara 4.1–4.5 V. **Medido con este módulo:** agua de caño
+  2.89 V y agua con tierra 2.52–2.63 V (ver `docs/calibracion.md`).
 - Conversión NTU usada (aproximada, para tendencias más que para laboratorio):
-  `NTU = −1120.4·V² + 5742.3·V − 4352.9`, con V ya compensado por el divisor.
+  `NTU = −1120.4·Ve² + 5742.3·Ve − 4352.9`, con `Ve = V × 4.2 / turbClearV` y V ya
+  compensado por el divisor.
 - El dashboard además muestra **% de claridad** referido al voltaje de agua clara calibrado.
 
 ### LCD 1602 I2C

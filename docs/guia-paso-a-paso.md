@@ -14,7 +14,7 @@ Tiempo estimado: 2–3 h la primera vez (sin contar la descarga de herramientas)
 | --- | --- | --- |
 | A | Instalar herramientas y reconocer la placa | La PC "ve" el ESP32 |
 | B | Subir el firmware sin sensores | El ESP32 arranca y muestra su IP |
-| C | Abrir el dashboard en la PC | Ves las tarjetas con datos simulados |
+| C | Abrir el dashboard en la PC | Ves las tarjetas (en 0 mientras no haya ESP32) |
 | D | Armar la protoboard y conectar 1 sensor | Un dato real en pantalla |
 | E | Repetir con los otros 4 sensores | Los 5 datos reales |
 | F | Cargar la web al ESP32 | Dashboard desde el celular, sin PC |
@@ -267,14 +267,13 @@ En otra terminal:
 node tools/dev-server.js
 ```
 
-Abre `http://localhost:5173`. Como no hay sensores, el dashboard entra solo en **modo Demo**
-(arriba a la derecha dice "Demo · sin hardware") y muestra datos simulados que se mueven.
+Abre `http://localhost:5173`. Sin placa, el dashboard muestra todos los valores en **0** y
+arriba a la derecha dice "ESP32 sin conexión" (solo muestra datos reales, no simulados).
 
 Qué revisar ahora, antes de tocar cables:
 
-- [ ] El tanque sube y baja y el porcentaje cambia.
-- [ ] Las 6 tarjetas se actualizan y las mini-gráficas avanzan.
-- [ ] El selector **Fuente → Demo** funciona.
+- [ ] Las 6 tarjetas aparecen con valores en 0 e indicadores en rojo.
+- [ ] El aviso de arriba dice "ESP32 sin conexión".
 - [ ] En **Ajustes del tanque**, cambia la altura a 150 cm y guarda: el texto "Altura" cambia.
 - [ ] En el celular, entra a `http://TU_IP_LOCAL:5173` (la IP la imprime el servidor).
 - [ ] El registro (abajo) anota eventos con hora.
@@ -457,8 +456,8 @@ fila, otra resistencia hasta el riel azul; y de esa fila (el punto medio) un cab
 4. A más de 4 m o sin obstáculo, debe mostrar `--` (sin lectura), no un número absurdo.
 
 > El porcentaje de nivel puede verse raro en la mesa: se calcula como
-> `altura de calibración − distancia`. Con la calibración de 36.5 cm y el sensor a 20 cm de un
-> obstáculo, marcará 55 % de los 30 cm útiles. Es correcto. Para pruebas, mira **Distancia**, no el %.
+> `altura de calibración − distancia`. Con la calibración de 36 cm y el sensor a 20 cm de un
+> obstáculo, marcará 55 % de los 29 cm útiles. Es correcto. Para pruebas, mira **Distancia**, no el %.
 
 **Si no funciona**
 
@@ -631,7 +630,7 @@ Luego:
 
 1. Reinicia la placa o espera: en el monitor verás la IP.
 2. Abre en el celular `http://192.168.1.50` (tu IP) o `http://reservorio.local`.
-3. Verifica que el badge diga **ESP32 · 192.168.x.x** (no "Demo").
+3. Verifica que el badge diga **ESP32 · 192.168.x.x** (no "ESP32 sin conexión").
 4. Prueba **Ajustes del tanque**: guarda y vuelve a abrir; el valor debe persistir.
 
 > Si `uploadfs` falla por falta de espacio, sube solo lo necesario: `node tools/sync-web.js` copia
@@ -690,7 +689,7 @@ Al soldar, en este orden:
 | `Failed to connect` al subir | Placa no en modo descarga | BOOT + EN, o bajar `upload_speed` a 115200 |
 | Se reinicia solo | Fuente insuficiente / brownout | Fuente 5 V 2 A, GND común |
 | WiFi no conecta | Red de 5 GHz o clave mal | Usar 2.4 GHz; revisar `secrets.h`; AP de respaldo |
-| Dashboard en Demo aunque el ESP32 está | `ESP32_URL` sin definir o redes distintas | `ESP32_URL=http://IP node tools/dev-server.js` |
+| Dashboard "sin conexión" aunque el ESP32 está | `ESP32_URL` sin definir o redes distintas | `ESP32_URL=http://IP node tools/dev-server.js` |
 | Todo `nan` | Firmware sin sensores o `uploadfs` faltante | Monitor serie; revisar conexiones |
 | Nivel siempre 0 | ECHO sin divisor / TRIG-ECHO invertidos | Revisar divisor y pines 18/19 |
 | pH en 0 o 14 | Entrada saturada (>3.3 V) | Poner el divisor, verificar `PH_DIVIDER` |

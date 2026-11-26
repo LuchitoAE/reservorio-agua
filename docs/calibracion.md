@@ -10,10 +10,12 @@ Valores por defecto en `firmware/include/config.h`.
 ## 1. Nivel (HC-SR04)
 
 1. La altura de calibración es la distancia desde la **cara del sensor hasta el fondo** del
-   tanque. Con la tapa de tecnopor (2 cm) y el sensor (1.5 cm) quedan **36.5 cm** de los
-   40 cm interiores. Ponla en *Ajustes → Altura de calibración*.
-2. Llena el tanque **hasta el nivel de operación (30 cm)**; el rebose físico está a 31 cm.
-   Anota lo que muestra el dashboard.
+   tanque. Medido el 25/11/2026: el sensor ocupa de 36 a 38 cm, así que su cara queda a
+   **36 cm** de los 40 cm interiores. Ponla en *Ajustes → Altura de calibración*.
+2. El tanque llena a 30 cm, pero el **nivel máximo (100 % = TANQUE LLENO) es 29 cm**: deja
+   1 cm de margen por la precisión del sensor. El rebose físico está a **31 cm** (desde ahí
+   el dashboard, la LCD y el modelo muestran ¡REBALSANDO!). Llena el tanque y anota lo que
+   muestra el dashboard.
 3. Ajusta `sensorOffsetCm` para que marque el 100 %. Fórmula:
 
    ```
@@ -60,19 +62,49 @@ Fórmula implementada:
 pH = 7.0 + (V_neutro − V_medido) / pendiente_V_por_pH
 ```
 
-Por defecto `V_neutro = 2.50 V`, `pendiente = 0.18 V/pH` (valores típicos del módulo a 5 V).
+Valores guardados en el firmware (calibración del 25/11/2026 con `pruebas/ph/monitor.py`,
+sin buffers de laboratorio):
+
+| Referencia | pH | Salida Po |
+| --- | --- | --- |
+| Agua de caño | 7.55 | 2.515 V |
+| Jugo de limón | 2.2 | 3.353 V |
+| **Resultado** | | `V_neutro = 2.6015 V`, `pendiente = 0.1565 V/pH` (157 mV/pH) |
+
+Precisión aproximada ±0.3 pH (limitada por el pH real del limón y del agua). Con buffers
+comprados o con `bicarbonato` / `vinagre` se puede mejorar (ver `pruebas/ph/README.md`).
+
+- El voltaje se lee con `analogReadMilliVolts`, igual que la prueba de banco, así que la
+  calibración del monitor sirve tal cual. Claves NVS: `phN2` y `phS2` (las viejas `phN`/`phS`
+  usaban otra escala y se borran al arrancar).
+- El offset del módulo quedó ajustado: Po ≈ 2.5 V en agua de pH 7.55.
 
 ---
 
 ## 3. Turbidez (TS-300B)
 
-La fórmula NTU es una aproximación del fabricante. Lo importante es la **referencia de agua
-clara**:
+Se calibra con **dos referencias**: agua clara (100 %) y agua turbia (0 %). El firmware
+viene con las medidas el 25/11/2026 con la prueba de banco (`pruebas/turbidez/monitor.py`):
 
-1. Llena un vaso con agua destilada o potable limpia, a la misma temperatura del tanque.
-2. Introduce el sensor hasta la marca, sin tocar las paredes, y espera 30 s.
-3. Pulsa **Calibrar agua clara**. Se guarda el voltaje de referencia (`turbClearV`).
-4. El % de claridad se calcula como `V / turbClearV × 100`.
+| Referencia | Voltaje (salida A) | Clave NVS |
+| --- | --- | --- |
+| Agua de caño | 2.89 V | `turbClearV` (`turbC2`) |
+| Agua con tierra | 2.52 V | `turbTurbidV` (`turbT2`) |
+
+Para recalibrar desde el dashboard:
+
+1. Llena un vaso con agua potable limpia, a la misma temperatura del tanque.
+2. Introduce el sensor hasta la marca, sin tocar las paredes, y espera 30–60 s.
+3. Pulsa **Agua clara**. Se guarda `turbClearV`.
+4. Repite con agua turbia (agua con tierra) y pulsa **Agua turbia**. Se guarda `turbTurbidV`.
+
+Cálculos:
+
+- Claridad: `(V − turbTurbidV) / (turbClearV − turbTurbidV) × 100`, limitada a 0–100 %.
+- NTU (estimado): `Ve = V × 4.2 / turbClearV` y luego la curva del fabricante
+  `−1120.4·Ve² + 5742.3·Ve − 4352.9`. Debajo de Ve = 2.5 V se informa 3000 NTU (tope).
+- El voltaje se lee con `analogReadMilliVolts` (calibración de fábrica del ADC), igual que
+  la prueba de banco, así que los valores del monitor sirven tal cual en el firmware.
 
 Si el agua clara marca un valor alto de NTU (>50), revisa:
 

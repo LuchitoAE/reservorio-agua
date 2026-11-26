@@ -7,9 +7,13 @@ class ConfigStore;
 
 /**
  * Módulo de pH (PH-7BNC / equivalente PH-4502C) en un canal ADC1.
- * Calibración de dos puntos: buffer 7.00 y buffer 4.00.
+ * Calibración de dos puntos: buffer 7.00 y buffer 4.00 (o referencias caseras con
+ * pruebas/ph/monitor.py).
  *
  *   pH = 7.0 + (V_neutro - V_medido) / pendiente
+ *
+ * El voltaje se lee con analogReadMilliVolts (calibración de fábrica del ADC), igual
+ * que la prueba de banco pruebas/ph, para que su calibración sirva tal cual.
  */
 class PhSensor {
  public:

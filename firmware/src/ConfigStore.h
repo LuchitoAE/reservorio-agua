@@ -23,13 +23,16 @@ class ConfigStore {
 
   // --- Turbidez ---
   float turbClearV() const { return turbClearV_; }
+  float turbTurbidV() const { return turbTurbidV_; }
   void setTurbClearV(float volts);
+  void setTurbTurbidV(float volts);
 
   // --- Flujo ---
   float flowPulsesPerLiter() const { return flowPpl_; }
   void setFlowPulsesPerLiter(float ppl);
-  float flowTotalL() const { return flowTotalL_; }
-  void saveFlowTotalL(float liters);
+  // Acumulado por caudalímetro: 0 = entrada, 1 = salida (FlowSensor::kIn / kOut).
+  float flowTotalL(uint8_t index) const { return index < 2 ? flowTotalL_[index] : 0; }
+  void saveFlowTotalL(uint8_t index, float liters);
 
   void resetToDefaults();
 
@@ -40,6 +43,7 @@ class ConfigStore {
   float phNeutralV_ = 0;
   float phSlopeV_ = 0;
   float turbClearV_ = 0;
+  float turbTurbidV_ = 0;
   float flowPpl_ = 0;
-  float flowTotalL_ = 0;
+  float flowTotalL_[2] = {0, 0};
 };

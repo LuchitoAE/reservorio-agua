@@ -2,6 +2,7 @@
 
 #include <WiFi.h>
 
+#include "CloudSync.h"
 #include "ConfigStore.h"
 #include "config.h"
 #include "sensors/Sensors.h"
@@ -14,6 +15,13 @@ void putFloatOrNull(JsonObject obj, const char* key, float value) {
   } else {
     obj[key] = value;
   }
+}
+
+void putFlow(JsonObject obj, const FlowSensor& flow) {
+  obj["ok"] = flow.ok();
+  obj["lpm"] = flow.litersPerMinute();
+  obj["totalL"] = flow.totalLiters();
+  obj["pulses"] = flow.totalPulses();
 }
 
 }  // namespace
@@ -55,12 +63,10 @@ void build(JsonDocument& doc, const Sensors& sensors, const ConfigStore& config)
   putFloatOrNull(level, "liters", sensors.liters());
   level["tankHeightCm"] = config.tankHeightCm();
   level["maxLevelCm"] = config.maxLevelCm();
+  level["overflowCm"] = cfg::OVERFLOW_LEVEL_CM;
 
-  JsonObject flow = doc["flow"].to<JsonObject>();
-  flow["ok"] = sensors.flow().ok();
-  flow["lpm"] = sensors.flow().litersPerMinute();
-  flow["totalL"] = sensors.flow().totalLiters();
-  flow["pulses"] = sensors.flow().totalPulses();
+  putFlow(doc["flowIn"].to<JsonObject>(), sensors.flowIn());
+  putFlow(doc["flowOut"].to<JsonObject>(), sensors.flowOut());
 
   JsonObject temperature = doc["temperature"].to<JsonObject>();
   temperature["ok"] = sensors.temperature().ok();
@@ -82,8 +88,9 @@ void build(JsonDocument& doc, const Sensors& sensors, const ConfigStore& config)
   JsonObject system = doc["system"].to<JsonObject>();
   system["heap"] = ESP.getFreeHeap();
   system["sensorsOk"] = sensors.okCount();
-  system["sensorsTotal"] = 5;
+  system["sensorsTotal"] = 6;
   system["flowPpl"] = config.flowPulsesPerLiter();
+  system["cloud"] = cloud::status();
   system["tankLengthCm"] = cfg::TANK_INTERNAL_LENGTH_CM;
   system["tankWidthCm"] = cfg::TANK_INTERNAL_WIDTH_CM;
 }
